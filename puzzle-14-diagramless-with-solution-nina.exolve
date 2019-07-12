@@ -1,0 +1,88 @@
+exolve-begin
+  exolve-id: gussalufz-14
+  exolve-title: Putting Two And Two Together
+  exolve-setter: Gussalufz
+  exolve-copyright: 2019 Viresh Ratnakar
+  exolve-width: 15
+  exolve-height: 15
+  exolve-grid:
+        S T A L E M A T E . A S H E S
+        A . G . S . G . X . H . O . T 
+        P R A T T L E . T H I S T L E
+        P . I . A . N . O . . . S . A 
+        Y E N . B*A*T*T*L*E*F*I E L D 
+        . . S . L*.*.*A*.*.*O*. A . F 
+        D E T A I*N*.*X*E*.*R*A T H A 
+        E . . . S*.*.*I*.*.*M*. . . S 
+        C A T C H*.*D*C*.*L*A*N C E T 
+        A . S . E*.*.*A*.*.*L*. O . . 
+        T H U N D*E*R*B*O*L*T*. N A P 
+        H . N . . . E . R . I . C . U 
+        L E A T H E R . B E T W E E N 
+        O . M . U . U . I . L . A . N 
+        N O I S E . N O T R E A L L Y 
+  exolve-prelude:
+    A 7×7 area at the center of the grid has been cleared completely. Moreover,
+    enums for words beginning or ending in this area have been omitted in
+    the clues.
+    <br>
+    <br> After filling the grid and identifying all the black
+    squares in the central area, you should be able to put two and two together.
+    Putting this discovery next to a preceding word from the neighbourhood
+    would give you a famous title.
+    <br>
+    <br> The puzzle also features six interesting
+    features of the title, including some leading characters.
+    <br>
+    <br>
+    This puzzle was published in the
+    <a href="http://www.1across.org/">1ACross blog</a> in July 2019.
+
+  exolve-nina: a12 c12 e12 g12 i12 m12 o12
+  exolve-nina: j13 j11 j7 j5 j3 j1
+  exolve-nina: a7 b7 c7 d7 e7
+  exolve-nina: f10 g10 g9 g8 f8 f7 f6 g6 i10 j10 j9 j8 i8 i7 i6 j6
+
+  exolve-question: What is the famous title? (5-2) CATCH-22
+  exolve-question: Leading characters? (9, 12, 8, 6) YOSSARIAN MINDERBINDER CATHCART NATELY
+  exolve-question: Setting? (7) PIANOSA
+  exolve-question: Author? (7) HELLER
+
+  exolve-across:
+    1 Yesterday's lover's tie? (9)
+    6 Openers of Australian side have easily secured trophy (5)
+    9 Small talk: lies tipsy pirates tell (7)
+    10 Shot hit gutted steel production plant (7)
+    11 Appetite of hungry Englishman (3)
+    12 Retreating felt somehow a bit restraining; led formation to get to conflict zone
+    15 Imprison and tie perhaps
+    16 A gas of unknown extraterrestrial origin
+    17 Newly laid tar has scratched old vehicle
+    18 Make out, rub
+    20 It's a current capital
+    21 Needle is clean? Unfortunately not at the tip
+    23 Don't blur the set line between heaven and earth
+    26 Englishwomen apparently protect the rest (3)
+    28 Ridicule a therapist's clothes; hide (7)
+    30 Be an adolescent consuming a bit of weed and connecting (7)
+    31 Interference in elections—set client lost (5)
+    32 Negative initial response in letter written by friend (3,6)
+  exolve-down:
+    1 Declare overwhelming paneer pakora starters to be gooey (5)
+    2 Extra-last drinks going around a bar counter (7)
+    3 Renowned online firm accepts his retyped password finally
+    4 CIA employee is a refined man
+    5 Acclaim of former tax scheme, we hear
+    6 Tuna: a fish regularly cooked (3)
+    7 Horrible position—to have to follow horrible host (3,4)
+    8 Constant trailing terms that simple algebra disposed of (formula was correct!) (9)
+    13 A charging vehicle
+    14 Revolting a little from Lady or Gentleman, perhaps? (two words)
+    15 Tuck and clothe for contest (9)
+    19 Nuts, bananas, and hints of almond milk in a big splash of water (7)
+    22 Avoid disclosing tragic ending after a novel's conclusion (7)
+    24 To show one more time, permeating clearer understanding
+    25 Extent of graft I brought up
+    27 Like the writing in Asterix—amusing, but quietly instead of loudly (5)
+    29 You, when hugged by that man, turn pink, perhaps (3)
+exolve-end
