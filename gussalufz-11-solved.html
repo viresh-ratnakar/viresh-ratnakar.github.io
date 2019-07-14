@@ -64,7 +64,7 @@ exolve-begin
         LUCIDITY.NEARBY
   exolve-prelude:
     <p>
-    XPlease look for the following as you solve this puzzle:
+    YPlease look for the following as you solve this puzzle:
     <blockquote>
         (a) Letter with Nina’s shape.<br>
         (b) Number of the second word ending in Nina’s initials.<br>
@@ -286,6 +286,10 @@ td:first-child {
 .wide-box {
   width: 460px;
 }
+#top-panel {
+  margin: 0;
+  padding: 0;
+}
 #title {
   text-align: center;
   font-weight: bold;
@@ -405,7 +409,7 @@ hr {
 <body>
 
 <div class="flex-col" id="outermost-stack">
-  <div class="flex-col">
+  <div id="top-panel" class="flex-col">
     <h2 id="title"></h2>
     <div id="setter"></div>
     <div id="prelude"></div>
