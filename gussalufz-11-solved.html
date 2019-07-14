@@ -35,7 +35,7 @@ https://github.com/viresh-ratnakar/exolve
 
 <script>
 
-const VERSION = 'exolve v0.04 July 13, 2019'
+const VERSION = 'exolve v0.04 July 14, 2019'
 
 const puzzleText = `
 ======REPLACE WITH YOUR PUZZLE BELOW======
@@ -64,7 +64,7 @@ exolve-begin
         LUCIDITY.NEARBY
   exolve-prelude:
     <p>
-    APlease look for the following as you solve this puzzle:
+    Please look for the following as you solve this puzzle:
     <blockquote>
         (a) Letter with Nina’s shape.<br>
         (b) Number of the second word ending in Nina’s initials.<br>
@@ -102,7 +102,7 @@ exolve-begin
   exolve-nina: b7 c7 d7 g3 g2 g1 i15 i14 i13 m9 n9 o9
 
   exolve-question: Fill in the blanks (??? ???????? ???????? instructions) (3, 8, 8) X86 ASSEMBLY LANGUAGE
-  exolve-question: Solution for the end puzzle (... this ????: ????? inside.) (4, 5) SEAL INTEL
+  exolve-question: Solution for the end puzzle (... this ????: ????? inside) (4, 5) SEAL INTEL
 
   exolve-explanations:
     <h3>Explanations</h3>
@@ -293,6 +293,7 @@ td:first-child {
 #setter {
   text-align: center;
   color: darkgreen;
+  margin: 0 0 8px 0;
 }
 #prelude {
   margin: 8px;
@@ -995,8 +996,8 @@ function parseEnum(clueLine) {
   };
   let enumLocation = clueLine.search(/\([1-9]+[0-9\-,'’\s]*\)/)
   if (enumLocation < 0) {
-    // Look for the the string 'word' in parens.
-    enumLocation = clueLine.search(/\([^)]*word[^)]*\)/i)
+    // Look for the the string 'word'/'letter' in parens.
+    enumLocation = clueLine.search(/\([^)]*(word|letter)[^)]*\)/i)
     if (enumLocation >= 0) {
       let enumEndLocation =
           enumLocation + clueLine.substr(enumLocation).indexOf(')')
