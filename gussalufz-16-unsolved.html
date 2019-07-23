@@ -35,8 +35,6 @@ https://github.com/viresh-ratnakar/exolve
 
 <script>
 
-const VERSION = 'exolve v0.04 July 15, 2019'
-
 const puzzleText = `
 ======REPLACE WITH YOUR PUZZLE BELOW======
 exolve-begin
@@ -107,262 +105,8 @@ exolve-begin
 exolve-end
 ======REPLACE WITH YOUR PUZZLE ABOVE======
 `;
-</script>
 
-<!--
-Reference list of possible values of the optional decorator characters that can
-follow each grid square entry:
-| draw bar after
-_ draw bar under
-+ draw bar after and under
-@ draw circle
-* diagramless
--->
-
-<style>
-.background {
-  fill: black;
-}
-.cell {
-  fill: white;
-  cursor: pointer;
-}
-.cell-num {
-  font-size: 9px;
-  font-family: sans-serif;
-}
-.cell-text {
-  font-size: 16px;
-  font-family: sans-serif;
-  cursor: text;
-}
-.wordend {
-  fill: rgb(0,0,255);
-}
-table {
-  border-collapse: collapse;
-  border-spacing: 0;
-}
-td {
-  padding: 4px 6px 0 0;
-  vertical-align: top;
-}
-td:first-child {
-  max-width: 40px;
-  font-weight: bold;
-}
-.anno-text {
-  font-style: italic;
-  color: darkgreen;
-}
-.flex-row {
-  display: flex;
-  flex-flow: row wrap;
-  align-items: flex-start;
-}
-.flex-col {
-  display: flex;
-  flex-flow: column wrap;
-}
-.wide-box {
-  width: 460px;
-}
-#title {
-  text-align: center;
-  font-weight: bold;
-}
-#setter {
-  text-align: center;
-  color: darkgreen;
-  margin: 0 0 8px 0;
-}
-#prelude {
-  margin: 8px 8px 0 8px;
-  padding: 0;
-}
-#small-print {
-  font-size: small;
-  text-align: right;
-}
-#errors {
-  font-weight: bold;
-  color: red;
-}
-#current-clue {
-  height: 40px;
-  word-wrap: break-word;
-  font-weight: bold;
-  margin: 0 0 8px 8px;
-}
-#grid-panel {
-  margin: 0 0 0 8px;
-}
-#grid-parent-centerer {
-  text-align: center;
-}
-#grid-parent {
-  position:relative;
-  margin: 0 20px 0 0;
-  display: inline-block;
-}
-#grid-input-wrapper {
-  position: absolute;
-  border: none;
-  border-width:0;
-}
-#grid-input {
-  text-align: center;
-  text-anchor: middle;
-  border: 0;
-  width: 100%;
-  height: 100%;
-  padding: 0;
-  background: rgba(255,255,255,0.0);
-}
-.controls-row {
-  margin: 6px 0 6px 0;
-}
-.clues-box {
-  margin: 0 10px 0 0;
-}
-#explanations {
-  margin: 10px 0 0 0;
-}
-hr {
-  margin: 0 0 4px 0;
-  background-color: darkgreen;
-}
-.button {
-  background-color: #4CAF50; /* Green */
-  border: none;
-  outline: none;
-  color: white;
-  padding: 8px 8px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  border-radius: 12px;
-  font-family: monospace;
-  font-size: 14px;
-}
-.button:hover {
-  background-color: darkgreen;
-  cursor: pointer;
-}
-.button:disabled {
-  background-color: gray;
-  cursor: not-allowed;
-}
-#nina-group {
-  position: absolute;
-  border: none;
-  border-width:0;
-  outline: none;
-}
-.nina {
-  position: absolute;
-  border: none;
-  border-width:0;
-  outline: none;
-  cursor: pointer;
-}
-#status {
-  font-family: monospace;
-  font-size: 12px;
-  margin: 6px 0 6px 0;
-  color: darkgreen;
-}
-.question {
-  margin: 10px 0 10px 0;
-}
-.answer {
-  border: none;
-  border-bottom: 1px solid darkgreen;
-  padding: 0 0 6px 0;
-  outline: none;
-  font-family: monospace;
-  font-size: 12px;
-  color: darkgreen;
-}
-</style>
-
-</head>
-
-<body>
-
-<div class="flex-col" id="outermost-stack">
-  <h2 id="title"></h2>
-  <div id="setter"></div>
-  <div id="prelude"></div>
-  <div id="current-clue"></div>
-  <div class="flex-row">
-    <div id="grid-panel">
-      <div id="grid-parent-centerer">
-        <div id="grid-parent">
-          <svg id="grid" zoomAndPan="disable"></svg>
-          <div id="grid-input-wrapper" style="display:none;left:0;top:0"><input id="grid-input" type="text" maxlength="2" autocomplete="off" spellcheck="false" class="cell-text"></div>
-          <div id="nina-group" style="display:none;left:0;top:0"></div>
-          <div id="small-print">
-            <a id="report-bug"
-               href="https://github.com/viresh-ratnakar/exolve/issues/new">Report bug</a>
-            <a href="https://github.com/viresh-ratnakar/exolve">exolve on GitHub</a>
-            <span id="copyright"></span>
-          </div> <!-- #small-print -->
-        </div> <!-- #grid-parent -->
-      </div> <!-- #grid-parent-centerer -->
-      <div id="controls-etc">
-        <div id="controls" class="wide-box">
-          <div id="button-row-1" class="controls-row">
-            <button id="clear" class="button"
-                onclick="clearCurrent()">Clear this</button>
-            <button id="clear-all" class="button"
-                onclick="clearAll()">Clear all!</button>
-            <button id="check" class="button" style="display:none"
-                onclick="checkCurrent()">Check this</button>
-            <button id="check-all" class="button" style="display:none"
-                onclick="checkAll()">Check all!</button>
-          </div> <!-- #button-row-1 -->
-          <div id="button-row-2" class="controls-row">
-            <button id="reveal" class="button" style="display:none"
-                onclick="revealCurrent()">Reveal this</button>
-            <button id="ninas" class="button" style="display:none"
-                onclick="toggleNinas()">Show ninas</button>
-            <button id="reveal-all" class="button" style="display:none"
-                onclick="revealAll()">Reveal all!</button>
-          </div> <!-- #button-row-2 -->
-        </div> <!-- #controls -->
-        <div id="errors"></div>
-        <div id="status">
-          Squares filled:
-          <span id="status-num-filled">0</span>/<span
-                id="status-num-total"></span>
-        </div> <!-- #status -->
-        <div id="questions" class="wide-box"></div> 
-        <div id="submit-parent">
-          <button id="submit" class="button" style="display:none"
-              onclick="submitSolution()">Submit!</button>
-        </div> <!-- submit-parent -->
-        <div id="explanations" class="wide-box" style="display:none"></div>
-      </div> <!-- #controls-etc -->
-      <br>
-      <br>
-    </div> <!-- #grid-panel -->
-    <div id="across-clues-panel" class="wide-box clues-box">
-      <hr/>
-      <b>Across</b>
-      <table id="across"></table>
-      <br>
-    </div> <!-- #across-clues-panel -->
-    <div id="down-clues-panel" class="wide-box clues-box">
-      <hr/>
-      <b>Down</b>
-      <table id="down"></table>
-      <br>
-    </div> <!-- #down-clues-panel -->
-  </div>
-</div> <!-- #outermost-stack -->
-
-<script>
+const VERSION = 'exolve v0.08 July 23 2019'
 
 // ------ Begin globals.
 
@@ -384,20 +128,20 @@ let downLastLine = -1
 let explanationsFirstLine = -1
 let explanationsLastLine = -1
 
+// Each nina will be an array containing location [i,j] pairs and/or span
+// class names.
 let ninas = []
-const puzzleTextLines = puzzleText.trim().split('\n');
-let numPuzzleTextLines = puzzleTextLines.length
-let nextPuzzleTextLine = 0
+// For span-class-specified ninas, ninaClassElements[] stores the elements
+// along with the colours to apply to them when showing the ninas.
+let ninaClassElements = []
+let showingNinas = false
 
-let grid = new Array(gridHeight);
+let grid = []
 let clues = {}
 let submitURL = null
 let submitKeys = []
 let hasDiagramlessCells = false
 let hasUnsolvedCells = false
-
-let acrossClues = document.getElementById('across')
-let downClues = document.getElementById('down')
 
 const SQUARE_DIM = 31
 const SQUARE_DIM_BY2 = 16
@@ -415,51 +159,84 @@ const NUMBER_START_Y = 11
 const LIGHT_START_X = 16.5
 const LIGHT_START_Y = 21.925
 
-const svg = document.getElementById('grid');
-const gridInputWrapper = document.getElementById('grid-input-wrapper');
-const gridInput = document.getElementById('grid-input');
-const questions = document.getElementById('questions');
 let answersList = []
 let revelationList = []
-
-const background =
-    document.createElementNS('http://www.w3.org/2000/svg', 'rect');
 
 let currentRow = -1
 let currentCol = -1
 let currentDirectionIsAcross = true
 let activeCells = [];
 let activeClues = [];
-const currentClue = document.getElementById('current-clue')
-const ninaGroup = document.getElementById('nina-group')
-
-const statusNumFilled = document.getElementById('status-num-filled')
-const statusNumTotal = document.getElementById('status-num-total')
 let numCellsToFill = 0
 
 const BLOCK_CHAR = '⬛';
-
 const ACTIVE_COLOUR = 'mistyrose'
 const TRANSPARENT_WHITE = 'rgba(255,255,255,0.0)'
 
-let showingNinas = false
-const clearButton = document.getElementById('clear')
-const clearAllButton = document.getElementById('clear-all')
-const checkButton = document.getElementById('check')
-const checkAllButton = document.getElementById('check-all')
-const ninasButton = document.getElementById('ninas')
-const revealButton = document.getElementById('reveal')
-const revealAllButton = document.getElementById('reveal-all')
-const submitButton = document.getElementById('submit')
+let nextPuzzleTextLine = 0
 
 const STATE_SEP = 'eexxoollvvee'
+
+// Variables set in init().
+let puzzleTextLines;
+let numPuzzleTextLines;
+let svg;
+let gridInputWrapper;
+let gridInput;
+let questions;
+let background;
+let acrossClues;
+let downClues;
+let currentClue;
+let currentClueParent;
+let ninaGroup;
+let statusNumFilled;
+let statusNumTotal;
+let clearButton;
+let clearAllButton;
+let checkButton;
+let checkAllButton;
+let ninasButton;
+let revealButton;
+let revealAllButton;
+let submitButton;
 
 // ------ End globals.
 
 // ------ Begin functions.
 
-// Set up version number and user agent in bug link.
+// Set up globals, version number and user agent in bug link.
 function init() {
+  puzzleTextLines = puzzleText.trim().split('\n');
+  numPuzzleTextLines = puzzleTextLines.length
+
+  svg = document.getElementById('grid');
+  gridInputWrapper = document.getElementById('grid-input-wrapper');
+  gridInput = document.getElementById('grid-input');
+  questions = document.getElementById('questions');
+
+  background =
+    document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+
+  acrossClues = document.getElementById('across')
+  downClues = document.getElementById('down')
+
+  currentClue = document.getElementById('current-clue')
+  currentClueParent = document.getElementById('current-clue-parent')
+  ninaGroup = document.getElementById('nina-group')
+
+  statusNumFilled = document.getElementById('status-num-filled')
+  statusNumTotal = document.getElementById('status-num-total')
+
+  clearButton = document.getElementById('clear')
+  clearAllButton = document.getElementById('clear-all')
+  checkButton = document.getElementById('check')
+  checkAllButton = document.getElementById('check-all')
+  ninasButton = document.getElementById('ninas')
+  revealButton = document.getElementById('reveal')
+  revealAllButton = document.getElementById('reveal-all')
+  submitButton = document.getElementById('submit')
+
   let info = 'Version: ' + VERSION + ', User Agent: ' + navigator.userAgent
   document.getElementById('report-bug').href =
       'https://github.com/viresh-ratnakar/exolve/issues/new?body=' +
@@ -494,14 +271,15 @@ function parseToNextSection() {
 // to [row col] and push an array of these locations to the global ninas array.
 function parseNina(s) {
   let nina = []
-  let cells = s.split(' ')
-  for (let cell of cells) {
-    let cellLocation = parseCellLocation(cell)
+  let cellsOrClasses = s.split(' ')
+  for (let cellOrClass of cellsOrClasses) {
+    let cellLocation = parseCellLocation(cellOrClass)
     if (!cellLocation) {
-      addError('Could not parse cell location: ' + cell)
-      return
+      // Must be a class name, for a span-class-specified nina
+      nina.push(cellOrClass)
+    } else {
+      nina.push(cellLocation)
     }
-    nina.push(cellLocation)
   }
   if (nina.length > 0) {
     ninas.push(nina)
@@ -860,7 +638,8 @@ function parseCellLocation(s) {
   s = s.trim()
   let col = s.charCodeAt(0) - 'a'.charCodeAt(0)
   let row = gridHeight - parseInt(s.substr(1))
-  if (row < 0 || row >= gridHeight || col < 0 || col >= gridWidth) {
+  if (isNaN(row) || isNaN(col) ||
+      row < 0 || row >= gridHeight || col < 0 || col >= gridWidth) {
     return null
   }
   return [row, col];
@@ -881,8 +660,8 @@ function parseEnum(clueLine) {
   };
   let enumLocation = clueLine.search(/\([1-9]+[0-9\-,'’\s]*\)/)
   if (enumLocation < 0) {
-    // Look for the the string 'word'/'letter' in parens.
-    enumLocation = clueLine.search(/\([^)]*(word|letter)[^)]*\)/i)
+    // Look for the the string 'word'/'letter'/? in parens.
+    enumLocation = clueLine.search(/\([^)]*(word|letter|\?)[^)]*\)/i)
     if (enumLocation >= 0) {
       let enumEndLocation =
           enumLocation + clueLine.substr(enumLocation).indexOf(')')
@@ -1285,7 +1064,7 @@ function displayClues() {
     }
     let table =
         (clues[clueIndex].clueDirection == 'A') ? acrossClues : downClues
-    let row = document.createElement('tr')
+    let tr = document.createElement('tr')
     let col1 = document.createElement('td')
     col1.innerHTML = clues[clueIndex].displayNumber
     let col2 = document.createElement('td')
@@ -1298,16 +1077,19 @@ function displayClues() {
       revelationList.push(anno)
       col2.appendChild(anno)
     }
-    row.appendChild(col1)
-    row.appendChild(col2)
+    tr.appendChild(col1)
+    tr.appendChild(col2)
     if (clues[clueIndex].cells.length > 0) {
       let i = clues[clueIndex].cells[0][0]
       let j = clues[clueIndex].cells[0][1]
-      row.addEventListener('click', getRowColDirActivator(
+      tr.addEventListener('click', getRowColDirActivator(
           i, j, clues[clueIndex].clueDirection));
+    } else {
+      // Fully diagramless. Just select clue.
+      tr.addEventListener('click', getClueSelector(clueIndex));
     }
-    clues[clueIndex].clueRow = row
-    table.appendChild(row)
+    clues[clueIndex].clueTR = tr
+    table.appendChild(tr)
   }
 }
 
@@ -1493,13 +1275,44 @@ function deactivateCurrentCell() {
   activeCells = [];
   activeClues = [];
   currentClue.innerHTML = ''
+  currentClue.style.top = '0'
   clearButton.disabled = true
   checkButton.disabled = true
   revealButton.disabled = true
 }
 
+function makeCurrentClueVisible() {
+  // Check if grid input is visible.
+  const inputPos = gridInput.getBoundingClientRect();
+  if (inputPos.top < 0) {
+    return
+  }
+  let windowH = window.innerHeight || document.documentElement.clientHeight;
+  if (!windowH || windowH <= 0) {
+    return
+  }
+  if (inputPos.bottom >= windowH) {
+    currentClue.style.top = '0'
+    return
+  }
+  // gridInput is visible
+  const cluePos = currentClue.getBoundingClientRect();
+  const top = cluePos.top
+  const clueParentPos = currentClueParent.getBoundingClientRect();
+  const parentTop = clueParentPos.top
+  // Reposition
+  let newTop = 0
+  // If parent is below viewport top, go back to standard position
+  if (parentTop >= 0) {
+    currentClue.style.top = '0'
+    return
+  }
+  currentClue.style.top = '' + (0 - parentTop) + 'px';
+}
+
 function activateCell(row, col) {
   deactivateCurrentCell();
+
   currentRow = row
   currentCol = col
   if (row < 0 || row >= gridHeight || col < 0 || col >= gridWidth) {
@@ -1509,6 +1322,23 @@ function activateCell(row, col) {
       !grid[row][col].isDiagramless) {
     return;
   }
+
+  gridInputWrapper.style.width = '' + SQUARE_DIM + 'px'
+  gridInputWrapper.style.height = '' + SQUARE_DIM + 'px'
+  gridInputWrapper.style.left = '' + grid[row][col].cellLeft + 'px'
+  gridInputWrapper.style.top = '' + grid[row][col].cellTop + 'px'
+  gridInput.value = grid[row][col].currentLetter
+  gridInputWrapper.style.display = ''
+  gridInput.focus()
+  // Try to place the cursor at the end
+  if (gridInput.setSelectionRange) {
+    let len = gridInput.value.length
+    gridInput.setSelectionRange(len, len);
+  }
+  clearButton.disabled = false
+  checkButton.disabled = false
+  revealButton.disabled = false
+
   let activeClueIndex = ''
   // If the current direction does not have an active clue, toggle direction
   if (currentDirectionIsAcross && !grid[row][col].isDiagramless &&
@@ -1531,49 +1361,12 @@ function activateCell(row, col) {
     }
   }
   if (activeClueIndex != '') {
-    currentClue.innerHTML = clues[activeClueIndex].clueNumber +
-                            clues[activeClueIndex].clueDirection + '. ' +
-                            clues[activeClueIndex].clue
-    let clueIndices = [activeClueIndex]
-    if (clues[activeClueIndex].parentClueIndex) {
-      let parent = clues[activeClueIndex].parentClueIndex
-      currentClue.innerHTML = clues[parent].clueNumber +
-                              clues[parent].clueDirection + '. ' +
-                              clues[parent].clue
-      clueIndices = [parent].concat(clues[parent].childrenClueIndices)
-    } else {
-      clueIndices =
-          clueIndices.concat(clues[activeClueIndex].childrenClueIndices)
-    }
-    for (let clueIndex of clueIndices) {
-      for (let rowcol of clues[clueIndex].cells) {
-        grid[rowcol[0]][rowcol[1]].cellRect.style.fill = ACTIVE_COLOUR
-        activeCells.push(rowcol)
-      }
-      clues[clueIndex].clueRow.style.background = ACTIVE_COLOUR
-      activeClues.push(clues[clueIndex].clueRow)
-    }
+    selectClue(activeClueIndex)
   } else {
     // No active clue, activate just the cell.
     grid[row][col].cellRect.style.fill = ACTIVE_COLOUR
     activeCells.push([row, col])
   }
-
-  gridInputWrapper.style.width = '' + SQUARE_DIM + 'px'
-  gridInputWrapper.style.height = '' + SQUARE_DIM + 'px'
-  gridInputWrapper.style.left = '' + grid[row][col].cellLeft + 'px'
-  gridInputWrapper.style.top = '' + grid[row][col].cellTop + 'px'
-  gridInput.value = grid[row][col].currentLetter
-  gridInputWrapper.style.display = ''
-  gridInput.focus()
-  // Try to place the cursor at the end
-  if (gridInput.setSelectionRange) {
-    let len = gridInput.value.length
-    gridInput.setSelectionRange(len, len);
-  }
-  clearButton.disabled = false
-  checkButton.disabled = false
-  revealButton.disabled = false
 }
 
 // For freezing row/col to deal with JS closure.
@@ -1589,6 +1382,40 @@ function getRowColDirActivator(row, col, dir) {
     } 
     activateCell(row, col);
   };
+}
+
+// For freezing clueIndex to deal with JS closure.
+function getClueSelector(clueIndex) {
+  return function() {
+    deactivateCurrentCell();
+    selectClue(clueIndex);
+  };
+}
+// Select a clicked clue.
+function selectClue(activeClueIndex) {
+  currentClue.innerHTML = clues[activeClueIndex].clueNumber +
+                          clues[activeClueIndex].clueDirection + '. ' +
+                          clues[activeClueIndex].clue
+  let clueIndices = [activeClueIndex]
+  if (clues[activeClueIndex].parentClueIndex) {
+    let parent = clues[activeClueIndex].parentClueIndex
+    currentClue.innerHTML = clues[parent].clueNumber +
+                            clues[parent].clueDirection + '. ' +
+                            clues[parent].clue
+    clueIndices = [parent].concat(clues[parent].childrenClueIndices)
+  } else {
+    clueIndices =
+        clueIndices.concat(clues[activeClueIndex].childrenClueIndices)
+  }
+  for (let clueIndex of clueIndices) {
+    for (let rowcol of clues[clueIndex].cells) {
+      grid[rowcol[0]][rowcol[1]].cellRect.style.fill = ACTIVE_COLOUR
+      activeCells.push(rowcol)
+    }
+    clues[clueIndex].clueTR.style.background = ACTIVE_COLOUR
+    activeClues.push(clues[clueIndex].clueTR)
+  }
+  makeCurrentClueVisible();
 }
 
 function toggleCurrentDirection() {
@@ -1744,11 +1571,12 @@ function handleGridInput() {
   }
 }
 
-function createInputListeners() {
+function createListeners() {
   gridInput.addEventListener('keyup', function(e) {handleKeyUp(e);});
   gridInput.addEventListener('input', handleGridInput);
   gridInput.addEventListener('click', toggleCurrentDirection);
   background.addEventListener('click', getRowColActivator(-1, -1));
+  window.addEventListener('scroll', makeCurrentClueVisible);
 }
 
 function displayGrid() {
@@ -1929,13 +1757,35 @@ function displayNinas() {
     'rgba(0,255,0,0.2)',
     'rgba(0,255,255,0.2)',
     'rgba(255,0,255,0.2)',
-    'rgba(255,255,0,0.2)'
+    'rgba(255,255,0,0.2)',
+    'rgba(255,50,50,0.2)',
+    'rgba(50,255,50,0.2)',
+    'rgba(50,50,255,0.2)',
+    'rgba(50,200,200,0.2)',
+    'rgba(200,50,200,0.2)',
+    'rgba(200,200,50,0.2)',
   ];
   let ninaColorIndex = 0;
   for (let nina of ninas) {
-    for (let cell of nina) {
-      const row = cell[0]
-      const col = cell[1]
+    for (let cellOrClass of nina) {
+      if (!Array.isArray(cellOrClass)) {
+        // span-class-specified nina
+        const elts = document.getElementsByClassName(cellOrClass)
+        if (!elts || elts.length == 0) {
+          addError('Nina ' + cellOrClass +
+                   ' is not a cell location nor a class with html tags');
+          return
+        }
+        for (const elt of elts) {
+          ninaClassElements.push({
+            'element': elt,
+            'colour':  NINA_COLORS[ninaColorIndex],
+          });
+        }
+        continue
+      }    
+      const row = cellOrClass[0]
+      const col = cellOrClass[1]
       const ninaRect = document.createElement('div');
       ninaRect.style.left =  '' +  grid[row][col].cellLeft + 'px';
       ninaRect.style.top = '' + grid[row][col].cellTop + 'px';
@@ -1950,18 +1800,32 @@ function displayNinas() {
   }
 }
 
+function showNinas() {
+  for (const ec of ninaClassElements) {
+    ec.element.style.backgroundColor = ec.colour;
+  }
+  ninaGroup.style.display = '';
+  ninasButton.innerHTML = 'Hide ninas'
+  showingNinas = true
+}
+
+function hideNinas() {
+  for (const ec of ninaClassElements) {
+    ec.element.style.backgroundColor = 'transparent';
+  }
+  ninaGroup.style.display = 'none';
+  ninasButton.innerHTML = 'Show ninas'
+  showingNinas = false
+}
+
 function toggleNinas() {
   if (showingNinas) {
-    ninaGroup.style.display = 'none';
-    ninasButton.innerHTML = 'Show ninas'
-    showingNinas = false
+    hideNinas()
   } else {
     if (!confirm('Are you sure you want to reveal the nina(s)!?')) {
       return
     }
-    ninaGroup.style.display = '';
-    ninasButton.innerHTML = 'Hide ninas'
-    showingNinas = true
+    showNinas()
   }
 }
 
@@ -2011,11 +1875,7 @@ function clearAll() {
   for (let a of revelationList) {
     a.style.display = 'none'
   }
-  if (showingNinas) {
-    ninaGroup.style.display = 'none';
-    ninasButton.innerHTML = 'Show ninas'
-    showingNinas = false
-  }
+  hideNinas()
   updateAndSaveState()
 }
 
@@ -2127,11 +1987,7 @@ function revealAll() {
   for (let a of revelationList) {
     a.style.display = ''
   }
-  if (!showingNinas) {
-    ninaGroup.style.display = '';
-    ninasButton.innerHTML = 'Hide ninas'
-    showingNinas = true
-  }
+  showNinas()
   updateAndSaveState()
 }
 
@@ -2187,7 +2043,7 @@ function createPuzzle() {
   setGridWordEndsAndHyphens();
   displayClues();
   displayGridBackground();
-  createInputListeners();
+  createListeners();
   displayGrid();
   displayNinas();
   displayButtons();
@@ -2197,12 +2053,259 @@ function createPuzzle() {
 
 // ------ End functions.
 
-// ------ Begin execution.
-
-createPuzzle();
-
-// ------ End execution.
 </script>
+
+<style>
+.background {
+  fill: black;
+}
+.cell {
+  fill: white;
+  cursor: pointer;
+}
+.cell-num {
+  font-size: 9px;
+  font-family: sans-serif;
+}
+.cell-text {
+  font-size: 16px;
+  font-family: sans-serif;
+  cursor: text;
+}
+.wordend {
+  fill: rgb(0,0,255);
+}
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+td {
+  padding: 4px 6px 0 0;
+  vertical-align: top;
+}
+td:first-child {
+  max-width: 40px;
+  font-weight: bold;
+}
+.anno-text {
+  font-style: italic;
+  color: darkgreen;
+}
+.flex-row {
+  display: flex;
+  flex-flow: row wrap;
+  align-items: flex-start;
+}
+.flex-col {
+  display: flex;
+  flex-flow: column wrap;
+}
+.wide-box {
+  width: 460px;
+}
+#title {
+  text-align: center;
+  font-weight: bold;
+}
+#setter {
+  text-align: center;
+  color: darkgreen;
+  margin: 0 0 8px 0;
+}
+#prelude {
+  margin: 8px 8px 0 8px;
+  padding: 0;
+}
+#small-print {
+  font-size: small;
+  text-align: right;
+}
+#errors {
+  font-weight: bold;
+  color: red;
+}
+#current-clue-parent {
+  height: 40px;
+  position:relative;
+  margin: 8px 8px 8px 0;
+}
+#current-clue {
+  position: absolute;
+  background: mistyrose;
+  z-index: 2;
+  word-wrap: break-word;
+  font-weight: bold;
+  margin: 0 0 0 8px;
+}
+#grid-panel {
+  margin: 0 0 0 8px;
+}
+#grid-parent-centerer {
+  text-align: center;
+}
+#grid-parent {
+  position:relative;
+  margin: 0 20px 0 0;
+  display: inline-block;
+}
+#grid-input-wrapper {
+  position: absolute;
+  border: none;
+  border-width:0;
+}
+#grid-input {
+  text-align: center;
+  text-anchor: middle;
+  border: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  background: rgba(255,255,255,0.0);
+}
+.controls-row {
+  margin: 6px 0 6px 0;
+}
+.clues-box {
+  margin: 0 10px 0 0;
+}
+#explanations {
+  margin: 10px 0 0 0;
+}
+hr {
+  margin: 0 0 4px 0;
+  background-color: darkgreen;
+}
+.button {
+  background-color: #4CAF50; /* Green */
+  border: none;
+  outline: none;
+  color: white;
+  padding: 8px 8px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  border-radius: 12px;
+  font-family: monospace;
+  font-size: 14px;
+}
+.button:hover {
+  background-color: darkgreen;
+  cursor: pointer;
+}
+.button:disabled {
+  background-color: gray;
+  cursor: not-allowed;
+}
+#nina-group {
+  position: absolute;
+  border: none;
+  border-width:0;
+  outline: none;
+}
+.nina {
+  position: absolute;
+  border: none;
+  border-width:0;
+  outline: none;
+  cursor: pointer;
+}
+#status {
+  font-family: monospace;
+  font-size: 12px;
+  margin: 6px 0 6px 0;
+  color: darkgreen;
+}
+.question {
+  margin: 10px 0 10px 0;
+}
+.answer {
+  border: none;
+  border-bottom: 1px solid darkgreen;
+  padding: 0 0 6px 0;
+  outline: none;
+  font-family: monospace;
+  font-size: 12px;
+  color: darkgreen;
+}
+</style>
+
+</head>
+
+<body onload="createPuzzle()">
+
+<div class="flex-col" id="outermost-stack">
+  <h2 id="title"></h2>
+  <div id="setter"></div>
+  <div id="prelude"></div>
+  <div id="current-clue-parent">
+    <div id="current-clue"></div>
+  </div>
+  <div class="flex-row">
+    <div id="grid-panel">
+      <div id="grid-parent-centerer">
+        <div id="grid-parent">
+          <svg id="grid" zoomAndPan="disable"></svg>
+          <div id="grid-input-wrapper" style="display:none;left:0;top:0"><input id="grid-input" type="text" maxlength="2" autocomplete="off" spellcheck="false" class="cell-text"></div>
+          <div id="nina-group" style="display:none;left:0;top:0"></div>
+          <div id="small-print">
+            <a id="report-bug"
+               href="https://github.com/viresh-ratnakar/exolve/issues/new">Report bug</a>
+            <a href="https://github.com/viresh-ratnakar/exolve">exolve on GitHub</a>
+            <span id="copyright"></span>
+          </div> <!-- #small-print -->
+        </div> <!-- #grid-parent -->
+      </div> <!-- #grid-parent-centerer -->
+      <div id="controls-etc">
+        <div id="controls" class="wide-box">
+          <div id="button-row-1" class="controls-row">
+            <button id="clear" class="button"
+                onclick="clearCurrent()">Clear this</button>
+            <button id="clear-all" class="button"
+                onclick="clearAll()">Clear all!</button>
+            <button id="check" class="button" style="display:none"
+                onclick="checkCurrent()">Check this</button>
+            <button id="check-all" class="button" style="display:none"
+                onclick="checkAll()">Check all!</button>
+          </div> <!-- #button-row-1 -->
+          <div id="button-row-2" class="controls-row">
+            <button id="reveal" class="button" style="display:none"
+                onclick="revealCurrent()">Reveal this</button>
+            <button id="ninas" class="button" style="display:none"
+                onclick="toggleNinas()">Show ninas</button>
+            <button id="reveal-all" class="button" style="display:none"
+                onclick="revealAll()">Reveal all!</button>
+          </div> <!-- #button-row-2 -->
+        </div> <!-- #controls -->
+        <div id="errors"></div>
+        <div id="status">
+          Squares filled:
+          <span id="status-num-filled">0</span>/<span
+                id="status-num-total"></span>
+        </div> <!-- #status -->
+        <div id="questions" class="wide-box"></div> 
+        <div id="submit-parent">
+          <button id="submit" class="button" style="display:none"
+              onclick="submitSolution()">Submit!</button>
+        </div> <!-- submit-parent -->
+        <div id="explanations" class="wide-box" style="display:none"></div>
+      </div> <!-- #controls-etc -->
+      <br>
+      <br>
+    </div> <!-- #grid-panel -->
+    <div id="across-clues-panel" class="wide-box clues-box">
+      <hr/>
+      <b>Across</b>
+      <table id="across"></table>
+      <br>
+    </div> <!-- #across-clues-panel -->
+    <div id="down-clues-panel" class="wide-box clues-box">
+      <hr/>
+      <b>Down</b>
+      <table id="down"></table>
+      <br>
+    </div> <!-- #down-clues-panel -->
+  </div>
+</div> <!-- #outermost-stack -->
 
 </body>
 
