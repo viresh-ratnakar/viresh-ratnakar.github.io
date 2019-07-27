@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<link rel="stylesheet" type="text/css" href="exolve.css"/>
+<script src="exolve.js"></script>
+
+<title>French Toast</title>
+
+<script>
+
+const puzzleText = `
+======REPLACE WITH YOUR PUZZLE BELOW======
+exolve-begin
+  exolve-id: gussalufz-5
+  exolve-title: French Toast
+  exolve-setter: Gussalufz
+  exolve-copyright: 2018 Viresh Ratnakar
+  exolve-width: 15
+  exolve-height: 15
+
+  exolve-prelude:
+    <p style="text-align:center">
+    ?????-<u>??????</u> ???????
+    </p>
+    <p>
+    Nina is the name of a person. The middle part of the name has broken free
+    though; those letters have (in order) taken up positions somehow belonging
+    to this person.
+    </p>
+
+  exolve-question: What is the full name of the person of interest? (5-6,7)
+  exolve-question: What's is the significance of the location(s) of the letters of the middle name?
+  exolve-question: What are the three clues connected somehow to the Person of Interest?
+
+  exolve-grid:
+        0.0.0.0.0.0.0.0
+        00000.000000000
+        0.0.0.0.0.0.0.0
+        000000000.00000
+        ..0...0.0.0.0..
+        0000000.0000000
+        0.0.0.0...0...0
+        00000.000.00000
+        0...0...0.0.0.0
+        0000000.0000000
+        ..0.0.0.0...0..
+        00000.000000000
+        0.0.0.0.0.0.0.0
+        000000000.00000
+        0.0.0.0.0.0.0.0
+  exolve-across:
+    9 Questioned in court after killing 41, Trix lied (5)
+    10 Actually, I can finally land around one (2,7)
+    11 They have many stories of wasted revenue, inappropriate spending, extremely spendthrift leaders (4-5)
+    12 Because of reported violations (5)
+    13 Cut in, enveloping stellar energy sources (7)
+    15 West-bound final leg includes sampling love-in-a-mist (7)
+    17 Lighter luggage packed right before last suitcase (5)
+    18 Born in France, encountered setback (3)
+    20 Inferior alternative won by three points (5)
+    22 They guide mass movements, leading revolutions among loons, perhaps (7)
+    25 Males in corrupt, heartless party received money (7)
+    26 Excuse us, sir. Back to show business! (5)
+    27 Color and label your design (5,4)
+    30 Thinking again and again of meeting with pregnancy specialist? (9)
+    31 Loudly ordered ladies to be present (5)
+  exolve-down:
+    1 Burn sorceress after first weighing (4)
+    2 Unique novel: Ursula K. Le Guin's "Save Us, Luke" (8)
+    3 Smell from loo? Do relocate! (4)
+    4 In Germany, a good man. In Germany, a scientist (8)
+    5 Can prove results in study of numbers, for starters (6)
+    6 Aisle seats vacated after exhausted plea: a couple of gentlemen show extra courtesy, finally (10)
+    7 Extraordinary gesture (6)
+    8 Corrupt, empty, lacking money and class (4)
+    13 Sink them! Be daring! Expose!! (5)
+    14 Early exposure to coding creates deep IT careers; log on! (10)
+    16 Worker hugs company representative (5)
+    19 In Egypt. M ordered evacuation (8)
+    21 Wine topped chips and fish (8)
+    23 Maintain in top shape over time in Agra (6)
+    24 Debauched droids going crazy (6)
+    26 Swindling setter's confession to hero (4)
+    28 Have a strong desire for some tea from 3 to 6? (4)
+    29 Sexier to go topless 11 to 5 or at all times? (4)
+exolve-end
+======REPLACE WITH YOUR PUZZLE ABOVE======
+`;
+
+</script>
+
+</head>
+
+<body onload="createPuzzle()">
+
+<div class="flex-col" id="outermost-stack">
+  <h2 id="title">Title</h2>
+  <div id="setter"></div>
+  <div id="prelude"></div>
+  <div id="current-clue-parent">
+    <div id="current-clue"></div>
+  </div>
+  <div class="flex-row">
+    <div id="grid-panel">
+      <div id="grid-parent-centerer">
+        <div id="grid-parent">
+          <svg id="grid" zoomAndPan="disable"></svg>
+          <div id="grid-input-wrapper" style="display:none;left:0;top:0"><input id="grid-input" type="text" maxlength="2" autocomplete="off" spellcheck="false" class="cell-text"/></div>
+          <div id="nina-group" style="display:none;left:0;top:0"></div>
+          <div id="small-print">
+            <a id="report-bug"
+               href="https://github.com/viresh-ratnakar/exolve/issues/new">Report bug</a>
+            <a href="https://github.com/viresh-ratnakar/exolve">exolve on GitHub</a>
+            <span id="copyright"></span>
+          </div> <!-- #small-print -->
+        </div> <!-- #grid-parent -->
+      </div> <!-- #grid-parent-centerer -->
+      <div id="controls-etc">
+        <div id="controls" class="wide-box">
+          <div id="button-row-1" class="controls-row">
+            <button id="clear" class="button"
+                onclick="clearCurrent()">Clear this</button>
+            <button id="clear-all" class="button"
+                onclick="clearAll()">Clear all!</button>
+            <button id="check" class="button" style="display:none"
+                onclick="checkCurrent()">Check this</button>
+            <button id="check-all" class="button" style="display:none"
+                onclick="checkAll()">Check all!</button>
+          </div> <!-- #button-row-1 -->
+          <div id="button-row-2" class="controls-row">
+            <button id="reveal" class="button" style="display:none"
+                onclick="revealCurrent()">Reveal this</button>
+            <button id="ninas" class="button" style="display:none"
+                onclick="toggleNinas()">Show ninas</button>
+            <button id="reveal-all" class="button" style="display:none"
+                onclick="revealAll()">Reveal all!</button>
+          </div> <!-- #button-row-2 -->
+        </div> <!-- #controls -->
+        <div id="errors"></div>
+        <div id="status">
+          Squares filled:
+          <span id="status-num-filled">0</span>/<span
+                id="status-num-total"></span>
+        </div> <!-- #status -->
+        <div id="questions" class="wide-box"></div> 
+        <div id="submit-parent">
+          <button id="submit" class="button" style="display:none"
+              onclick="submitSolution()">Submit!</button>
+        </div> <!-- submit-parent -->
+        <div id="explanations" class="wide-box" style="display:none"></div>
+      </div> <!-- #controls-etc -->
+      <br/>
+      <br/>
+    </div> <!-- #grid-panel -->
+    <div id="across-clues-panel" class="wide-box clues-box">
+      <hr/>
+      <b>Across</b>
+      <table id="across"></table>
+      <br/>
+    </div> <!-- #across-clues-panel -->
+    <div id="down-clues-panel" class="wide-box clues-box">
+      <hr/>
+      <b>Down</b>
+      <table id="down"></table>
+      <br/>
+    </div> <!-- #down-clues-panel -->
+  </div>
+</div> <!-- #outermost-stack -->
+
+</body>
+
+</html>

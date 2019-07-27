@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<link rel="stylesheet" type="text/css" href="exolve.css"/>
+<script src="exolve.js"></script>
+
+<title>French Toast</title>
+
+<script>
+
+const puzzleText = `
+======REPLACE WITH YOUR PUZZLE BELOW======
+exolve-begin
+  exolve-id: gussalufz-5
+  exolve-title: French Toast
+  exolve-setter: Gussalufz
+  exolve-copyright: 2018 Viresh Ratnakar
+  exolve-width: 15
+  exolve-height: 15
+
+  exolve-prelude:
+    <p style="text-align:center">
+    ?????-<u>??????</u> ???????
+    </p>
+    <p>
+    Nina is the name of a person. The middle part of the name has broken free
+    though; those letters have (in order) taken up positions somehow belonging
+    to this person.
+    </p>
+
+  exolve-question: What is the full name of the person of interest? (5-6,7) MARIE-SOPHIE GERMAIN
+  exolve-question: What's is the significance of the location(s) of the letters of the middle name? (?) Sophie Germain primes
+  exolve-question: What are the three clues connected somehow to the Person of Interest? (?) 9A, 18A, 5D
+
+  exolve-nina: a9 c9 e9 g9 k9
+  exolve-nina: c15 e15 i15 a12 c6 o4
+  exolve-nina: o9 a7 e7 i7 k7 m7 o7
+
+  exolve-explanations:
+    <p>
+    The person is MARIE-SOPHIE GERMAIN. This French mathematician and physicist
+    has a class of prime numbers named after her. A prime number p such that
+    2p+1 is also prime is a <a href="https://en.wikipedia.org/wiki/Sophie_Germain_prime">Sophie Germain prime</a>.
+    </p>
+    <p>
+    Squares 2, 3, 5, 11, 23, 29 (which are all the Sophie-Germain-prime-numbered
+    squares in the grid) have SOPHIE. MARIE GERMAIN forms the Nina running
+    across.
+    </p>
+    <p>
+    Additionally, the following clues are somewhat thematic:
+    <ul>
+    <li>9A. The number 41 is also a Sophie Germain prime (the first one after
+    29).</li>
+    <li>18A. The surface is applicable to Marie-Sophie Germain’s life.</li>
+    <li>5D. The surface is applicable to Marie-Sophie Germain’s work.</li>
+    </ul>
+    </p>
+    <p>
+    There are many easy clues (hidden words, anagrams, acrostics) in this
+    puzzle. The leading question may be a bit challenging, but I think it
+    should still be fairly accessible. I expect solvers to notice that they
+    have to find a Nina with 5+7=12 letters, which should help in locating it.
+    Then, having located MARIE GERMAIN, a little research would lead them to
+    the full solution, even if they are not familiar with this interesting
+    historical French woman.
+    </p>
+    <p>
+    This puzzle’s theme is similar to the theme of my last one,
+    “Hidden Figure;” they make a set together: a small tribute to women
+    mathematicians.
+    </p>
+
+  exolve-grid:
+        I.S.O.E.P.P.S.T
+        TRIED.INREALITY
+        C.N.O.N.I.S.G.P
+        HIGHRISES.SINCE
+        ..U...T.O.A.A..
+        ECLIPSE.NIGELLA
+        M.A.R.I...E...G
+        BARGE.NEE.WORSE
+        E...R...M.A.I.N
+        DRIVERS.PAYMENT
+        ..N.L.O.T...S..
+        ISSUE.ROYALBLUE
+        C.I.A.D.I.O.I.V
+        OBSESSION.NONCE
+        N.T.E.D.G.G.G.R
+  exolve-across:
+    9 Questioned in court after killing 41, Trix lied (5) TRI(-xli)ED. Def: Questioned in court.
+    10 Actually, I can finally land around one (2,7) I (-ca)N REAL(I)TY. Def: Actually.
+    11 They have many stories of wasted revenue, inappropriate spending, extremely spendthrift leaders (4-5) HIGH R(-evenue) I(-nappropriate) S(-pending) E(-xtremely) S(-pendthrift). Def: They have many stories.
+    12 Because of reported violations (5) Homophone of SINS. Def: Because.
+    13 Cut in, enveloping stellar energy sources (7) E(-nveloping) S(-tellar) E(-nergy) around CLIP. Def: &lit.
+    15 West-bound final leg includes sampling love-in-a-mist (7) Reverse hidden word: (-fin)AL LEG IN(-cludes) <<. Def: love-in-a-mist.
+    17 Lighter luggage packed right before last suitcase (5) BA(R)G (-suitcas)E. Def: Lighter.
+    18 Born in France, encountered setback (3) Reverse Hidden Word: (-franc)E EN(-countered) <<. Def: Born.
+    20 Inferior alternative won by three points (5) OR in WSE. Def: Inferior.
+    22 They guide mass movements, leading revolutions among loons, perhaps (7) R(-evolutions) in DIVERS. Def: They guide mass movements.
+    25 Males in corrupt, heartless party received money (7) PA(-r)TY* around MEN. Def: received money.
+    26 Excuse us, sir. Back to show business! (5) Reverse Hidden Word: (-excus)E US SI(-r) <<. Def: business.
+    27 Color and label your design (5,4) LABELYOUR*. Def: Color.
+    30 Thinking again and again of meeting with pregnancy specialist? (9) OB SESSION. Def: Thinking again and again.
+    31 Loudly ordered ladies to be present (5) Homophone of NUNS. Def: present.
+  exolve-down:
+    1 Burn sorceress after first weighing (4) (-w)ITCH. Def: Burn. The surface refers to a scene in Monty Python and the Holy Grail.
+    2 Unique novel: Ursula K. Le Guin's "Save Us, Luke" (8) URSULAKLEGUIN* - USLUKE. Def: Unique.
+    3 Smell from loo? Do relocate! (4) Hidden Word: (-lo)O DO R(-elocate). Def: Smell.
+    4 In Germany, a good man. In Germany, a scientist (8) EIN ST EIN. Def: scientist.
+    5 Can prove results in study of numbers, for starters (6) P(-rove) R(-esults) I(-n) S(-tudy) O(-f) N(-umbers). Def: Can.
+    6 Aisle seats vacated after exhausted plea: a couple of gentlemen show extra courtesy, finally (10) S(-eat)S after P(-le)A A GE(-ntlemen) (-sho)W (-extr)A (-courtes)Y. Def: Aisle.
+    7 Extraordinary gesture (6) Double Def: Extraordinary, gesture.
+    8 Corrupt, empty, lacking money and class (4) E(-m)PTY*. def: class.
+    13 Sink them! Be daring! Expose!! (5) Hidden Word: (-th)EM BE D(-aring). Def: Sink.
+    14 Early exposure to coding creates deep IT careers; log on! (10) Composite anagram: PRERELEASE TO CODING* = DEEP IT CAREERS LOG ON. Def: Early exposure.
+    16 Worker hugs company representative (5) A(GE)NT. Def: representative.
+    19 In Egypt. M ordered evacuation (8) INEGYPTM*. Def: evacuation.
+    21 Wine topped chips and fish (8) (-f)RIES LING. Def: Wine.
+    23 Maintain in top shape over time in Agra (6) IN S(-hape) IST. Def: Maintain.
+    24 Debauched droids going crazy (6) DROIDS*. Def: Debauched.
+    26 Swindling setter's confession to hero (4) I CON. Def: hero.
+    28 Have a strong desire for some tea from 3 to 6? (4) (-oo)LONG. Def: Have a strong desire for.
+    29 Sexier to go topless 11 to 5 or at all times? (4) (-s)E(-xi+V)ER. Def: at all times.
+exolve-end
+======REPLACE WITH YOUR PUZZLE ABOVE======
+`;
+
+</script>
+
+</head>
+
+<body onload="createPuzzle()">
+
+<div class="flex-col" id="outermost-stack">
+  <h2 id="title">Title</h2>
+  <div id="setter"></div>
+  <div id="prelude"></div>
+  <div id="current-clue-parent">
+    <div id="current-clue"></div>
+  </div>
+  <div class="flex-row">
+    <div id="grid-panel">
+      <div id="grid-parent-centerer">
+        <div id="grid-parent">
+          <svg id="grid" zoomAndPan="disable"></svg>
+          <div id="grid-input-wrapper" style="display:none;left:0;top:0"><input id="grid-input" type="text" maxlength="2" autocomplete="off" spellcheck="false" class="cell-text"/></div>
+          <div id="nina-group" style="display:none;left:0;top:0"></div>
+          <div id="small-print">
+            <a id="report-bug"
+               href="https://github.com/viresh-ratnakar/exolve/issues/new">Report bug</a>
+            <a href="https://github.com/viresh-ratnakar/exolve">exolve on GitHub</a>
+            <span id="copyright"></span>
+          </div> <!-- #small-print -->
+        </div> <!-- #grid-parent -->
+      </div> <!-- #grid-parent-centerer -->
+      <div id="controls-etc">
+        <div id="controls" class="wide-box">
+          <div id="button-row-1" class="controls-row">
+            <button id="clear" class="button"
+                onclick="clearCurrent()">Clear this</button>
+            <button id="clear-all" class="button"
+                onclick="clearAll()">Clear all!</button>
+            <button id="check" class="button" style="display:none"
+                onclick="checkCurrent()">Check this</button>
+            <button id="check-all" class="button" style="display:none"
+                onclick="checkAll()">Check all!</button>
+          </div> <!-- #button-row-1 -->
+          <div id="button-row-2" class="controls-row">
+            <button id="reveal" class="button" style="display:none"
+                onclick="revealCurrent()">Reveal this</button>
+            <button id="ninas" class="button" style="display:none"
+                onclick="toggleNinas()">Show ninas</button>
+            <button id="reveal-all" class="button" style="display:none"
+                onclick="revealAll()">Reveal all!</button>
+          </div> <!-- #button-row-2 -->
+        </div> <!-- #controls -->
+        <div id="errors"></div>
+        <div id="status">
+          Squares filled:
+          <span id="status-num-filled">0</span>/<span
+                id="status-num-total"></span>
+        </div> <!-- #status -->
+        <div id="questions" class="wide-box"></div> 
+        <div id="submit-parent">
+          <button id="submit" class="button" style="display:none"
+              onclick="submitSolution()">Submit!</button>
+        </div> <!-- submit-parent -->
+        <div id="explanations" class="wide-box" style="display:none"></div>
+      </div> <!-- #controls-etc -->
+      <br/>
+      <br/>
+    </div> <!-- #grid-panel -->
+    <div id="across-clues-panel" class="wide-box clues-box">
+      <hr/>
+      <b>Across</b>
+      <table id="across"></table>
+      <br/>
+    </div> <!-- #across-clues-panel -->
+    <div id="down-clues-panel" class="wide-box clues-box">
+      <hr/>
+      <b>Down</b>
+      <table id="down"></table>
+      <br/>
+    </div> <!-- #down-clues-panel -->
+  </div>
+</div> <!-- #outermost-stack -->
+
+</body>
+
+</html>
