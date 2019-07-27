@@ -20,11 +20,30 @@ td {
   border: 1px solid darkgreen;
   border-width: 0 thin 0 thin;
 }
+.puztitle {
+  font-weight: bold;
+}
+.puzdetails {
+  font-size: small;
+}
 </style>
+
+<script>
+function shadeTable() {
+  let trs = document.getElementsByTagName('TR')
+  let parity = 0
+  for (tr of trs) {
+    if (parity == 0) {
+      tr.style.background = 'gainsboro'
+    }
+    parity = 1 - parity
+  }
+}
+</script>
 
 </head>
 
-<body>
+<body onload="shadeTable()">
 
 <h2>Crossword Puzzles By Gussalufz</h2>
 
@@ -41,13 +60,13 @@ td {
 <td>
 July 2019
 </td>
-<td>
+<td class="puztitle">
 <a href="gussalufz-16-unsolved.html">Untitled Crossword</a>
+<br/>
+<br/>
+<a href="gussalufz-16-solved.html">Untitled Crossword (with solutions)</a>
 </td>
-<td>
-<a href="gussalufz-16-solved.html">With solutions</a>
-</td>
-<td>
+<td class="puzdetails">
 <a href="https://thehinducrosswordcorner.blogspot.com/2019/07/special-sunday-07-jul-2019-gussalufz.html">
 Published in THCC
 </a>
@@ -61,13 +80,13 @@ Published in THCC
 <td>
 June 2019
 </td>
-<td>
+<td class="puztitle">
 <a href="gussalufz-14-unsolved.html">Putting Two And Two Together</a>
+<br/>
+<br/>
+<a href="gussalufz-14-solved.html">Putting Two And Two Together (with solutions)</a>
 </td>
-<td>
-<a href="gussalufz-14-solved.html">With solutions</a>
-</td>
-<td>
+<td class="puzdetails">
 <a href="http://www.1across.org/2019/06/30/putting-two-and-two-together/">
 Published in the 1ACross blog
 </a>
@@ -81,13 +100,13 @@ Published in the 1ACross blog
 <td>
 April 2019
 </td>
-<td>
+<td class="puztitle">
 <a href="gussalufz-13-unsolved.html">Cursory Appearances</a>
+<br/>
+<br/>
+<a href="gussalufz-13-solved.html">Cursory Appearances (with solutions)</a>
 </td>
-<td>
-<a href="gussalufz-13-solved.html">With solutions</a>
-</td>
-<td>
+<td class="puzdetails">
 <a href="http://www.1across.org/2019/04/17/cursory-appearances/">
 Published in the 1ACross blog
 </a>
@@ -101,13 +120,13 @@ Published in the 1ACross blog
 <td>
 January 2019
 </td>
-<td>
+<td class="puztitle">
 <a href="gussalufz-12-unsolved.html">Fifteen Puzzles</a>
+<br/>
+<br/>
+<a href="gussalufz-12-solved.html">Fifteen Puzzles (with solutions)</a>
 </td>
-<td>
-<a href="gussalufz-12-solved.html">With solutions</a>
-</td>
-<td>
+<td class="puzdetails">
 <a href="http://www.1across.org/2019/01/20/fifteen-puzzles/">
 Published in the 1ACross blog
 </a>
@@ -121,13 +140,13 @@ Published in the 1ACross blog
 <td>
 November 2018
 </td>
-<td>
+<td class="puztitle">
 <a href="gussalufz-11-unsolved.html">Missing Instructions</a>
+<br/>
+<br/>
+<a href="gussalufz-11-solved.html">Missing Instructions (with solutions)</a>
 </td>
-<td>
-<a href="gussalufz-11-solved.html">With solutions</a>
-</td>
-<td>
+<td class="puzdetails">
 <a href="http://www.1across.org/2018/11/18/missing-instructions/">
 Published in the 1ACross blog
 </a>
@@ -141,13 +160,13 @@ Published in the 1ACross blog
 <td>
 November 2017
 </td>
-<td>
+<td class="puztitle">
 <a href="gussalufz-3-unsolved.html">Smashing Plates</a>
+<br/>
+<br/>
+<a href="gussalufz-3-solved.html">Smashing Plates (with solutions)</a>
 </td>
-<td>
-<a href="gussalufz-3-solved.html">With solutions</a>
-</td>
-<td>
+<td class="puzdetails">
 <a href="http://www.1across.org/2017/11/22/smashing-plates/">
 Published in the 1ACross blog
 </a>
@@ -161,13 +180,13 @@ Published in the 1ACross blog
 <td>
 August 2017
 </td>
-<td>
+<td class="puztitle">
 <a href="ragitvach-1-unsolved.html">22⅘ Across</a>
+<br/>
+<br/>
+<a href="ragitvach-1-solved.html">22⅘ Across (with solutions)</a>
 </td>
-<td>
-<a href="ragitvach-1-solved.html">With solutions</a>
-</td>
-<td>
+<td class="puzdetails">
 <a href="http://www.1across.org/2017/09/23/1acgridfest-grid-9/">
 Published in the 1ACross blog
 </a>
@@ -181,13 +200,13 @@ Published in the 1ACross blog
 <td>
 June 2017
 </td>
-<td>
+<td class="puztitle">
 <a href="gussalufz-2-unsolved.html">Many Rustams</a>
+<br/>
+<br/>
+<a href="gussalufz-2-solved.html">Many Rustams (with solutions)</a>
 </td>
-<td>
-<a href="gussalufz-2-solved.html">With solutions</a>
-</td>
-<td>
+<td class="puzdetails">
 Published in the book, <i>Cryptic Crossroads</i>
 </td>
 </tr>
@@ -199,20 +218,20 @@ Published in the book, <i>Cryptic Crossroads</i>
 <td>
 July 2016
 </td>
-<td>
+<td class="puztitle">
 <a href="gussalufz-1-unsolved.html">Gussalufz</a>
+<br/>
+<br/>
+<a href="gussalufz-1-solved.html">Gussalufz (with solutions)</a>
 </td>
-<td>
-<a href="gussalufz-1-solved.html">With solutions</a>
-</td>
-<td>
+<td class="puzdetails">
 Published in the 1ACross Facebook group
 </td>
 </tr>
 
 </table>
 
-<br>
+<br/>
 Interactively solvable puzzles set up using
 the <a href="https://github.com/viresh-ratnakar/exolve">exolve</a>
 opensource software.
