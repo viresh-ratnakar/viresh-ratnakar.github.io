@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<link rel="stylesheet" type="text/css" href="exolve.css"/>
+<script src="exolve.js"></script>
+
+<title>Hidden Figure</title>
+
+<script>
+
+const puzzleText = `
+======REPLACE WITH YOUR PUZZLE BELOW======
+exolve-begin
+  exolve-id: gussalufz-4
+  exolve-title: Hidden Figure
+  exolve-setter: Gussalufz
+  exolve-copyright: 2017 Viresh Ratnakar
+  exolve-width: 15
+  exolve-height: 15
+
+  exolve-question: Who is the hidden figure?
+
+  exolve-grid:
+        .0.0.0.0...0.0.
+        000000000.00000
+        .0.0.0.0...0.0.
+        000000000.00000
+        .0.0.0.0.0.0.0.
+        000000.00000000
+        ...0...0.0..0.0
+        0000000.0000000
+        0.0..0.0...0...
+        00000000.000000
+        .0.0.0.0.0.0.0.
+        00000.000000000
+        .0.0...0.0.0.0.
+        00000.000000000
+        .0.0...0.0.0.0.
+  exolve-across:
+    7 Rolling hill intervenes—adjust stabilizing propellor! (4,5)
+    8 Master returning student’s comic (5)
+    9 Creator is melting the Arctic (9)
+    10 Too endemic wastage; area custodian closes water supply (5)
+    12 Rather occupied vacated studio by embracing a couple of usurpers (2,4)
+    13 Threat lacking teeth ultimately is 29's constant narrative (8)
+    16 "'Transformation' synonym, eh?"—classmate holding back (7)
+    19 Immoral subjugation cut down, broken by Rev.'s backing (7)
+    22 Important to check age in Alabama! (8)
+    25 A kind of dating / chat app radically benefiting older, naive beginners (6)
+    27 Existence to start when egg, finally, is released and moves to the tip? (5)
+    28 I am back in play, rest! (9)
+    29 He had a remarkable identity, oddly lacking sexual fears (5)
+    30 Smell washcloth in Christian Dior's home (9)
+  exolve-down:
+    1 Spooner's challenge: "Which person is Bob or Marcel?" (6)
+    2 Even if loath, hug awkwardly (8)
+    3 "The Black Cat" author to take a shot at another craft of his (6)
+    4 Stay away from young man with a bit of temazepam under bed (7)
+    5 He wrote Galileo about church, in benign terms at first (6)
+    6 An essay will reshape lines forever (6)
+    11 Bottom payroll supporting rising rent, say (4)
+    14 Wrath of a country when its land is taken away (3)
+    15 December 2016, perhaps, cruelly broke everybody's hearts (3)
+    16 Titular character's subplot? (3)
+    17 My electric Zinoro car, at last! (3)
+    18 List of males with understanding, to start with (4)
+    20 Gulliver and a Houyhnhnm house gallery? (8)
+    21 No limits on male company and support? This might be all about symbolic equality (7)
+    23 Income exempted from rate limits below a line (6)
+    24 Prospect of one from a Nordic country, reportedly half German (6)
+    25 Small-scale currency manipulation (6)
+    26 "Like The Better Half?" "Honey, facts do not need casing!" (3-3)
+exolve-end
+======REPLACE WITH YOUR PUZZLE ABOVE======
+`;
+
+</script>
+
+</head>
+
+<body onload="createPuzzle()">
+
+<div class="flex-col" id="outermost-stack">
+  <h2 id="title">Title</h2>
+  <div id="setter"></div>
+  <div id="prelude"></div>
+  <div id="current-clue-parent">
+    <div id="current-clue"></div>
+  </div>
+  <div class="flex-row">
+    <div id="grid-panel">
+      <div id="grid-parent-centerer">
+        <div id="grid-parent">
+          <svg id="grid" zoomAndPan="disable"></svg>
+          <div id="grid-input-wrapper" style="display:none;left:0;top:0"><input id="grid-input" type="text" maxlength="2" autocomplete="off" spellcheck="false" class="cell-text"/></div>
+          <div id="nina-group" style="display:none;left:0;top:0"></div>
+          <div id="small-print">
+            <a id="report-bug"
+               href="https://github.com/viresh-ratnakar/exolve/issues/new">Report bug</a>
+            <a href="https://github.com/viresh-ratnakar/exolve">exolve on GitHub</a>
+            <span id="copyright"></span>
+          </div> <!-- #small-print -->
+        </div> <!-- #grid-parent -->
+      </div> <!-- #grid-parent-centerer -->
+      <div id="controls-etc">
+        <div id="controls" class="wide-box">
+          <div id="button-row-1" class="controls-row">
+            <button id="clear" class="button"
+                onclick="clearCurrent()">Clear this</button>
+            <button id="clear-all" class="button"
+                onclick="clearAll()">Clear all!</button>
+            <button id="check" class="button" style="display:none"
+                onclick="checkCurrent()">Check this</button>
+            <button id="check-all" class="button" style="display:none"
+                onclick="checkAll()">Check all!</button>
+          </div> <!-- #button-row-1 -->
+          <div id="button-row-2" class="controls-row">
+            <button id="reveal" class="button" style="display:none"
+                onclick="revealCurrent()">Reveal this</button>
+            <button id="ninas" class="button" style="display:none"
+                onclick="toggleNinas()">Show ninas</button>
+            <button id="reveal-all" class="button" style="display:none"
+                onclick="revealAll()">Reveal all!</button>
+          </div> <!-- #button-row-2 -->
+        </div> <!-- #controls -->
+        <div id="errors"></div>
+        <div id="status">
+          Squares filled:
+          <span id="status-num-filled">0</span>/<span
+                id="status-num-total"></span>
+        </div> <!-- #status -->
+        <div id="questions" class="wide-box"></div> 
+        <div id="submit-parent">
+          <button id="submit" class="button" style="display:none"
+              onclick="submitSolution()">Submit!</button>
+        </div> <!-- submit-parent -->
+        <div id="explanations" class="wide-box" style="display:none"></div>
+      </div> <!-- #controls-etc -->
+      <br/>
+      <br/>
+    </div> <!-- #grid-panel -->
+    <div id="across-clues-panel" class="wide-box clues-box">
+      <hr/>
+      <b>Across</b>
+      <table id="across"></table>
+      <br/>
+    </div> <!-- #across-clues-panel -->
+    <div id="down-clues-panel" class="wide-box clues-box">
+      <hr/>
+      <b>Down</b>
+      <table id="down"></table>
+      <br/>
+    </div> <!-- #down-clues-panel -->
+  </div>
+</div> <!-- #outermost-stack -->
+
+</body>
+
+</html>
