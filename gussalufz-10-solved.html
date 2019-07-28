@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<link rel="stylesheet" type="text/css" href="exolve.css"/>
+<script src="exolve.js"></script>
+
+<title>King's Rule</title>
+
+<script>
+
+const puzzleText = `
+======REPLACE WITH YOUR PUZZLE BELOW======
+exolve-begin
+  exolve-id: gussalufz-10
+  exolve-title: King's Rule
+  exolve-setter: Gussalufz
+  exolve-copyright: 2018 Viresh Ratnakar
+  exolve-width: 15
+  exolve-height: 15
+
+  exolve-prelude:
+  <p>
+  This king's rule was quite arbitrary (it aimed to exclude a rapidly growing
+  class of population and it was successfully resisted in court). Revealed here,
+  first in bits and later fully spelled out, by two Ninas.
+  </p>
+  <p>
+  The successful resister is to be found roughly at 3, 7, 83/7, 13, 23.
+  </p>
+
+  exolve-question: What are the two ninas? (?) 101010, FORTY-TWO
+  exolve-question: What’s the connection of the Ninas to the title and the prelude to the puzzle? (?) Rule 42 in Alice...
+  exolve-question: Who is the successful resister? (5) ALICE
+
+  exolve-nina: c15 e15 g15 i15 k15 m15
+  exolve-nina: a5 c5 e5 g5 i5 k5 m5 o5
+  exolve-nina: g15 b14 g12 a10 e6
+
+  exolve-explanations:
+    <p>
+    The first Nina is 101010, which is 42 in binary (in “bits”—i.e., “binary
+    digits”).
+    </p>
+    <p>
+    The second Nina is FORTY-TWO, which is 42, “fully spelled out.”
+    </p>
+    <p>
+    The connection of the Ninas to the title/prelude is that Rule 42, as
+    proclaimed by the king of hearts in <i>Alice’s Adventures in Wonderland</i>,
+    said: “All persons more than a mile high to leave the court.” This
+    arbitrary rule was intended to be used by the king to evict Alice, who had
+    been rapidly growing in height (hence “it aimed to exclude a rapidly
+    growing class of population”). The puzzle prelude refers to “<i>this</i>
+    king’s <i>rule</i>” rather than “<i>this king</i>’s rule.”
+    </p>
+    <p>
+    Alice resisted the rule and did not leave the court. ALICE is indeed the
+    “successful resister” located “roughly” at squares 3, 7, 83/7, 13, 23. Here
+    83/7 is 11<sup>6</sup>&frasl;<sub>7</sub>, identifying the 6th of the 7
+    white squares spanning
+    positions beyond 11 upto 12. The letters at these five locations,
+    respectively, are ICLAE. Anagramming them, as indicated by “roughly,”
+    yields ALICE. I expect many solvers to figure out ALICE first and then work
+    their way backwards to see what “King’s Rule” refers to.
+    </p>
+    <p>
+    The number 42, of course, is also the answer to the ultimate question of
+    life, the universe, and everything, in <i>The Hitchhiker’s Guide to the
+    Galaxy</i> and its sequel novels. Most clue surfaces in this puzzle (all
+    but 8a, 11a, 14a, 27a, 3d, 16d, 17d, 19d, 24d) refer to these books.
+    “DNA”—used in a couple of clues—are the initials of Douglas Noel Adams, the
+    late author of these gems.
+    </p>
+    <p>
+    Additional Notes (contain spoilers for the HHGTTG books)
+    </p>
+    <ul>
+    <li><i>13a. Zillionaire Zaphod retreated embracing a Caucasian person
+    (5).</i> Zaphod Beeblebrox left a party with Tricia McMillan, aka Trillian,
+    who then left earth with Zaphod before earth got destroyed by the
+    Vogons.</li>
+    <li><i>18a. Gogrilla M., entrepreneur bearing regret (6).</i> Gogrilla
+    Mincefriend was an entrepreneur who re-invented the staircase when
+    prescient elevators refused to move as they were often terrified of what
+    lay in store.</li>
+    <li><i>30a. Draw world like Lamuella, suited well to idyllic, laid-back
+    terminations (8).</i> Lamuella is an idyllic planet where Arthur Dent
+    spends time as an excellent Sandwich Maker. The planet seems like a nice
+    place to spend one’s final days.</li>
+    <li><i>1d. Charge with abduction I, Zem, unmasked (6).</i> Zem (a sentient
+    mattress) is the only witness to the abduction of Marvin by the Krikkit war
+    robots.</li>
+    <li><i>4d. True, Stavro Mueller finishes ailing all over the place (8).</i>
+    The event at Stavro Mueller Beta, a nightclub in London, ends the lives of
+    all remaining survivors of earth’s destruction by the Vogons.</li>
+    <li><i>5d. Representative rewired Colin after removing the last bit of
+    towel, getting InfiniDim credit openings (6).</i> Colin was a flying
+    security robot, trapped using a towel by Ford Prefect. Ford rewired Colin
+    to get free InfiniDim credit card payments. This was a long clue and the
+    surface only makes sense if one knows this obscure part from the books. I
+    had proposed a slightly simplified rewrite that did not make it:
+    <i>Representative rewired Colin after removing the last bit of towel, I
+    see (6).</i></li>
+    <li><i>10d. Hotblack Desiato demise is to block a redistribution (5).</i>
+    Hotblack Desiato, a rich rockstar, indeed spent a year dead for tax
+    reasons.</li>
+    <li><i>16d. The extent to which rock can absorb pop? Limitless! So, I try,
+    desperately (8).</i> This was another long clue with a clunky surface. I
+    had an alternate clue lined up, that also did not make it: <i>The difference
+    between hard and soft rock? (8)</i></li>
+    <li><i>23d. DNA is back after adding top record-breaking "Restaurant at the
+    End of the Universe" to trip! (6).</i> I was happy to get the entire title
+    of one of the HHGTTG books into the clue.</li>
+    <li><i>26d. Sperm whale starts yearning for change of direction (6).</i>
+    The Magrathean sperm whale, created mid-air by the Infinite Improbability
+    Drive, had a short life span of about a minute before it hit the ground
+    and died. It probably did yearn for a change of direction.</li>
+    </ul>
+
+  exolve-grid:
+        ..I.O.I.O.I.O..
+        .COMPUTER.CUBE.
+        C.N.P.A.I.O.L.D
+        HAIROIL.GENUINE
+        E.Z.S.I.I.I.V.A
+        AZERI.CONSCRIPT
+        P...T...A...O.H
+        .UPKEEP.LAMENT.
+        U.O...R...U...F
+        NORSEGODS.LOSER
+        F.O.R.T.Y.T.W.O
+        INSURER.NAILING
+        T.I.A.U.T.P.T.S
+        .STUN.DEADLOCK.
+        ..Y.D.E.X.E.H..
+  exolve-across:
+    7 Deep Thought: perhaps more charming to hide love, maintaining platonic overtures? (8) Def: Deep thought: perhaps. CUTER around O M(-aintaining) P(-latonic)
+    8 Perhaps 1 or 8 or 100 (use binary entries at first) (4) Def: Perhaps 1 or 8. C U(-se) B(-inary) E(-ntries)
+    11 Treatment regularly used by "headier" gorilla? (4,3) Def: Treatment (supplemented by the rest of the clue in a away). H(-e)A(-d)I(-e)R (-g)O(-r)I(-l)L(-a)
+    12 DNA penned new, universal, and original ideas for real (7) Def: real. GENE around N U I(-deas)
+    13 Zillionaire Zaphod retreated embracing a Caucasian person (5) Def: a Caucasian person. Reverse hidden word: (-zilliona)IRE ZA(-phod) <<
+    14 Draft opening of column on "Scenic Vacation / Bad Trip?" (9) Def: Draft. C ON S(-ceni)C TRIP*
+    15 Elated leader of Krikkit-robots to go back for maintenance (6) Def: maintenance. UP K(-rikkit-robots) PEE<<
+    18 Gogrilla M., entrepreneur bearing regret (6) Def: regret. Hidden word: (-gogril)LA M ENT(-repreneur)
+    22 Thor and Loki, perhaps running backwards bare-arsed with girl; Odin's not in? (5,4) Def: Thor and Loki, perhaps. ON<< (-a)RSE(-d) G OD(-in)S
+    25 Heart of Gold returns, oddly steers wretched person (5) Def: wretched person. (-g)OL(-d)<< S(-t)E(-e)R(-s)
+    27 One might take risks and charge in with more confidence (7) Def: One might take risks and charge. IN SURER
+    28 Apprehension of Vogon AI lingers (7) Def: Apprehension (NAILING as gerund). Hidden word: (-vogo)N AI LING(-ers)
+    29 Shock creatures centrally inhabiting a small, unregarded yellow star in the uncharted backwaters of the unfashionable end of the western spiral arm of the galaxy (4) Def: Shock. (-crea)T(-ures) in SUN
+    30 Draw world like Lamuella, suited well to idyllic, laid-back terminations (8) Def: Draw. Tail acrostic: (-worl)D (-lik)E (-lamuell)A (-suite)D (-wel)L (-t)O (-idylli)C (-laid-bac)K
+  exolve-down:
+    1 Charge with abduction I, Zem, unmasked (6) Def: Charge. Hidden word: (-abduct)ION I ZE(-m)
+    2 Veet is opportunistic, embraces upcoming rival (8) Def: rival. Reverse hidden word: (-ve)ET IS OPPO(-rtunistic) <<
+    3 An emphatic type of intergalactic New Work Act shelved (6) Def: An emphatic type. I(-n)T(-erg)AL(-act)IC
+    4 True, Stavro Mueller finishes ailing all over the place (8) Def: True. (-stavr)O (-muelle)R AILING*
+    5 Representative rewired Colin after removing the last bit of towel, getting InfiniDim credit openings (6) Def: Representative. CO(-l)IN* I(-nfinidim) C(-redit)
+    6 Finally, piano and violin playing around the conclusion of Gnab-Gib. Nothingness... (8) Def: Nothingness. (-pian)O VIOLIN* around (-gnab-gi)B
+    9 Inexpensive headgear worn by hitchhiking Earth-born beginners (5) Def: Inexpensive. CAP around H(-itchhiking) E(-arth-born)
+    10 Hotblack Desiato demise is to block a redistribution (5) Def: demise. HOTBLACK DESIATO = DEATH IS TO BLOCK A* (composite anagram)
+    16 The extent to which rock can absorb pop? Limitless! So, I try, desperately (8) Def: The extent to which rock can absorb. PO(-p) SOITRY*
+    17 Come out of terrible rut, drop indifference at last (8) Def: Come out. RUTDROP* (-indifferenc)E
+    19 Loudly contemplate liquor product (8) Def: product. MULL TIPPLE homophone
+    20 Inappropriate, extremely utopian BBC Guide segment? (5) Def: Inappropriate. U(-topia)N FIT (referring to "fit" as the unit of BBC HHGTTG broadcasts)
+    21 Slippery creatures that are somewhat froody beings on the outside (5) Def: Slippery creatures. FRO(-ody) (-bein)GS
+    23 DNA is back after adding top record-breaking "Restaurant at the End of the Universe" to trip (6) Def: trip. DNA<< after (R(-ecord-breaking) R(-estaurant) after (-univers)E)
+    24 Phrasal structure from the Reverend's metallic jazz instrument (6) Def: Phrasal structure. Spoonerism of TIN SAX
+    26 Sperm whale starts yearning for change of direction (6) Def: change of direction. S(-perm) W(-hale) ITCH
+exolve-end
+======REPLACE WITH YOUR PUZZLE ABOVE======
+`;
+
+</script>
+
+</head>
+
+<body onload="createPuzzle()">
+
+<div class="flex-col" id="outermost-stack">
+  <h2 id="title">Title</h2>
+  <div id="setter"></div>
+  <div id="prelude"></div>
+  <div id="current-clue-parent">
+    <div id="current-clue"></div>
+  </div>
+  <div class="flex-row">
+    <div id="grid-panel">
+      <div id="grid-parent-centerer">
+        <div id="grid-parent">
+          <svg id="grid" zoomAndPan="disable"></svg>
+          <div id="grid-input-wrapper" style="display:none;left:0;top:0"><input id="grid-input" type="text" maxlength="2" autocomplete="off" spellcheck="false" class="cell-text"/></div>
+          <div id="nina-group" style="display:none;left:0;top:0"></div>
+          <div id="small-print">
+            <a id="report-bug"
+               href="https://github.com/viresh-ratnakar/exolve/issues/new">Report bug</a>
+            <a href="https://github.com/viresh-ratnakar/exolve">exolve on GitHub</a>
+            <span id="copyright"></span>
+          </div> <!-- #small-print -->
+        </div> <!-- #grid-parent -->
+      </div> <!-- #grid-parent-centerer -->
+      <div id="controls-etc">
+        <div id="controls" class="wide-box">
+          <div id="button-row-1" class="controls-row">
+            <button id="clear" class="button"
+                onclick="clearCurrent()">Clear this</button>
+            <button id="clear-all" class="button"
+                onclick="clearAll()">Clear all!</button>
+            <button id="check" class="button" style="display:none"
+                onclick="checkCurrent()">Check this</button>
+            <button id="check-all" class="button" style="display:none"
+                onclick="checkAll()">Check all!</button>
+          </div> <!-- #button-row-1 -->
+          <div id="button-row-2" class="controls-row">
+            <button id="reveal" class="button" style="display:none"
+                onclick="revealCurrent()">Reveal this</button>
+            <button id="ninas" class="button" style="display:none"
+                onclick="toggleNinas()">Show ninas</button>
+            <button id="reveal-all" class="button" style="display:none"
+                onclick="revealAll()">Reveal all!</button>
+          </div> <!-- #button-row-2 -->
+        </div> <!-- #controls -->
+        <div id="errors"></div>
+        <div id="status">
+          Squares filled:
+          <span id="status-num-filled">0</span>/<span
+                id="status-num-total"></span>
+        </div> <!-- #status -->
+        <div id="questions" class="wide-box"></div> 
+        <div id="submit-parent">
+          <button id="submit" class="button" style="display:none"
+              onclick="submitSolution()">Submit!</button>
+        </div> <!-- submit-parent -->
+        <div id="explanations" class="wide-box" style="display:none"></div>
+      </div> <!-- #controls-etc -->
+      <br/>
+      <br/>
+    </div> <!-- #grid-panel -->
+    <div id="across-clues-panel" class="wide-box clues-box">
+      <hr/>
+      <b>Across</b>
+      <table id="across"></table>
+      <br/>
+    </div> <!-- #across-clues-panel -->
+    <div id="down-clues-panel" class="wide-box clues-box">
+      <hr/>
+      <b>Down</b>
+      <table id="down"></table>
+      <br/>
+    </div> <!-- #down-clues-panel -->
+  </div>
+</div> <!-- #outermost-stack -->
+
+<p><a href="index.html">The full list of crossword puzzles on this site.</a></p>
+
+</body>
+
+</html>

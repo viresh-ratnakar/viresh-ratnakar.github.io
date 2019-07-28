@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<link rel="stylesheet" type="text/css" href="exolve.css"/>
+<script src="exolve.js"></script>
+
+<title>Do Squares Reveal?</title>
+
+<script>
+
+const puzzleText = `
+======REPLACE WITH YOUR PUZZLE BELOW======
+exolve-begin
+  exolve-id: gussalufz-8
+  exolve-title: Do Squares Reveal?
+  exolve-setter: Gussalufz
+  exolve-copyright: 2018 Viresh Ratnakar
+  exolve-width: 13
+  exolve-height: 13
+
+  exolve-question: What is the answer to the question posed by the title? (5)
+
+  exolve-grid:
+        0.0.0...0.0.0
+        000000.000000
+        0.0.0.0.0.0.0
+        0000000.00000
+        0.0.0.0.0.0.0
+        0000.00000...
+        0.0.0.0.0.0.0
+        ...00000.0000
+        0.0.0.0.0.0.0
+        00000.0000000
+        0.0.0.0.0.0.0
+        000000.000000
+        0.0.0...0.0.0
+  exolve-across:
+    7 Tough group Hillary exposed (6)
+    8 Spoil drink (6)
+    10 Email M.D. about predicament (7)
+    11 Company terminates country employment (5)
+    12 One overwhelmed by strange new drink (4)
+    13 Invasion repelled with the tip of heavy log (5)
+    17 Home fireplace fails to start (5)
+    18 Teetotaller has to skip superior drink (4)
+    22 Build upon jack for royal flush (5)
+    23 Massaged a lover with oil at the rear end? Gross! (7)
+    24 Mix final party drink (6)
+    25 Indeed, pizza for a millennial working in San Francisco, perhaps? (6)
+  exolve-down:
+    1 Slight bit of drowsiness in city, after rising up? (7)
+    2 Settled attack formation rioted, hard to explain (7)
+    3 Eminem album full of revolutionary rap (5)
+    4 Get a group of singers played on the radio (7)
+    5 Lost openers to suicidal tight run and yorker (5)
+    6 If he sneakily succeeds? Assets relieved of asses! (5)
+    9 Helping to raise internal funds for energy (9)
+    14 Eat up tart cake after removing toppings (7)
+    15 What's that app next to boxing? Bobby's recommendation? (2,5)
+    16 Cart overturned: moreover, trapped cycle (7)
+    19 Some confusion about wife's catcalls? (5)
+    20 Value of Reverend's wire transfer, say (5)
+    21 God sheltering second-tier animals (5)
+exolve-end
+======REPLACE WITH YOUR PUZZLE ABOVE======
+`;
+
+</script>
+
+</head>
+
+<body onload="createPuzzle()">
+
+<div class="flex-col" id="outermost-stack">
+  <h2 id="title">Title</h2>
+  <div id="setter"></div>
+  <div id="prelude"></div>
+  <div id="current-clue-parent">
+    <div id="current-clue"></div>
+  </div>
+  <div class="flex-row">
+    <div id="grid-panel">
+      <div id="grid-parent-centerer">
+        <div id="grid-parent">
+          <svg id="grid" zoomAndPan="disable"></svg>
+          <div id="grid-input-wrapper" style="display:none;left:0;top:0"><input id="grid-input" type="text" maxlength="2" autocomplete="off" spellcheck="false" class="cell-text"/></div>
+          <div id="nina-group" style="display:none;left:0;top:0"></div>
+          <div id="small-print">
+            <a id="report-bug"
+               href="https://github.com/viresh-ratnakar/exolve/issues/new">Report bug</a>
+            <a href="https://github.com/viresh-ratnakar/exolve">exolve on GitHub</a>
+            <span id="copyright"></span>
+          </div> <!-- #small-print -->
+        </div> <!-- #grid-parent -->
+      </div> <!-- #grid-parent-centerer -->
+      <div id="controls-etc">
+        <div id="controls" class="wide-box">
+          <div id="button-row-1" class="controls-row">
+            <button id="clear" class="button"
+                onclick="clearCurrent()">Clear this</button>
+            <button id="clear-all" class="button"
+                onclick="clearAll()">Clear all!</button>
+            <button id="check" class="button" style="display:none"
+                onclick="checkCurrent()">Check this</button>
+            <button id="check-all" class="button" style="display:none"
+                onclick="checkAll()">Check all!</button>
+          </div> <!-- #button-row-1 -->
+          <div id="button-row-2" class="controls-row">
+            <button id="reveal" class="button" style="display:none"
+                onclick="revealCurrent()">Reveal this</button>
+            <button id="ninas" class="button" style="display:none"
+                onclick="toggleNinas()">Show ninas</button>
+            <button id="reveal-all" class="button" style="display:none"
+                onclick="revealAll()">Reveal all!</button>
+          </div> <!-- #button-row-2 -->
+        </div> <!-- #controls -->
+        <div id="errors"></div>
+        <div id="status">
+          Squares filled:
+          <span id="status-num-filled">0</span>/<span
+                id="status-num-total"></span>
+        </div> <!-- #status -->
+        <div id="questions" class="wide-box"></div> 
+        <div id="submit-parent">
+          <button id="submit" class="button" style="display:none"
+              onclick="submitSolution()">Submit!</button>
+        </div> <!-- submit-parent -->
+        <div id="explanations" class="wide-box" style="display:none"></div>
+      </div> <!-- #controls-etc -->
+      <br/>
+      <br/>
+    </div> <!-- #grid-panel -->
+    <div id="across-clues-panel" class="wide-box clues-box">
+      <hr/>
+      <b>Across</b>
+      <table id="across"></table>
+      <br/>
+    </div> <!-- #across-clues-panel -->
+    <div id="down-clues-panel" class="wide-box clues-box">
+      <hr/>
+      <b>Down</b>
+      <table id="down"></table>
+      <br/>
+    </div> <!-- #down-clues-panel -->
+  </div>
+</div> <!-- #outermost-stack -->
+
+<p><a href="index.html">The full list of crossword puzzles on this site.</a></p>
+
+</body>
+
+</html>
