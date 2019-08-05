@@ -39,7 +39,7 @@ const puzzleText = `
 ======REPLACE WITH YOUR PUZZLE BELOW======
 exolve-begin
   exolve-id: Alfab
-  exolve-title: Alfabulous
+  exolve-title: Alfabulous-2
   exolve-setter: Dr. Cleuss
   exolve-copyright: 2017 Sowmya Ramkumar, 1across.org
   exolve-width: 15
@@ -1586,10 +1586,10 @@ function makeCurrentClueVisible() {
   // Reposition
   let newTop = 0
   // If parent is below viewport top, go back to standard position.
-  if (parentTop >= 0) {
-    currentClue.style.top = '0'
-    return
-  }
+  //if (parentTop >= 0) {
+  //  currentClue.style.top = '0'
+  //  return
+  //}
   currentClue.style.top = '' + (0 - parentTop) + 'px';
 }
 
