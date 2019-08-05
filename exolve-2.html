@@ -39,7 +39,7 @@ const puzzleText = `
 ======REPLACE WITH YOUR PUZZLE BELOW======
 exolve-begin
   exolve-id: Alfab
-  exolve-title: Alfabulous-3
+  exolve-title: Alfabulous-4
   exolve-setter: Dr. Cleuss
   exolve-copyright: 2017 Sowmya Ramkumar, 1across.org
   exolve-width: 15
@@ -1948,7 +1948,7 @@ function createListeners() {
   gridInput.addEventListener('click', toggleCurrentDirection);
   background.addEventListener('click', getRowColActivator(-1, -1));
   window.addEventListener('scroll', makeCurrentClueVisible);
-  window.addEventListener('touchmove', makeCurrentClueVisible);
+  window.addEventListener('resize', makeCurrentClueVisible);
 }
 
 function displayGrid() {
