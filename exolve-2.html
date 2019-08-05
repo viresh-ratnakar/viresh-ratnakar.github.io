@@ -1566,18 +1566,18 @@ function deactivateCurrentCell() {
 
 function makeCurrentClueVisible() {
   // Check if grid input is visible.
-  const inputPos = gridInput.getBoundingClientRect();
-  if (inputPos.top < 0) {
-    return
-  }
-  let windowH = getViewportHeight()
-  if (!windowH || windowH <= 0) {
-    return
-  }
-  if (inputPos.bottom >= windowH) {
-    currentClue.style.top = '0'
-    return
-  }
+  //const inputPos = gridInput.getBoundingClientRect();
+  //if (inputPos.top < 0) {
+  //  return
+ // }
+  //let windowH = getViewportHeight()
+  //if (!windowH || windowH <= 0) {
+  //  return
+  //}
+  //if (inputPos.bottom >= windowH) {
+  //  currentClue.style.top = '0'
+  //  return
+  //}
   // gridInput is visible
   const cluePos = currentClue.getBoundingClientRect();
   const top = cluePos.top
