@@ -1477,7 +1477,7 @@ function updateAndSaveState() {
   d.setTime(d.getTime() + (KEEP_FOR_DAYS * 24 * 60 * 60 * 1000));
   let expires = 'expires=' + d.toUTCString();
   document.cookie = puzzleId + '=' + state + ';' + expires + ';path=/';
-  if (location.protocol.substr(0, 4) != 'http') {
+  if (location.protocol.substr(0, 4) != 'http' || location.hash) {
     // Also save in location.hash as Chrome does not support cookies on file:
     location.hash = '#' + state
   }
