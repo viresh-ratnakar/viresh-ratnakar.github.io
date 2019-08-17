@@ -35,205 +35,148 @@ https://github.com/viresh-ratnakar/exolve
 
 <script>
 
-var puzzleText = `
-======REPLACE WITH YOUR PUZZLE BELOW======
-exolve-begin
-  exolve-id: gussalufz-16
-  exolve-title: THCC July 2019
-  exolve-setter: Gussalufz
-  exolve-copyright: 2019 Viresh Ratnakar
-  exolve-width: 15
-  exolve-height: 15
-  exolve-grid:
-        ONLY.PAPAL.EDIT
-        B.E...T.T...E.R
-        OUTDOOR.OBSCURE
-        I.T.V.I.M.H.C.F
-        SKELETAL.HERETO
-        T.R.R...I.N...I
-        SUBSIDIES.ANNUL
-        ..O.N.L.I.N.E..
-        SEXED.LASTINGLY
-        Y...U.S...G.L.A
-        NICELY.SATANISM
-        A.H.G.J.B.N.G.M
-        PLACEBO.OBSCENE
-        S.O...L.V...E.R
-        ELSE.STEEP.ASKS
-  exolve-prelude:
-    This puzzle was published in the
-    <a href='https://thehinducrosswordcorner.blogspot.com'>THCC blog</a>
-    in July 2019.
+const puzzleText = '' +
+'exolve-begin\n' +
+'  exolve-id: example-basic\n' +
+'  exolve-title: Tiny Demo Crossword\n' +
+'  exolve-setter: Exolve\n' +
+'  exolve-width: 5\n' +
+'  exolve-height: 5\n' +
+'  exolve-grid:\n' +
+'    HELLO\n' +
+'    O...L\n' +
+'    WORLD\n' +
+'    L...E\n' +
+'    STEER\n' +
+'  exolve-across:\n' +
+'    1 Greeting (5) Example annotation shown for clue, upon "Reveal all"\n' +
+'    3 Earth (5)\n' +
+'    4 Guide (5)\n' +
+'  exolve-down:\n' +
+'    1 Emits cry (5)\n' +
+'    2 More ancient (5)\n' +
+'  exolve-explanations:\n' +
+'    This text gets shown on clicking "Reveal all" and may include\n' +
+'    explanations, commentary, annotations, etc.\n' +
+'exolve-end\n';
 
-  exolve-nina: a14 c14 g14 i14 m14 o14
-  exolve-nina: c8 e8 g8 i8 k8 m8
-  exolve-nina: a2 c2 g2 i2 m2 o2
-  exolve-nina: h15 h11 h9 h7 h5 h1
-
-  exolve-question: What is the hidden message? (6,6,6,6) BETTER ONLINE SOLVER PLEASE
-  exolve-question: Test question (8)*
-
-  exolve-explanations:
-    The text in this section, along with annos and answers to questions and
-    ninas, gets shown upon clicking "Reveal all."
-
-  exolve-across:
-    1 Just running leisurely on vacation (4) Def: Just. ON L(-eisurel)Y.
-    3 Quietly a friend of the Catholic church (5) Def: of the Catholic church. P A PAL.
-    6 Reverse course and make changes (4) Def: make changes. TIDE<<.
-    9 Best alternative to open-air (7) Def: open-air. OUTDO OR.
-    11 Specialist doctors heal minor (7) Def: minor. OBS CURE.
-    13 Basic, small kale-lettuce salad!? Not cute! (8) Def: Basic. S KALELETTUCE* -CUTE.
-    14 About this matter of the star-eating alien (6) Def: About this matter. HERO around ET.
-    16 Awkwardly issue bids for financial rewards (9) Def: financial rewards. ISSUEBIDS*.
-    18 Cancel yearly leave, Ana (5) Def: Cancel. ANNUAL -A ("leave an a").
-    20 Chromosome in sperm determined whether male or female (5) Def: determined whether male or female. X in SEED.
-    21 Ally’s break-up carries pain forever (9) Def: forever. ALLY* around STING.
-    23 Finally obtain Saudi seismic license; drill exploratory well (6) Def: well. Tail acrostic.
-    25 Perhaps Santa is married to devil-worship? (8) Def: devil-worship. SANTA* IS M.
-    28 Replace bottles containing questionable medicine (7) Def: questionable medicine. Hidden word.
-    29 Immodest one flaunting CBSE preparation? (7) Def: Immodest. ONE around CBSE*.
-    30 More dress sizes announced (4) Def: More. Homophone of "Ls."
-    31 Sudden drench (5) Def: Sudden. Def: drench.
-    32 Questions assignments to take the head off (4) Def: Questions. (-t)ASKS.
-  exolve-down:
-    1 Musicians keeping time amidst rowdy boos (7) Def: Musicians. IST ("time") in BOOS*.
-    2 Mail carrier read pugilist girl’s supporter’s request for permission for her to perform (9) Def: Mail carrier. Homophone of "Let 'er box!"
-    4 Courts top actresses to raise inadequate amour-propre (5) Def: Courts. Acrostic.
-    5 Trace the first 13 letters! (4) Def: Trace. A TO M.
-    7 Dickens suppressed by rabid EU censors (5) Def: Dickens. Hidden word.
-    8 Decorative structure for tile arrangement (7) Def: Decorative structure. FORTILE*.
-    10 Doctor urged, "In love, allow all kinds of liberties." (11)  Def: allow all kinds of liberties. URGEDINLOVE*.
-    12 Son, husband catch silly, boomeranging tricks (11) Def: tricks. S H (SNAG INANE)<<.
-    15 Goddess happens to be one top sitarist (4) Def: Goddess. IS I S(-itarist).
-    17 Misfortunes of one with fifty-fifty chances, ultimately (4) def: Misfortunes. I LL (-chance)S.
-    19 Sheer cover-ups! (9) Cryptic def.
-    20 Clairvoyance somewhat on the rise after small connection in the brain (7) Def: connection in the brain. S (ESP ANY)<<.
-    22 Whines or goes off: “Sorry, am me!” (7) Def; Whines. CA: (YAMMERS OR)* = SORRY AM ME.
-    24 Also, ah—, cannabis limits rising lawlessness! (5) Def: lawlessness. Reverse hidden word.
-    26 Can be on view regularly from a height (5) Def: from a height. (-c)A(-n) B(-e) O(-n) V(-i)E(-w).
-    27 Start to write about first love (4) Def: Start. JOT about L(-ove)
-exolve-end
-======REPLACE WITH YOUR PUZZLE ABOVE======
-`;
-
-var VERSION = 'exolve v0.15 August 05 2019'
+const VERSION = 'exolve v0.15 August 05 2019'
 
 // ------ Begin globals.
 
-var puzzleId = 'exolve-grid'
+let puzzleId = 'exolve-grid'
 
-var gridWidth = 0
-var gridHeight = 0
-var boxWidth = 0
-var boxHeight = 0
+let gridWidth = 0
+let gridHeight = 0
+let boxWidth = 0
+let boxHeight = 0
 
-var gridFirstLine = -1
-var gridLastLine = -1
-var preludeFirstLine = -1
-var preludeLastLine = -1
-var acrossFirstLine = -1
-var acrossLastLine = -1
-var downFirstLine = -1
-var downLastLine = -1
-var nodirFirstLine = -1
-var nodirLastLine = -1
-var explanationsFirstLine = -1
-var explanationsLastLine = -1
+let gridFirstLine = -1
+let gridLastLine = -1
+let preludeFirstLine = -1
+let preludeLastLine = -1
+let acrossFirstLine = -1
+let acrossLastLine = -1
+let downFirstLine = -1
+let downLastLine = -1
+let nodirFirstLine = -1
+let nodirLastLine = -1
+let explanationsFirstLine = -1
+let explanationsLastLine = -1
 
 // Each nina will be an array containing location [i,j] pairs and/or span
 // class names.
-var ninas = []
+let ninas = []
 // For span-class-specified ninas, ninaClassElements[] stores the elements
 // along with the colours to apply to them when showing the ninas.
-var ninaClassElements = []
-var showingNinas = false
+let ninaClassElements = []
+let showingNinas = false
 
-var grid = []
-var clues = {}
-var submitURL = null
-var submitKeys = []
-var hasDiagramlessCells = false
-var hasUnsolvedCells = false
-var hasAcrossClues = false
-var hasDownClues = false
-var hasNodirClues = false
+let grid = []
+let clues = {}
+let submitURL = null
+let submitKeys = []
+let hasDiagramlessCells = false
+let hasUnsolvedCells = false
+let hasAcrossClues = false
+let hasDownClues = false
+let hasNodirClues = false
 // Clues labeled non-numerically (like [A] a clue...) use this to create a
 // unique clueIndex.
-var nextNonNumId = 1
-var nonNumClueIndices = {}
+let nextNonNumId = 1
+let nonNumClueIndices = {}
 
-var SQUARE_DIM = 31
-var SQUARE_DIM_BY2 = 16
-var GRIDLINE = 1
-var BAR_WIDTH = 4
-var BAR_WIDTH_BY2 = 2.5
-var SEP_WIDTH = 2
-var SEP_WIDTH_BY2 = 1.5
-var HYPHEN_WIDTH = 9
-var HYPHEN_WIDTH_BY2 = 5
-var CIRCLE_RADIUS = 0.0 + SQUARE_DIM / 2.0
+const SQUARE_DIM = 31
+const SQUARE_DIM_BY2 = 16
+const GRIDLINE = 1
+const BAR_WIDTH = 4
+const BAR_WIDTH_BY2 = 2.5
+const SEP_WIDTH = 2
+const SEP_WIDTH_BY2 = 1.5
+const HYPHEN_WIDTH = 9
+const HYPHEN_WIDTH_BY2 = 5
+const CIRCLE_RADIUS = 0.0 + SQUARE_DIM / 2.0
 
-var NUMBER_START_X = 3
-var NUMBER_START_Y = 11
-var LIGHT_START_X = 16.5
-var LIGHT_START_Y = 21.925
+const NUMBER_START_X = 3
+const NUMBER_START_Y = 11
+const LIGHT_START_X = 16.5
+const LIGHT_START_Y = 21.925
 
-var answersList = []
-var revelationList = []
+let answersList = []
+let revelationList = []
 
-var currentRow = -1
-var currentCol = -1
-var currentDirectionIsAcross = true
-var activeCells = [];
-var activeClues = [];
-var numCellsToFill = 0
+let currentRow = -1
+let currentCol = -1
+let currentDirectionIsAcross = true
+let activeCells = [];
+let activeClues = [];
+let numCellsToFill = 0
 
-var allClueIndices = []
+let allClueIndices = []
 // For the all-clues widget.
-var posInAllClueIndices = 0
+let posInAllClueIndices = 0
 
-var BLOCK_CHAR = '⬛';
-var ACTIVE_COLOUR = 'mistyrose'
-var ALL_CLUES_COLOUR = 'white'
-var TRANSPARENT_WHITE = 'rgba(255,255,255,0.0)'
+const BLOCK_CHAR = '⬛';
+const ACTIVE_COLOUR = 'mistyrose'
+const ALL_CLUES_COLOUR = 'white'
+const TRANSPARENT_WHITE = 'rgba(255,255,255,0.0)'
 
-var nextPuzzleTextLine = 0
+let nextPuzzleTextLine = 0
 
-var STATE_SEP = 'eexxoollvvee'
+const STATE_SEP = 'eexxoollvvee'
 
 // Variables set by exolve-option
-var hideInferredNumbers = false
-var cluesPanelLines = -1
+let hideInferredNumbers = false
+let cluesPanelLines = -1
 
 // Variables set in init().
-var puzzleTextLines;
-var numPuzzleTextLines;
-var svg;
-var gridInputWrapper;
-var gridInput;
-var questions;
-var background;
-var acrossClues;
-var downClues;
-var nodirClues;
-var acrossPanel;
-var downPanel;
-var nodirPanel;
-var currentClue;
-var currentClueParent;
-var ninaGroup;
-var statusNumFilled;
-var statusNumTotal;
-var savingURL;
-var clearButton;
-var clearAllButton;
-var checkButton;
-var checkAllButton;
-var ninasButton;
-var revealButton;
-var revealAllButton;
-var submitButton;
+let puzzleTextLines;
+let numPuzzleTextLines;
+let svg;
+let gridInputWrapper;
+let gridInput;
+let questions;
+let background;
+let acrossClues;
+let downClues;
+let nodirClues;
+let acrossPanel;
+let downPanel;
+let nodirPanel;
+let currentClue;
+let currentClueParent;
+let ninaGroup;
+let statusNumFilled;
+let statusNumTotal;
+let savingURL;
+let clearButton;
+let clearAllButton;
+let checkButton;
+let checkAllButton;
+let ninasButton;
+let revealButton;
+let revealAllButton;
+let submitButton;
 
 // ------ End globals.
 
@@ -276,7 +219,7 @@ function init() {
   revealAllButton = document.getElementById('reveal-all')
   submitButton = document.getElementById('submit')
 
-  var info = 'Version: ' + VERSION + ', User Agent: ' + navigator.userAgent
+  let info = 'Version: ' + VERSION + ', User Agent: ' + navigator.userAgent
   document.getElementById('report-bug').href =
       'https://github.com/viresh-ratnakar/exolve/issues/new?body=' +
       encodeURIComponent(info);
@@ -286,7 +229,7 @@ function init() {
 // next line beginning with 'exolve-<section>' and return <section> as well
 // as the 'value' of the section (the part after ':').
 function parseToNextSection() {
-  var MARKER = 'exolve-'
+  const MARKER = 'exolve-'
   while (nextPuzzleTextLine < numPuzzleTextLines &&
          puzzleTextLines[nextPuzzleTextLine].trim().indexOf(MARKER) != 0) {
     nextPuzzleTextLine++;
@@ -295,8 +238,8 @@ function parseToNextSection() {
     return null
   }
   // Skip past MARKER
-  var line = puzzleTextLines[nextPuzzleTextLine].trim().substr(MARKER.length)
-  var index = line.indexOf(':')
+  let line = puzzleTextLines[nextPuzzleTextLine].trim().substr(MARKER.length)
+  let index = line.indexOf(':')
   if (index < 0) {
     index = line.length
   }
@@ -309,10 +252,10 @@ function parseToNextSection() {
 // using "chess notation" (a1 = bottom-left, etc.). Convert the cell locations
 // to [row col] and push an array of these locations to the global ninas array.
 function parseNina(s) {
-  var nina = []
-  var cellsOrClasses = s.split(' ')
-  for (var cellOrClass of cellsOrClasses) {
-    var cellLocation = parseCellLocation(cellOrClass)
+  let nina = []
+  let cellsOrClasses = s.split(' ')
+  for (let cellOrClass of cellsOrClasses) {
+    let cellLocation = parseCellLocation(cellOrClass)
     if (!cellLocation) {
       // Must be a class name, for a span-class-specified nina
       nina.push(cellOrClass)
@@ -329,14 +272,14 @@ function parseNina(s) {
 // an input box for the answer). The solution answer may be provided after the
 // last ')'.
 function parseQuestion(s) {
-  var enumParse = parseEnum(s)
-  var inputLen = enumParse.len + enumParse.hyphenAfter.length +
+  let enumParse = parseEnum(s)
+  let inputLen = enumParse.len + enumParse.hyphenAfter.length +
                  enumParse.wordEndAfter.length
 
-  var afterEnum = enumParse.afterEnum
-  var rawQ = s.substr(0, afterEnum)
+  let afterEnum = enumParse.afterEnum
+  let rawQ = s.substr(0, afterEnum)
 
-  var hideEnum = false
+  let hideEnum = false
   if (inputLen > 0) {
     if (s.substr(afterEnum, 1) == '*') {
       beforeEnum = s.lastIndexOf('(', afterEnum - 1)
@@ -350,14 +293,14 @@ function parseQuestion(s) {
     }
   }
 
-  var correctAnswer = s.substr(afterEnum).trim()
-  var question = document.createElement('div')
+  let correctAnswer = s.substr(afterEnum).trim()
+  const question = document.createElement('div')
   question.setAttributeNS(null, 'class', 'question');
-  var questionText = document.createElement('span')
+  const questionText = document.createElement('span')
   questionText.innerHTML = rawQ
   question.appendChild(questionText)
   question.appendChild(document.createElement('br'))
-  var answer = document.createElement('input')
+  const answer = document.createElement('input')
   answer.setAttributeNS(null, 'class', 'answer');
   answersList.push({
     'ans': correctAnswer,
@@ -367,10 +310,10 @@ function parseQuestion(s) {
   if (inputLen == 0) {
     inputLen = '30'
   } else if (!hideEnum) {
-    var answerValue = ''
-    var wordEndIndex = 0
-    var hyphenIndex = 0
-    for (var i = 0; i < enumParse.len; i++) {
+    let answerValue = ''
+    let wordEndIndex = 0
+    let hyphenIndex = 0
+    for (let i = 0; i < enumParse.len; i++) {
       answerValue = answerValue + '?'
       if (wordEndIndex < enumParse.wordEndAfter.length &&
               i == enumParse.wordEndAfter[wordEndIndex]) {
@@ -398,27 +341,27 @@ function parseQuestion(s) {
 }
 
 function parseSubmit(s) {
-  var parts = s.split(' ')
+  let parts = s.split(' ')
   if (s.length < 2) {
     addError('Submit section must have a URL and a param name for the solution')
     return
   }
   submitURL = parts[0]
   submitKeys = []
-  for (var i = 1; i < parts.length; i++) {
+  for (let i = 1; i < parts.length; i++) {
     submitKeys.push(parts[i])
   }
 }
 
 function parseOption(s) {
-  var sparts = s.split(' ')
-  for (var spart of sparts) {
+  let sparts = s.split(' ')
+  for (let spart of sparts) {
     spart = spart.trim().toLowerCase()
     if (spart == "hide-inferred-numbers") {
       hideInferredNumbers = true
       continue
     }
-    var kv = spart.split(':')
+    let kv = spart.split(':')
     if (kv.length != 2) {
       addError('Expected exolve-option: key:value, got: ' + spart)
       return
@@ -439,12 +382,12 @@ function parseOption(s) {
 // displaying all exolve-* sections except prelude, grid, across, down (for
 // these, it just captures where the start and end lines are).
 function parseOverallDisplayMost() {
-  var sectionAndValue = parseToNextSection()
+  let sectionAndValue = parseToNextSection()
 
   while (sectionAndValue && sectionAndValue.section != 'end') {
-    var firstLine = nextPuzzleTextLine
-    var nextSectionAndValue = parseToNextSection()
-    var lastLine = nextPuzzleTextLine - 2
+    let firstLine = nextPuzzleTextLine
+    let nextSectionAndValue = parseToNextSection()
+    let lastLine = nextPuzzleTextLine - 2
     if (sectionAndValue.section == 'begin') {
     } else if (sectionAndValue.section == 'id') {
       puzzleId = sectionAndValue.value
@@ -499,8 +442,8 @@ function parseOverallDisplayMost() {
 // its display.
 function parseAndDisplayPrelude() {
   if (preludeFirstLine >= 0 && preludeFirstLine <= preludeLastLine) {
-    var preludeText = puzzleTextLines[preludeFirstLine]
-    var l = preludeFirstLine + 1
+    let preludeText = puzzleTextLines[preludeFirstLine]
+    let l = preludeFirstLine + 1
     while (l <= preludeLastLine) {
       preludeText = preludeText + '\n' + puzzleTextLines[l]
       l++;
@@ -514,13 +457,13 @@ function parseAndDisplayPrelude() {
 function parseAndDisplayExplanations() {
   if (explanationsFirstLine >= 0 &&
       explanationsFirstLine <= explanationsLastLine) {
-    var explanationsText = puzzleTextLines[explanationsFirstLine]
-    var l = explanationsFirstLine + 1
+    let explanationsText = puzzleTextLines[explanationsFirstLine]
+    let l = explanationsFirstLine + 1
     while (l <= explanationsLastLine) {
       explanationsText = explanationsText + '\n' + puzzleTextLines[l]
       l++;
     }
-    var explanations = document.getElementById('explanations')
+    const explanations = document.getElementById('explanations')
     explanations.innerHTML = explanationsText
     revelationList.push(explanations)
   }
@@ -551,8 +494,8 @@ function checkIdAndConsistency() {
     addError('Mismatched width/height');
     return
   }
-  for (var i = 0; i < gridHeight; i++) {
-    var lineW = puzzleTextLines[i + gridFirstLine].toUpperCase().
+  for (let i = 0; i < gridHeight; i++) {
+    let lineW = puzzleTextLines[i + gridFirstLine].toUpperCase().
                     replace(/[^A-Z.0]/g, '').length
     if (gridWidth != lineW) {
       addError('Width in row ' + i + ' is ' + lineW + ', not ' + gridWidth);
@@ -582,15 +525,15 @@ function checkIdAndConsistency() {
 //   hasDiagramlessCells
 //   hasUnsolvedCells
 function parseGrid() {
-  var hasSolvedCells = false
-  for (var i = 0; i < gridHeight; i++) {
+  let hasSolvedCells = false
+  for (let i = 0; i < gridHeight; i++) {
     grid[i] = new Array(gridWidth)
-    var gridLine = puzzleTextLines[i + gridFirstLine].
+    let gridLine = puzzleTextLines[i + gridFirstLine].
                        replace(/\s/g, '').toUpperCase()
-    var gridLineIndex = 0
-    for (var j = 0; j < gridWidth; j++) {
+    let gridLineIndex = 0
+    for (let j = 0; j < gridWidth; j++) {
       grid[i][j] = {};
-      var letter = gridLine.charAt(gridLineIndex);
+      let letter = gridLine.charAt(gridLineIndex);
       if (letter != '.') {
         grid[i][j].isLight = true
         if (letter != '0') {
@@ -611,7 +554,7 @@ function parseGrid() {
       grid[i][j].hasCircle = false
       grid[i][j].isDiagramless = false
       gridLineIndex++
-      var thisChar = ''
+      let thisChar = ''
       while (gridLineIndex < gridLine.length &&
              (thisChar = gridLine.charAt(gridLineIndex)) &&
              (thisChar == '|' ||
@@ -700,9 +643,9 @@ function markClueStartsUsingGrid() {
     // prefixes like #a8, #d2, etc.
     return
   }
-  var nextClueNumber = 1
-  for (var i = 0; i < gridHeight; i++) {
-    for (var j = 0; j < gridWidth; j++) {
+  let nextClueNumber = 1
+  for (let i = 0; i < gridHeight; i++) {
+    for (let j = 0; j < gridWidth; j++) {
       if (startsAcrossClue(i, j)) {
         grid[i][j].startsAcrossClue = true
         grid[i][j].startsClueLabel = '' + nextClueNumber
@@ -724,8 +667,8 @@ function markClueStartsUsingGrid() {
 // return a two-element array [row, col].
 function parseCellLocation(s) {
   s = s.trim()
-  var col = s.charCodeAt(0) - 'a'.charCodeAt(0)
-  var row = gridHeight - parseInt(s.substr(1))
+  let col = s.charCodeAt(0) - 'a'.charCodeAt(0)
+  let row = gridHeight - parseInt(s.substr(1))
   if (isNaN(row) || isNaN(col) ||
       row < 0 || row >= gridHeight || col < 0 || col >= gridWidth) {
     return null
@@ -740,18 +683,18 @@ function parseCellLocation(s) {
 // wordEndAfter[] (0-based indices)
 // afterEnum index after enum
 function parseEnum(clueLine) {
-  var parse = {
+  let parse = {
     'len': 0,
     'wordEndAfter': [],
     'hyphenAfter': [],
     'afterEnum': clueLine.length,
   };
-  var enumLocation = clueLine.search(/\([1-9]+[0-9\-,'’\s]*\)/)
+  let enumLocation = clueLine.search(/\([1-9]+[0-9\-,'’\s]*\)/)
   if (enumLocation < 0) {
     // Look for the the string 'word'/'letter'/? in parens.
     enumLocation = clueLine.search(/\([^)]*(word|letter|\?)[^)]*\)/i)
     if (enumLocation >= 0) {
-      var enumEndLocation =
+      let enumEndLocation =
           enumLocation + clueLine.substr(enumLocation).indexOf(')')
       if (enumEndLocation <= enumLocation) {
         return parse
@@ -760,19 +703,19 @@ function parseEnum(clueLine) {
     }
     return parse
   }
-  var enumEndLocation =
+  let enumEndLocation =
       enumLocation + clueLine.substr(enumLocation).indexOf(')')
   if (enumEndLocation <= enumLocation) {
     return parse
   }
   parse.afterEnum = enumEndLocation + 1
-  var enumLeft = clueLine.substring(enumLocation + 1, enumEndLocation)
-  var nextPart
+  let enumLeft = clueLine.substring(enumLocation + 1, enumEndLocation)
+  let nextPart
   while (enumLeft && (nextPart = parseInt(enumLeft)) && !isNaN(nextPart) &&
          nextPart > 0) {
     parse.len = parse.len + nextPart
     enumLeft = enumLeft.replace(/\s*\d+\s*/, '')
-    var nextSymbol = enumLeft.substr(0, 1)
+    let nextSymbol = enumLeft.substr(0, 1)
     if (nextSymbol == '-') {
       parse.hyphenAfter.push(parse.len - 1)
       enumLeft = enumLeft.substr(1)
@@ -800,30 +743,30 @@ function parseEnum(clueLine) {
 // hasChildren
 // skip
 function parseClueLabel(clueLine) {
-  var parse = {};
+  let parse = {};
   parse.dir = ''
   parse.hasChilden = false
   parse.skip = 0
   numberParts = clueLine.match(/^\s*[1-9]\d*/)
   if (numberParts && numberParts.length == 1) {
-    var clueNum = parseInt(numberParts[0])
+    let clueNum = parseInt(numberParts[0])
     parse.clueLabel = '' + clueNum
     parse.isNonNum = false
     parse.skip = numberParts[0].length
   } else {
-    var bracOpenParts = clueLine.match(/^\s*\[/)
+    let bracOpenParts = clueLine.match(/^\s*\[/)
     if (!bracOpenParts || bracOpenParts.length != 1) {
       parse.error = 'Missing leading [ in non-numeric clue label in ' + clueLine
       return
     }
-    var pastBracOpen = bracOpenParts[0].length
-    var bracEnd = clueLine.indexOf(']')
+    let pastBracOpen = bracOpenParts[0].length
+    let bracEnd = clueLine.indexOf(']')
     if (bracEnd < 0) {
       parse.error = 'Missing matching ] in clue label in ' + clueLine
       return
     }
     parse.clueLabel = clueLine.substring(pastBracOpen, bracEnd).trim()
-    var temp = parseInt(parse.clueLabel)
+    let temp = parseInt(parse.clueLabel)
     if (!isNaN(temp)) {
       parse.error = 'Numeric label not allowed in []: ' + clueLabel
       return
@@ -860,17 +803,17 @@ function parseClueLabel(clueLine) {
 // startCell[] optional, used in diagramless+unsolved and nonth -numeric labels
 // anno (the part after the enum, if present)
 function parseClue(dir, clueLine) {
-  var parse = {};
+  let parse = {};
   clueLine = clueLine.trim()
   if (clueLine.indexOf('#') == 0) {
-    var startCell = parseCellLocation(clueLine.substr(1));
+    let startCell = parseCellLocation(clueLine.substr(1));
     if (startCell) {
       parse.startCell = startCell
     }  
     clueLine = clueLine.replace(/^#[a-z][0-9]*\s*/, '')
   }
 
-  var clueLabelParse = parseClueLabel(clueLine)
+  let clueLabelParse = parseClueLabel(clueLine)
   if (clueLabelParse.error) {
     addError(clueLabelParse.error)
     return
@@ -881,9 +824,9 @@ function parseClue(dir, clueLine) {
   }
   parse.clueLabel = clueLabelParse.clueLabel
   parse.isNonNum = clueLabelParse.isNonNum
-  var clueIndex = dir + parse.clueLabel
+  let clueIndex = dir + parse.clueLabel
   if (parse.isNonNum) {
-    var nonNumIndex = dir + '#' + (nextNonNumId++)
+    let nonNumIndex = dir + '#' + (nextNonNumId++)
     if (!nonNumClueIndices[parse.clueLabel]) {
       nonNumClueIndices[parse.clueLabel] = []
     }
@@ -904,7 +847,7 @@ function parseClue(dir, clueLine) {
     clueLine = clueLine.substr(clueLabelParse.skip)
   }
 
-  var enumParse = parseEnum(clueLine)
+  let enumParse = parseEnum(clueLine)
   parse.len = enumParse.len
   parse.hyphenAfter = enumParse.hyphenAfter
   parse.wordEndAfter = enumParse.wordEndAfter
@@ -918,8 +861,8 @@ function parseClue(dir, clueLine) {
 // identified by parseOverallDisplayMost().
 function parseClueLists() {
   // Parse across, down, nodir clues
-  for (var clueDirection of ['A', 'D', 'X']) {
-    var first, last
+  for (let clueDirection of ['A', 'D', 'X']) {
+    let first, last
     if (clueDirection == 'A') {
       first = acrossFirstLine
       last = acrossLastLine
@@ -933,12 +876,12 @@ function parseClueLists() {
     if (first < 0 || last < first) {
       continue
     }
-    for (var l = first; l <= last; l++) {
-      var clueLine = puzzleTextLines[l].trim();
+    for (let l = first; l <= last; l++) {
+      let clueLine = puzzleTextLines[l].trim();
       if (clueLine == '') {
         continue;
       }
-      var clueParse = parseClue(clueDirection, clueLine)
+      let clueParse = parseClue(clueDirection, clueLine)
       if (!clueParse.clueIndex) {
         addError('Could not parse clue: ' + clueLine);
         return
@@ -967,8 +910,8 @@ function parseClueLists() {
       clues[clueParse.clueIndex].wordEndAfter = clueParse.wordEndAfter
       clues[clueParse.clueIndex].anno = clueParse.anno
       if (clueParse.startCell) {
-        var row = clueParse.startCell[0]
-        var col = clueParse.startCell[1]
+        let row = clueParse.startCell[0]
+        let col = clueParse.startCell[1]
         grid[row][col].startsClueLabel = clueParse.clueLabel
         grid[row][col].forcedClueLabel = true
         if (clueDirection == 'A') {
@@ -979,7 +922,7 @@ function parseClueLists() {
       }
     }
   }
-  for (var clueIndex in clues) {
+  for (let clueIndex in clues) {
     if (!clues.hasOwnProperty(clueIndex)) {
       continue
     }
@@ -996,9 +939,9 @@ function parseClueLists() {
 // marked clue starts.
 function setClueMemberships() {
   // Set across clue memberships
-  for (var i = 0; i < gridHeight; i++) {
-    var clueLabel = ''
-    for (var j = 0; j < gridWidth; j++) {
+  for (let i = 0; i < gridHeight; i++) {
+    let clueLabel = ''
+    for (let j = 0; j < gridWidth; j++) {
       if (grid[i][j].startsAcrossClue) {
         clueLabel = grid[i][j].startsClueLabel
       }
@@ -1010,7 +953,7 @@ function setClueMemberships() {
         continue
       }
       grid[i][j].acrossClueLabel = clueLabel
-      var clueIndex = 'A' + clueLabel
+      let clueIndex = 'A' + clueLabel
       if (!clues[clueIndex]) {
         clueIndex = 'X' + clueLabel
       }
@@ -1035,9 +978,9 @@ function setClueMemberships() {
     }
   }
   // Set down clue memberships
-  for (var j = 0; j < gridWidth; j++) {
-    var clueLabel = ''
-    for (var i = 0; i < gridHeight; i++) {
+  for (let j = 0; j < gridWidth; j++) {
+    let clueLabel = ''
+    for (let i = 0; i < gridHeight; i++) {
       if (grid[i][j].startsDownClue) {
         clueLabel = grid[i][j].startsClueLabel
       }
@@ -1049,7 +992,7 @@ function setClueMemberships() {
         continue
       }
       grid[i][j].downClueLabel = clueLabel
-      var clueIndex = 'D' + clueLabel
+      let clueIndex = 'D' + clueLabel
       if (!clues[clueIndex]) {
         clueIndex = 'X' + clueLabel
       }
@@ -1080,15 +1023,15 @@ function setClueMemberships() {
 // cells for last cells in component clues, and spilled-over hyphenAfter and
 // wordEndAfter locations.
 function processClueChildren() {
-  for (var clueIndex of allClueIndices) {
-    var clue = clues[clueIndex]
+  for (let clueIndex of allClueIndices) {
+    let clue = clues[clueIndex]
     if (!clue.children) {
       continue
     }
     // Process children
     // We also need to note the successor of he last cell from the parent
     // to the first child, and then from the first child to the next, etc.
-    var lastRowCol = null
+    let lastRowCol = null
     if (clue.cells.length > 0) {
       lastRowCol = clue.cells[clue.cells.length - 1]
       // If we do not know the enum of this clue (likely a diagramless puzzle),
@@ -1097,10 +1040,10 @@ function processClueChildren() {
         lastRowCol = null
       }
     }
-    var lastRowColDir = clue.clueDirection
+    let lastRowColDir = clue.clueDirection
     dupes = {}
-    var allDirections = ['A', 'D', 'X']
-    for (var child of clue.children) {
+    const allDirections = ['A', 'D', 'X']
+    for (let child of clue.children) {
       if (child.error) {
         addError('Bad child ' + child + ' in ' +
                  clue.cluelabel + clue.clueDirection);
@@ -1110,10 +1053,10 @@ function processClueChildren() {
       // if there is no such clue, then direction could be the other direction.
       // The direction could also be explicitly specified with a 'd' or 'a'
       // suffix.
-      var childIndex = clue.clueDirection + child.clueLabel
+      let childIndex = clue.clueDirection + child.clueLabel
       if (!child.isNonNum) {
         if (!clues[childIndex]) {
-          for (var otherDir of allDirections) {
+          for (let otherDir of allDirections) {
             if (otherDir == clue.clueDirection) {
               continue;
             }
@@ -1156,11 +1099,11 @@ function processClueChildren() {
         }
       }
       clue.childrenClueIndices.push(childIndex)
-      var childClue = clues[childIndex]
+      let childClue = clues[childIndex]
       childClue.parentClueIndex = clueIndex
 
       if (lastRowCol && childClue.cells.length > 0) {
-        var cell = childClue.cells[0]
+        let cell = childClue.cells[0]
         if (lastRowCol[0] == cell[0] && lastRowCol[1] == cell[1]) {
           addError('loop in successor for ' + lastRowCol)
           return
@@ -1186,28 +1129,28 @@ function processClueChildren() {
     }
     // If clue.wordEndAfter[] or clue.hyphenAfter() spill into children,
     // then copy the appropriate parts there.
-    var prevLen = clue.cells.length
-    var wordEndIndex = 0
+    let prevLen = clue.cells.length
+    let wordEndIndex = 0
     while (wordEndIndex < clue.wordEndAfter.length &&
            clue.wordEndAfter[wordEndIndex] < prevLen) {
       wordEndIndex++;
     }
-    var hyphenIndex = 0
+    let hyphenIndex = 0
     while (hyphenIndex < clue.hyphenAfter.length &&
            clue.hyphenAfter[hyphenIndex] < prevLen) {
       hyphenIndex++;
     }
-    for (var childIndex of clue.childrenClueIndices) {
-      var childLen = clues[childIndex].cells.length
+    for (let childIndex of clue.childrenClueIndices) {
+      let childLen = clues[childIndex].cells.length
       while (wordEndIndex < clue.wordEndAfter.length &&
              clue.wordEndAfter[wordEndIndex] < prevLen + childLen) {
-        var pos = clue.wordEndAfter[wordEndIndex] - prevLen
+        let pos = clue.wordEndAfter[wordEndIndex] - prevLen
         clues[childIndex].wordEndAfter.push(pos)
         wordEndIndex++
       }
       while (hyphenIndex < clue.hyphenAfter.length &&
              clue.hyphenAfter[hyphenIndex] < prevLen + childLen) {
-        var pos = clue.hyphenAfter[hyphenIndex] - prevLen
+        let pos = clue.hyphenAfter[hyphenIndex] - prevLen
         clues[childIndex].hyphenAfter.push(pos)
         hyphenIndex++
       }
@@ -1219,7 +1162,7 @@ function processClueChildren() {
 // Place a trailing period and space at the end of clue full display labels that
 // are not empty.
 function fixFullDisplayLabels() {
-  for (var clueIndex of allClueIndices) {
+  for (let clueIndex of allClueIndices) {
     if (clues[clueIndex].fullDisplayLabel) {
       clues[clueIndex].fullDisplayLabel = clues[clueIndex].fullDisplayLabel + '. '
     }
@@ -1234,11 +1177,11 @@ function setGridWordEndsAndHyphens() {
     return
   }
   // Going across
-  for (var i = 0; i < gridHeight; i++) {
-    var clueLabel = ''
-    var clueIndex = ''
-    var positionInClue = -1
-    for (var j = 0; j < gridWidth; j++) {
+  for (let i = 0; i < gridHeight; i++) {
+    let clueLabel = ''
+    let clueIndex = ''
+    let positionInClue = -1
+    for (let j = 0; j < gridWidth; j++) {
       if (!grid[i][j].acrossClueLabel) {
         clueLabel = ''
         clueIndex = ''
@@ -1272,13 +1215,13 @@ function setGridWordEndsAndHyphens() {
           continue
         }
       }
-      for (var wordEndPos of clues[clueIndex].wordEndAfter) {
+      for (let wordEndPos of clues[clueIndex].wordEndAfter) {
         if (positionInClue == wordEndPos && j < gridWidth - 1) {
           grid[i][j].wordEndToRight = true
           break
         }
       }
-      for (var hyphenPos of clues[clueIndex].hyphenAfter) {
+      for (let hyphenPos of clues[clueIndex].hyphenAfter) {
         if (positionInClue == hyphenPos && j < gridWidth - 1) {
           grid[i][j].hyphenToRight = true
           break
@@ -1287,11 +1230,11 @@ function setGridWordEndsAndHyphens() {
     }
   }
   // Going down
-  for (var j = 0; j < gridWidth; j++) {
-    var clueLabel = ''
-    var clueIndex = ''
-    var positionInClue = -1
-    for (var i = 0; i < gridHeight; i++) {
+  for (let j = 0; j < gridWidth; j++) {
+    let clueLabel = ''
+    let clueIndex = ''
+    let positionInClue = -1
+    for (let i = 0; i < gridHeight; i++) {
       if (!grid[i][j].downClueLabel) {
         clueLabel = ''
         clueIndex = ''
@@ -1325,13 +1268,13 @@ function setGridWordEndsAndHyphens() {
           continue
         }
       }
-      for (var wordEndPos of clues[clueIndex].wordEndAfter) {
+      for (let wordEndPos of clues[clueIndex].wordEndAfter) {
         if (positionInClue == wordEndPos && i < gridHeight - 1) {
           grid[i][j].wordEndBelow = true
           break
         }
       }
-      for (var hyphenPos of clues[clueIndex].hyphenAfter) {
+      for (let hyphenPos of clues[clueIndex].hyphenAfter) {
         if (positionInClue == hyphenPos && i < gridHeight - 1) {
           grid[i][j].hyphenBelow = true
           break
@@ -1343,12 +1286,12 @@ function setGridWordEndsAndHyphens() {
 
 function displayClues() {
   // Populate clues tables. Check that we have all clues
-  for (var clueIndex of allClueIndices) {
+  for (let clueIndex of allClueIndices) {
     if (!clues[clueIndex].clue && !clues[clueIndex].parentClueIndex) {
       addError('Found no clue text nor a parent clue for ' + clueIndex)
       return
     }
-    var table = null
+    let table = null
     if (clues[clueIndex].clueDirection == 'A') {
       table = acrossClues
       hasAcrossClues = true
@@ -1362,13 +1305,13 @@ function displayClues() {
       addError('Unexpected clue direction ' + clues[clueIndex].clueDirection + ' in ' + clueIndex)
       return
     }
-    var tr = document.createElement('tr')
-    var col1 = document.createElement('td')
+    let tr = document.createElement('tr')
+    let col1 = document.createElement('td')
     col1.innerHTML = clues[clueIndex].displayLabel
-    var col2 = document.createElement('td')
+    let col2 = document.createElement('td')
     col2.innerHTML = clues[clueIndex].clue
     if (clues[clueIndex].anno) {
-      var anno = document.createElement('span')
+      let anno = document.createElement('span')
       anno.setAttributeNS(null, 'class', 'anno-text');
       anno.innerHTML = ' ' + clues[clueIndex].anno
       anno.style.display = 'none'
@@ -1378,8 +1321,8 @@ function displayClues() {
     tr.appendChild(col1)
     tr.appendChild(col2)
     if (clues[clueIndex].cells.length > 0) {
-      var i = clues[clueIndex].cells[0][0]
-      var j = clues[clueIndex].cells[0][1]
+      let i = clues[clueIndex].cells[0][0]
+      let j = clues[clueIndex].cells[0][1]
       tr.addEventListener('click', getRowColDirActivator(
           i, j, clues[clueIndex].clueDirection));
     } else {
@@ -1390,8 +1333,8 @@ function displayClues() {
     table.appendChild(tr)
   }
   if (cluesPanelLines > 0) {
-    var ems = 1.40 * cluesPanelLines
-    var emsStyle = '' + ems + 'em'
+    const ems = 1.40 * cluesPanelLines
+    const emsStyle = '' + ems + 'em'
     acrossPanel.style.height = emsStyle
     downPanel.style.height = emsStyle
     if (nodirPanel) {
@@ -1425,12 +1368,12 @@ function displayGridBackground() {
 // Return a string encoding the current entries in the whole grid and
 // also the number of squares that have been filled.
 function getGridStateAndNumFilled() {
-  var state = '';
-  var numFilled = 0
-  for (var i = 0; i < gridHeight; i++) {
-    for (var j = 0; j < gridWidth; j++) {
+  let state = '';
+  let numFilled = 0
+  for (let i = 0; i < gridHeight; i++) {
+    for (let j = 0; j < gridWidth; j++) {
       if (grid[i][j].isLight || grid[i][j].isDiagramless) {
-        var letter = grid[i][j].currentLetter.trim()
+        let letter = grid[i][j].currentLetter.trim()
         if (letter == '') {
            state = state + '0'
         } else {
@@ -1448,11 +1391,11 @@ function getGridStateAndNumFilled() {
 // Update status, ensure answer fields are upper-case (when they have
 // an enum), disable buttons as needed, and return the state.
 function updateDisplayAndGetState() {
-  var stateAndFilled = getGridStateAndNumFilled();
-  var state = stateAndFilled[0]
-  var numFilled = stateAndFilled[1]
+  let stateAndFilled = getGridStateAndNumFilled();
+  let state = stateAndFilled[0]
+  let numFilled = stateAndFilled[1]
   statusNumFilled.innerHTML = numFilled
-  for (var a of answersList) {
+  for (let a of answersList) {
     if (a.hasEnum) {
       a.input.value = a.input.value.toUpperCase()
     }
@@ -1466,17 +1409,17 @@ function updateDisplayAndGetState() {
 
 // Call updateDisplayAndGetState() and save state in cookie/location.hash.
 function updateAndSaveState() {
-  var state = updateDisplayAndGetState()
-  for (var a of answersList) {
+  let state = updateDisplayAndGetState()
+  for (let a of answersList) {
     state = state + STATE_SEP + a.input.value
   }
 
   // Keep cookie for these many days
-  var KEEP_FOR_DAYS = 90
+  const KEEP_FOR_DAYS = 90
 
-  var d = new Date();
+  let d = new Date();
   d.setTime(d.getTime() + (KEEP_FOR_DAYS * 24 * 60 * 60 * 1000));
-  var expires = 'expires=' + d.toUTCString();
+  let expires = 'expires=' + d.toUTCString();
   document.cookie = puzzleId + '=' + state + ';' + expires + ';path=/';
   if (location.protocol.substr(0, 4) != 'http' || location.hash) {
     // Also save in location.hash as Chrome does not support cookies on file:
@@ -1492,13 +1435,13 @@ function updateAndSaveState() {
 
 // Restore state from cookie (or location.hash).
 function restoreState() {
-  var state = decodeURIComponent(location.hash.substr(1))
+  let state = decodeURIComponent(location.hash.substr(1))
   if (!state) {
-    var name = puzzleId + '=';
-    var decodedCookie = decodeURIComponent(document.cookie);
-    var ca = decodedCookie.split(';');
-    for(var i = 0; i < ca.length; i++) {
-      var c = ca[i];
+    let name = puzzleId + '=';
+    let decodedCookie = decodeURIComponent(document.cookie);
+    let ca = decodedCookie.split(';');
+    for(let i = 0; i < ca.length; i++) {
+      let c = ca[i];
       while (c.charAt(0) == ' ') {
         c = c.substring(1);
       }
@@ -1508,7 +1451,7 @@ function restoreState() {
     }
   }
   state = state.trim()
-  var error = false
+  let error = false
   if (state == '') { 
     console.log('No saved state available')
     error = true
@@ -1516,9 +1459,9 @@ function restoreState() {
     console.log('Not enough characters in state')
     error = true
   }
-  var index = 0
-  for (var i = 0; i < gridHeight && !error; i++) {
-    for (var j = 0; j < gridWidth && !error; j++) {
+  let index = 0
+  for (let i = 0; i < gridHeight && !error; i++) {
+    for (let j = 0; j < gridWidth && !error; j++) {
       letter = state.charAt(index++);
       if (grid[i][j].isLight || grid[i][j].isDiagramless) {
         if (letter == '0') {
@@ -1548,8 +1491,8 @@ function restoreState() {
     }
   }
   if (error) {
-    for (var i = 0; i < gridHeight; i++) {
-      for (var j = 0; j < gridWidth; j++) {
+    for (let i = 0; i < gridHeight; i++) {
+      for (let j = 0; j < gridWidth; j++) {
         if (grid[i][j].isLight || grid[i][j].isDiagramless) {
           grid[i][j].currentLetter = ''
         }
@@ -1558,17 +1501,17 @@ function restoreState() {
   } else {
     // Also try to recover answers to questions
     if (state.substr(index, STATE_SEP.length) == STATE_SEP) {
-      var parts = state.substr(index + STATE_SEP.length).split(STATE_SEP)
+      let parts = state.substr(index + STATE_SEP.length).split(STATE_SEP)
       if (parts.length == answersList.length) {
-        for (var i = 0; i < parts.length; i++) {
+        for (let i = 0; i < parts.length; i++) {
           answersList[i].input.value = parts[i]
         }
       }
     }
   }
-  var numFilled = 0
-  for (var i = 0; i < gridHeight; i++) {
-    for (var j = 0; j < gridWidth; j++) {
+  let numFilled = 0
+  for (let i = 0; i < gridHeight; i++) {
+    for (let j = 0; j < gridWidth; j++) {
       if (grid[i][j].isLight || grid[i][j].isDiagramless) {
         if (grid[i][j].currentLetter == '1') {
           grid[i][j].textNode.nodeValue = BLOCK_CHAR
@@ -1586,11 +1529,11 @@ function restoreState() {
 
 function deactivateCurrentCell() {
   gridInputWrapper.style.display = 'none'
-  for (var x of activeCells) {
-    var cellRect = grid[x[0]][x[1]].cellRect
+  for (let x of activeCells) {
+    let cellRect = grid[x[0]][x[1]].cellRect
     cellRect.style.fill = 'white'
   }
-  for (var x of activeClues) {
+  for (let x of activeClues) {
     x.style.background = 'white'
   }
   activeCells = [];
@@ -1605,11 +1548,11 @@ function deactivateCurrentCell() {
 
 function makeCurrentClueVisible() {
   // Check if grid input is visible.
-  var inputPos = gridInput.getBoundingClientRect();
+  const inputPos = gridInput.getBoundingClientRect();
   if (inputPos.top < 0) {
     return
   }
-  var windowH = getViewportHeight()
+  let windowH = getViewportHeight()
   if (!windowH || windowH <= 0) {
     return
   }
@@ -1618,12 +1561,12 @@ function makeCurrentClueVisible() {
     return
   }
   // gridInput is visible
-  var cluePos = currentClue.getBoundingClientRect();
-  var top = cluePos.top
-  var clueParentPos = currentClueParent.getBoundingClientRect();
-  var parentTop = clueParentPos.top
+  const cluePos = currentClue.getBoundingClientRect();
+  const top = cluePos.top
+  const clueParentPos = currentClueParent.getBoundingClientRect();
+  const parentTop = clueParentPos.top
   // Reposition
-  var newTop = 0
+  let newTop = 0
   // If parent is below viewport top, go back to standard position.
   if (parentTop >= 0) {
     currentClue.style.top = '0'
@@ -1654,15 +1597,15 @@ function activateCell(row, col) {
   gridInput.focus()
   // Try to place the cursor at the end
   if (gridInput.setSelectionRange) {
-    var len = gridInput.value.length
+    let len = gridInput.value.length
     gridInput.setSelectionRange(len, len);
   }
   clearButton.disabled = false
   checkButton.disabled = false
   revealButton.disabled = false
 
-  var activeClueIndex = ''
-  var activeClueLabel = ''
+  let activeClueIndex = ''
+  let activeClueLabel = ''
   // If the current direction does not have an active clue, toggle direction
   if (currentDirectionIsAcross && !grid[row][col].isDiagramless &&
       !grid[row][col].acrossClueLabel &&
@@ -1689,7 +1632,7 @@ function activateCell(row, col) {
     if (!clues[activeClueIndex]) {
       activeCluwIndex = ''
       if (nonNumClueIndices[activeClueLabel]) {
-        for (var ci of nonNumClueIndices[activeClueLabel]) {
+        for (let ci of nonNumClueIndices[activeClueLabel]) {
           if (ci.charAt(0) == 'X' || ci.charAt(0) == activeClueIndex.charAt(0)) {
             activeClueIndex = ci
             break
@@ -1736,11 +1679,11 @@ function getViewportHeight() {
 
 // Check if an element is visible, vertically.
 function isVisible(elt) {
-  var pos = elt.getBoundingClientRect();
+  const pos = elt.getBoundingClientRect();
   if (pos.bottom < 0) {
     return false
   }
-  var windowH = getViewportHeight()
+  let windowH = getViewportHeight()
   if (!windowH || windowH <= 0) {
     return false
   }
@@ -1760,17 +1703,17 @@ function getClueSelector(clueIndex) {
 // Select a clicked clue.
 function selectClue(activeClueIndex) {
   indexForCurr = activeClueIndex
-  var clueIndices = [activeClueIndex]
+  let clueIndices = [activeClueIndex]
   if (clues[activeClueIndex].parentClueIndex) {
-    var parent = clues[activeClueIndex].parentClueIndex
+    let parent = clues[activeClueIndex].parentClueIndex
     indexForCurr = parent
     clueIndices = [parent].concat(clues[parent].childrenClueIndices)
   } else if (clues[activeClueIndex].childrenClueIndices) {
     clueIndices =
         clueIndices.concat(clues[activeClueIndex].childrenClueIndices)
   }
-  for (var clueIndex of clueIndices) {
-    for (var rowcol of clues[clueIndex].cells) {
+  for (let clueIndex of clueIndices) {
+    for (let rowcol of clues[clueIndex].cells) {
       grid[rowcol[0]][rowcol[1]].cellRect.style.fill = ACTIVE_COLOUR
       activeCells.push(rowcol)
     }
@@ -1811,10 +1754,10 @@ function showAllCluesAsActive() {
   if (posInAllClueIndices >= allClueIndices.length) {
     return
   }
-  var clueIndex = allClueIndices[posInAllClueIndices]
-  var displayedClue = clues[clueIndex].fullDisplayLabel + clues[clueIndex].clue
+  let clueIndex = allClueIndices[posInAllClueIndices]
+  let displayedClue = clues[clueIndex].fullDisplayLabel + clues[clueIndex].clue
   if (clues[clueIndex].parentClueIndex) {
-    var parent = clues[clueIndex].parentClueIndex
+    let parent = clues[clueIndex].parentClueIndex
     displayedClue = clues[parent].fullDisplayLabel + clues[parent].clue
   }
   currentClue.innerHTML =
@@ -1863,7 +1806,7 @@ function handleKeyUpInner(key) {
   }
   if (key == 39) {
     // right arrow
-    var col = currentCol + 1
+    let col = currentCol + 1
     while (col < gridWidth &&
            !grid[currentRow][col].isLight &&
            !grid[currentRow][col].isDiagramless) {
@@ -1874,7 +1817,7 @@ function handleKeyUpInner(key) {
     }
   } else if (key == 37) {
     // left arrow
-    var col = currentCol - 1
+    let col = currentCol - 1
     while (col >= 0 &&
            !grid[currentRow][col].isLight &&
            !grid[currentRow][col].isDiagramless) {
@@ -1885,7 +1828,7 @@ function handleKeyUpInner(key) {
     }
   } else if (key == 40) {
     // down arrow
-    var row = currentRow + 1
+    let row = currentRow + 1
     while (row < gridHeight &&
            !grid[row][currentCol].isLight &&
            !grid[row][currentCol].isDiagramless) {
@@ -1896,7 +1839,7 @@ function handleKeyUpInner(key) {
     }
   } else if (key == 38) {
     // up arrow
-    var row = currentRow - 1
+    let row = currentRow - 1
     while (row >= 0 &&
            !grid[row][currentCol].isLight &&
            !grid[row][currentCol].isDiagramless) {
@@ -1909,7 +1852,7 @@ function handleKeyUpInner(key) {
 }
 
 function handleKeyUp(e) {
-  var key = e.which || e.keyCode
+  let key = e.which || e.keyCode
   handleKeyUpInner(key)
 }
 
@@ -1922,16 +1865,16 @@ function handleGridInput() {
       !grid[currentRow][currentCol].isDiagramless) {
     return;
   }
-  var newInput = gridInput.value
+  let newInput = gridInput.value
   if (grid[currentRow][currentCol].currentLetter != '' &&
       newInput != grid[currentRow][currentCol].currentLetter) {
     // The "new" input may be before or after the old input.
-    var index = newInput.indexOf(grid[currentRow][currentCol].currentLetter)
+    let index = newInput.indexOf(grid[currentRow][currentCol].currentLetter)
     if (index == 0) {
       newInput = newInput.substr(1)
     }
   }
-  var keyChar = newInput.substr(0, 1)
+  let keyChar = newInput.substr(0, 1)
   if (keyChar == ' ' && grid[currentRow][currentCol].isDiagramless) {
     // spacebar creates a blocked cell in a diagramless puzzle cell
     keyChar = BLOCK_CHAR
@@ -1942,20 +1885,20 @@ function handleGridInput() {
       keyChar = ''
     }
   }
-  var letter = keyChar
+  let letter = keyChar
   if (letter == BLOCK_CHAR) {
     letter = '1'
   }
-  var oldLetter = grid[currentRow][currentCol].currentLetter
+  let oldLetter = grid[currentRow][currentCol].currentLetter
   grid[currentRow][currentCol].currentLetter = letter
   grid[currentRow][currentCol].textNode.nodeValue = keyChar
   gridInput.value = keyChar
   if (oldLetter == '1' || letter == '1') {
-    var symRow = gridHeight - 1 - currentRow
-    var symCol = gridWidth - 1 - currentCol
+    let symRow = gridHeight - 1 - currentRow
+    let symCol = gridWidth - 1 - currentCol
     if (grid[symRow][symCol].isDiagramless) {
-      var symLetter = (letter == '1') ? '1' : ''
-      var symChar = (letter == '1') ? BLOCK_CHAR : ''
+      let symLetter = (letter == '1') ? '1' : ''
+      let symChar = (letter == '1') ? BLOCK_CHAR : ''
       grid[symRow][symCol].currentLetter = symLetter
       grid[symRow][symCol].textNode.nodeValue = symChar
     }
@@ -1966,9 +1909,9 @@ function handleGridInput() {
       !grid[currentRow][currentCol].isDiagramless) {
     // auto-advance
     // First check if there is successor
-    var successorProperty = 'successor' + (currentDirectionIsAcross ? 'A' : 'D')
+    let successorProperty = 'successor' + (currentDirectionIsAcross ? 'A' : 'D')
     if (grid[currentRow][currentCol][successorProperty]) {
-      var successor = grid[currentRow][currentCol][successorProperty]
+      let successor = grid[currentRow][currentCol][successorProperty]
       currentDirectionIsAcross = (successor.direction == 'A')
       activateCell(successor.cell[0], successor.cell[1]);
       return
@@ -1991,16 +1934,16 @@ function createListeners() {
 
 function displayGrid() {
   numCellsToFill = 0
-  for (var i = 0; i < gridHeight; i++) {
-    for (var j = 0; j < gridWidth; j++) {
-      var cellGroup =
+  for (let i = 0; i < gridHeight; i++) {
+    for (let j = 0; j < gridWidth; j++) {
+      const cellGroup =
           document.createElementNS('http://www.w3.org/2000/svg', 'g');
       if (grid[i][j].isLight || grid[i][j].isDiagramless) {
         numCellsToFill++
-        var cellRect =
+        const cellRect =
             document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        var cellLeft = GRIDLINE + j * (SQUARE_DIM + GRIDLINE);
-        var cellTop = GRIDLINE + i * (SQUARE_DIM + GRIDLINE);
+        const cellLeft = GRIDLINE + j * (SQUARE_DIM + GRIDLINE);
+        const cellTop = GRIDLINE + i * (SQUARE_DIM + GRIDLINE);
         cellRect.setAttributeNS(
             null, 'x', GRIDLINE + j * (SQUARE_DIM + GRIDLINE));
         cellRect.setAttributeNS(
@@ -2010,7 +1953,7 @@ function displayGrid() {
         cellRect.setAttributeNS(null, 'class', 'cell');
         cellGroup.appendChild(cellRect)
 
-        var cellText =
+        const cellText =
             document.createElementNS('http://www.w3.org/2000/svg', 'text');
         cellText.setAttributeNS(
             null, 'x', LIGHT_START_X + j * (SQUARE_DIM + GRIDLINE));
@@ -2019,7 +1962,7 @@ function displayGrid() {
         cellText.setAttributeNS(null, 'text-anchor', 'middle');
         cellText.setAttributeNS(null, 'editable', 'simple');
         cellText.setAttributeNS(null, 'class', 'cell-text');
-        var text = document.createTextNode('');
+        const text = document.createTextNode('');
         cellText.appendChild(text);
         cellGroup.appendChild(cellText)
 
@@ -2034,7 +1977,7 @@ function displayGrid() {
         cellRect.addEventListener('click', getRowColActivator(i, j));
       }
       if (grid[i][j].hasCircle) {
-        var cellCircle =
+        const cellCircle =
             document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         cellCircle.setAttributeNS(
             null, 'cx', CIRCLE_RADIUS + GRIDLINE + j * (SQUARE_DIM + GRIDLINE));
@@ -2047,14 +1990,14 @@ function displayGrid() {
       }
       if (grid[i][j].startsClueLabel && !grid[i][j].isDiagramless &&
           (!hideInferredNumbers || grid[i][j].forcedClueLabel)) {
-        var cellNum =
+        const cellNum =
             document.createElementNS('http://www.w3.org/2000/svg', 'text');
         cellNum.setAttributeNS(
             null, 'x', NUMBER_START_X + j * (SQUARE_DIM + GRIDLINE));
         cellNum.setAttributeNS(
             null, 'y', NUMBER_START_Y + i * (SQUARE_DIM + GRIDLINE));
         cellNum.setAttributeNS(null, 'class', 'cell-num');
-        var num = document.createTextNode(grid[i][j].startsClueLabel)
+        const num = document.createTextNode(grid[i][j].startsClueLabel)
         cellNum.appendChild(num);
         cellGroup.appendChild(cellNum)
       }
@@ -2063,13 +2006,13 @@ function displayGrid() {
   }
 
   // Bars/word-ends to the right and under; hyphens.
-  for (var i = 0; i < gridHeight; i++) {
-    for (var j = 0; j < gridWidth; j++) {
-      var cellGroup =
+  for (let i = 0; i < gridHeight; i++) {
+    for (let j = 0; j < gridWidth; j++) {
+      const cellGroup =
           document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      var emptyGroup = true
+      let emptyGroup = true
       if (grid[i][j].wordEndToRight) {
-        var wordEndRect =
+        const wordEndRect =
             document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         wordEndRect.setAttributeNS(
             null, 'x',
@@ -2083,7 +2026,7 @@ function displayGrid() {
         emptyGroup = false
       }
       if (grid[i][j].wordEndBelow) {
-        var wordEndRect =
+        const wordEndRect =
             document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         wordEndRect.setAttributeNS(
             null, 'x', GRIDLINE + j * (SQUARE_DIM + GRIDLINE));
@@ -2097,7 +2040,7 @@ function displayGrid() {
         emptyGroup = false
       }
       if (grid[i][j].hyphenToRight) {
-        var hyphenRect =
+        const hyphenRect =
             document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         hyphenRect.setAttributeNS(
             null, 'x',
@@ -2112,7 +2055,7 @@ function displayGrid() {
         emptyGroup = false
       }
       if (grid[i][j].hyphenBelow) {
-        var hyphenRect =
+        const hyphenRect =
             document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         hyphenRect.setAttributeNS(
             null, 'x', GRIDLINE + j * (SQUARE_DIM + GRIDLINE) +
@@ -2127,7 +2070,7 @@ function displayGrid() {
         emptyGroup = false
       }
       if (grid[i][j].hasBarAfter) {
-        var barRect =
+        const barRect =
             document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         barRect.setAttributeNS(
             null, 'x',
@@ -2141,7 +2084,7 @@ function displayGrid() {
         emptyGroup = false
       }
       if (grid[i][j].hasBarUnder) {
-        var barRect =
+        const barRect =
             document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         barRect.setAttributeNS(
             null, 'x', GRIDLINE + j * (SQUARE_DIM + GRIDLINE));
@@ -2163,7 +2106,7 @@ function displayGrid() {
 }
 
 function displayNinas() {
-  var NINA_COLORS = [
+  const NINA_COLORS = [
     'rgba(0,0,255,0.2)',
     'rgba(0,255,0,0.2)',
     'rgba(0,255,255,0.2)',
@@ -2176,18 +2119,18 @@ function displayNinas() {
     'rgba(200,50,200,0.2)',
     'rgba(200,200,50,0.2)',
   ];
-  var ninaColorIndex = 0;
-  for (var nina of ninas) {
-    for (var cellOrClass of nina) {
+  let ninaColorIndex = 0;
+  for (let nina of ninas) {
+    for (let cellOrClass of nina) {
       if (!Array.isArray(cellOrClass)) {
         // span-class-specified nina
-        var elts = document.getElementsByClassName(cellOrClass)
+        const elts = document.getElementsByClassName(cellOrClass)
         if (!elts || elts.length == 0) {
           addError('Nina ' + cellOrClass +
                    ' is not a cell location nor a class with html tags');
           return
         }
-        for (var elt of elts) {
+        for (const elt of elts) {
           ninaClassElements.push({
             'element': elt,
             'colour':  NINA_COLORS[ninaColorIndex],
@@ -2195,9 +2138,9 @@ function displayNinas() {
         }
         continue
       }    
-      var row = cellOrClass[0]
-      var col = cellOrClass[1]
-      var ninaRect = document.createElement('div');
+      const row = cellOrClass[0]
+      const col = cellOrClass[1]
+      const ninaRect = document.createElement('div');
       ninaRect.style.left =  '' +  grid[row][col].cellLeft + 'px';
       ninaRect.style.top = '' + grid[row][col].cellTop + 'px';
       ninaRect.style.width = '' + SQUARE_DIM + 'px';
@@ -2212,7 +2155,7 @@ function displayNinas() {
 }
 
 function showNinas() {
-  for (var ec of ninaClassElements) {
+  for (const ec of ninaClassElements) {
     ec.element.style.backgroundColor = ec.colour;
   }
   ninaGroup.style.display = '';
@@ -2221,7 +2164,7 @@ function showNinas() {
 }
 
 function hideNinas() {
-  for (var ec of ninaClassElements) {
+  for (const ec of ninaClassElements) {
     ec.element.style.backgroundColor = 'transparent';
   }
   ninaGroup.style.display = 'none';
@@ -2241,10 +2184,10 @@ function toggleNinas() {
 }
 
 function clearCurrent() {
-  for (var x of activeCells) {
-    var row = x[0]
-    var col = x[1]
-    var oldLetter = grid[row][col].currentLetter
+  for (let x of activeCells) {
+    let row = x[0]
+    let col = x[1]
+    let oldLetter = grid[row][col].currentLetter
     if (oldLetter != '') {
       grid[row][col].currentLetter = ''
       grid[row][col].textNode.nodeValue = ''
@@ -2253,8 +2196,8 @@ function clearCurrent() {
       }
     }
     if (oldLetter == '1') {
-      var symRow = gridHeight - 1 - row
-      var symCol = gridWidth - 1 - col
+      let symRow = gridHeight - 1 - row
+      let symCol = gridWidth - 1 - col
       if (grid[symRow][symCol].isDiagramless) {
         grid[symRow][symCol].currentLetter = ''
         grid[symRow][symCol].textNode.nodeValue = ''
@@ -2268,8 +2211,8 @@ function clearAll() {
   if (!confirm('Are you sure you want to clear the whole grid!?')) {
     return
   }
-  for (var row = 0; row < gridHeight; row++) {
-    for (var col = 0; col < gridWidth; col++) {
+  for (let row = 0; row < gridHeight; row++) {
+    for (let col = 0; col < gridWidth; col++) {
       if (!grid[row][col].isLight && !grid[row][col].isDiagramless) {
         continue
       }
@@ -2280,10 +2223,10 @@ function clearAll() {
       }
     }
   }
-  for (var a of answersList) {
+  for (let a of answersList) {
     a.input.value = ''
   }
-  for (var a of revelationList) {
+  for (let a of revelationList) {
     a.style.display = 'none'
   }
   hideNinas()
@@ -2291,10 +2234,10 @@ function clearAll() {
 }
 
 function checkCurrent() {
-  for (var x of activeCells) {
-    var row = x[0]
-    var col = x[1]
-    var oldLetter = grid[row][col].currentLetter
+  for (let x of activeCells) {
+    let row = x[0]
+    let col = x[1]
+    let oldLetter = grid[row][col].currentLetter
     if (oldLetter == grid[row][col].solution) {
       continue
     }
@@ -2304,8 +2247,8 @@ function checkCurrent() {
       gridInput.value = ''
     }
     if (oldLetter == '1') {
-      var symRow = gridHeight - 1 - row
-      var symCol = gridWidth - 1 - col
+      let symRow = gridHeight - 1 - row
+      let symCol = gridWidth - 1 - col
       if (grid[symRow][symCol].isDiagramless) {
         grid[symRow][symCol].currentLetter = ''
         grid[symRow][symCol].textNode.nodeValue = ''
@@ -2319,8 +2262,8 @@ function checkAll() {
   if (!confirm('Are you sure you want to clear mistakes everywhere!?')) {
     return
   }
-  for (var row = 0; row < gridHeight; row++) {
-    for (var col = 0; col < gridWidth; col++) {
+  for (let row = 0; row < gridHeight; row++) {
+    for (let col = 0; col < gridWidth; col++) {
       if (!grid[row][col].isLight && !grid[row][col].isDiagramless) {
         continue
       }
@@ -2338,14 +2281,14 @@ function checkAll() {
 }
 
 function revealCurrent() {
-  for (var x of activeCells) {
-    var row = x[0]
-    var col = x[1]
-    var oldLetter = grid[row][col].currentLetter
-    var letter = grid[row][col].solution
+  for (let x of activeCells) {
+    let row = x[0]
+    let col = x[1]
+    let oldLetter = grid[row][col].currentLetter
+    let letter = grid[row][col].solution
     if (oldLetter != letter) {
       grid[row][col].currentLetter = letter
-      var char = letter
+      let char = letter
       if (char == '1') {
         char = BLOCK_CHAR
       }  
@@ -2355,11 +2298,11 @@ function revealCurrent() {
       }
     }
     if (oldLetter == '1' || letter == '1') {
-      var symRow = gridHeight - 1 - row
-      var symCol = gridWidth - 1 - col
+      let symRow = gridHeight - 1 - row
+      let symCol = gridWidth - 1 - col
       if (grid[symRow][symCol].isDiagramless) {
-        var symLetter = (letter == '1') ? '1' : ''
-        var symChar = (letter == '1') ? BLOCK_CHAR : ''
+        let symLetter = (letter == '1') ? '1' : ''
+        let symChar = (letter == '1') ? BLOCK_CHAR : ''
         grid[symRow][symCol].currentLetter = symLetter
         grid[symRow][symCol].textNode.nodeValue = symChar
       }
@@ -2372,14 +2315,14 @@ function revealAll() {
   if (!confirm('Are you sure you want to reveal the whole solution!?')) {
     return
   }
-  for (var row = 0; row < gridHeight; row++) {
-    for (var col = 0; col < gridHeight; col++) {
+  for (let row = 0; row < gridHeight; row++) {
+    for (let col = 0; col < gridHeight; col++) {
       if (!grid[row][col].isLight && !grid[row][col].isDiagramless) {
         continue
       }
       if (grid[row][col].currentLetter != grid[row][col].solution) {
         grid[row][col].currentLetter = grid[row][col].solution
-        var char = grid[row][col].solution
+        let char = grid[row][col].solution
         if (char == '1') {
           char = BLOCK_CHAR
         }  
@@ -2390,12 +2333,12 @@ function revealAll() {
       }
     }
   }
-  for (var a of answersList) {
+  for (let a of answersList) {
     if (a.ans) {
       a.input.value = a.ans
     }
   }
-  for (var a of revelationList) {
+  for (let a of revelationList) {
     a.style.display = ''
   }
   showNinas()
@@ -2406,10 +2349,10 @@ function submitSolution() {
   if (!confirm('Are you sure you are ready to submit!?')) {
     return
   }
-  var state = updateDisplayAndGetState()
-  var fullSubmitURL = submitURL + '&' + submitKeys[0] + '=' +
+  let state = updateDisplayAndGetState()
+  let fullSubmitURL = submitURL + '&' + submitKeys[0] + '=' +
                       encodeURIComponent(state)
-  for (var i = 0; i < answersList.length; i++) {
+  for (let i = 0; i < answersList.length; i++) {
      fullSubmitURL = fullSubmitURL + '&' + submitKeys[i + 1] + '=' +
                    encodeURIComponent(answersList[i].input.value.toUpperCase())
   }
