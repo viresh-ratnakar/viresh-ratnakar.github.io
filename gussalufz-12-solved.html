@@ -4,8 +4,8 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 
-<link rel="stylesheet" type="text/css" href="exolve-m.css"/>
-<script src="exolve-m.js"></script>
+<link rel="stylesheet" type="text/css" href="exolve-m.css?v0.16"/>
+<script src="exolve-m.js?v0.16"></script>
 
 <!--
 MIT License
@@ -14,7 +14,7 @@ Copyright (c) 2019 Viresh Ratnakar
 
 See the full license notice in exolve-m.js.
 
-Version: exolve v0.13 July 29 2019
+Version: Exolve v0.16 August 17 2019
 -->
 
 <title>Fifteen Puzzles</title>
@@ -31,21 +31,21 @@ exolve-begin
   exolve-width: 15
   exolve-height: 15
   exolve-grid:
-	.TOP.SANS.EQUAL
-	URGE..S.U.C.N.E
-	PURE.TETRAHEDRA
-	SEEP..X.F.O.E.R
-	.....RURAL.BRAN
-	R.O.B.A.C.L.T..
-	IMPERIL.EMULATE
-	S.T.I.....N.K.S
-	EVIDENT.SHAKEUP
-	..M.F.U.P.R.R.Y
-	QUIP.GROOM.....
-	U.S.B.B.N..GONG
-	ENTHUSIASM.AREA
-	L.I.S.N.O..NEWS
-	LUCKY.EARN.GOT.
+        .TOP.SANS.EQUAL
+        URGE..S.U.C.N.E
+        PURE.TETRAHEDRA
+        SEEP..X.F.O.E.R
+        .....RURAL.BRAN
+        R.O.B.A.C.L.T..
+        IMPERIL.EMULATE
+        S.T.I.....N.K.S
+        EVIDENT.SHAKEUP
+        ..M.F.U.P.R.R.Y
+        QUIP.GROOM.....
+        U.S.B.B.N..GONG
+        ENTHUSIASM.AREA
+        L.I.S.N.O..NEWS
+        LUCKY.EARN.GOT.
   exolve-prelude:
     <blockquote>
         Rogue ?????????? Break ???????<br/>
@@ -173,7 +173,7 @@ exolve-end
           <div id="small-print">
             <a id="report-bug"
                href="https://github.com/viresh-ratnakar/exolve/issues/new">Report bug</a>
-            <a href="https://github.com/viresh-ratnakar/exolve">exolve on GitHub</a>
+            <a href="https://github.com/viresh-ratnakar/exolve">Exolve on GitHub</a>
             <span id="copyright"></span>
           </div> <!-- #small-print -->
         </div> <!-- #grid-parent -->
@@ -205,6 +205,11 @@ exolve-end
           <span id="status-num-filled">0</span>/<span
                 id="status-num-total"></span>
         </div> <!-- #status -->
+        <div id="saving" class="wide-box">
+          The current state is saved automatically in a cookie for 90 days.
+          You can also copy <a id="saving-url" href="">this URL</a> as
+          a fallback option to bookmark/save the current state.
+        </div> <!-- #saving -->
         <div id="questions" class="wide-box"></div> 
         <div id="submit-parent">
           <button id="submit" class="button" style="display:none"
