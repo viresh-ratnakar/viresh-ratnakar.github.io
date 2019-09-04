@@ -377,22 +377,6 @@ async function shA() {
     alq3.appendChild(text3);
     alq.appendChild(alq3)
 
-    alq4 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    alq4.setAttributeNS(null, 'x', 40)
-    alq4.setAttributeNS(null, 'y', 40)
-    alq4.setAttributeNS(null, 'fill', 'white')
-    const text4 = document.createTextNode(obfs(decodeURIComponent("%01%07T%11%00%0C%17%12N%06%08")))
-    alq4.appendChild(text4);
-    alq.appendChild(alq4)
-
-    alq5 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    alq5.setAttributeNS(null, 'x', 350)
-    alq5.setAttributeNS(null, 'y', 40)
-    alq5.setAttributeNS(null, 'fill', 'white')
-    const text5 = document.createTextNode(obfs(decodeURIComponent("ys0H%23%02%09%05C%20%00%14")))
-    alq5.appendChild(text5);
-    alq.appendChild(alq5)
-
     svg.appendChild(alq)
   }
   alq.style.display = ''
