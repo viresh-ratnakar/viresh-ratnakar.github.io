@@ -497,6 +497,9 @@ async function shA() {
     await sleep(500)
     eltAltr.style.background = '#4CAF50'
     await sleep(500)
+    for (e of alElts) {
+      e.style.fill = 'palegreen'
+    }
     aActv--
     eltAltr.innerText = (aActv < 10 ? '0' : '') + aActv + 's, click for more time'
   }
