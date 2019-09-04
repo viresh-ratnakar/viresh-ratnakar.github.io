@@ -150,7 +150,7 @@ function chA() {
   if (hashCode(elt.value) == 34710129) {
     if (!eltAltr) {
       eltAltrPar = document.createElement('span');
-      eltAltrPar.innerHTML = '&nbsp; <button class="button" style="font-size:10px;padding:4px 8px" onclick="shA()" id="altr">Show Al’s Fold-In Trick!</button>'
+      eltAltrPar.innerHTML = '&nbsp; <button class="button" style="font-size:10px;padding:4px 8px" onclick="shA()" id="altr">Show Al’s ' + elt.value + ' Trick!</button>'
       const q = document.getElementsByClassName('question')[0]
       q.appendChild(eltAltrPar)
       eltAltr = document.getElementById('altr')
@@ -488,7 +488,8 @@ async function shA() {
     eltAltr.innerText = (aActv < 10 ? '0' : '') + aActv + 's, click for more time'
   }
   eltAltr.style.background = ''
-  eltAltr.innerText = 'Show Al’s Fold-In Trick!'
+  let av = document.getElementsByClassName('answer')[0].value
+  eltAltr.innerText = 'Show Al’s ' + av + ' Trick!'
 
   alq.style.display = 'none'
   for (let row = 0; row < 15; row++) {
