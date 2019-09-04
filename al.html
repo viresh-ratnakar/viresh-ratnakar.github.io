@@ -150,7 +150,7 @@ function chA() {
   if (hashCode(elt.value) == 34710129) {
     if (!eltAltr) {
       eltAltrPar = document.createElement('span');
-      eltAltrPar.innerHTML = '&nbsp; <button class="button" style="font-size:10px;padding:4px 8px" onclick="shA()" id="altr">Show Al’s Trick!</button>'
+      eltAltrPar.innerHTML = '&nbsp; <button class="button" style="font-size:10px;padding:4px 8px" onclick="shA()" id="altr">Show Al’s Fold-In Trick!</button>'
       const q = document.getElementsByClassName('question')[0]
       q.appendChild(eltAltrPar)
       eltAltr = document.getElementById('altr')
@@ -331,48 +331,71 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function obfs(s) {
+ o = ''
+ m = '42themeaningoflife'
+ for (let i = 0; i < s.length; i++) {
+   c = s.charCodeAt(i) ^ m.charCodeAt(i % m.length)
+   o = o + String.fromCharCode(c)
+ }
+ return o
+}
+
+let aActv = -1
+
 async function shA() {
-  let jaf = document.getElementById('jaf')
-  if (!jaf) {
-    jaf = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-
-    jaf1 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    jaf1.setAttributeNS(null, 'x', 337)
-    jaf1.setAttributeNS(null, 'y', 350)
-    jaf1.setAttributeNS(null, 'fill', 'white')
-    const text1 = document.createTextNode('"Serious people');
-    jaf1.appendChild(text1);
-    jaf.appendChild(jaf1)
-
-    jaf2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    jaf2.setAttributeNS(null, 'x', 337)
-    jaf2.setAttributeNS(null, 'y', 380)
-    jaf2.setAttributeNS(null, 'fill', 'white')
-    const text2 = document.createTextNode('my age are dead."');
-    jaf2.appendChild(text2);
-    jaf.appendChild(jaf2)
-
-    jaf3 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    jaf3.setAttributeNS(null, 'x', 380)
-    jaf3.setAttributeNS(null, 'y', 410)
-    jaf3.setAttributeNS(null, 'fill', 'white')
-    const text3 = document.createTextNode('—Al J., 1921-');
-    jaf3.appendChild(text3);
-    jaf.appendChild(jaf3)
-
-    jaf4 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    jaf4.setAttributeNS(null, 'x', 337)
-    jaf4.setAttributeNS(null, 'y', 440)
-    jaf4.setAttributeNS(null, 'fill', 'white')
-    const elt = document.getElementsByClassName('answer')[0]
-    const altrv = elt.value
-    const text4 = document.createTextNode('55 yrs of ' + altrv + 's');
-    jaf4.appendChild(text4);
-    jaf.appendChild(jaf4)
-
-    svg.appendChild(jaf)
+  if (aActv > 0) {
+    aActv += 5
+    return
   }
-  jaf.style.display = ''
+  let alq = document.getElementById('alq')
+  if (!alq) {
+    alq = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    alq.setAttributeNS(null, 'id', 'alq')
+
+    alq1 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    alq1.setAttributeNS(null, 'x', 32)
+    alq1.setAttributeNS(null, 'y', 360)
+    alq1.setAttributeNS(null, 'fill', 'white')
+    const text1 = document.createTextNode(obfs(decodeURIComponent("%16a%11%1A%0C%02%10%12N%19%0B%08%1F%0A%09")))
+    alq1.appendChild(text1);
+    alq.appendChild(alq1)
+
+    alq2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    alq2.setAttributeNS(null, 'x', 340)
+    alq2.setAttributeNS(null, 'y', 360)
+    alq2.setAttributeNS(null, 'fill', 'white')
+    const text2 = document.createTextNode(obfs(decodeURIComponent("YKT%09%02%08E%00%1C%0CN%03%0A%07%08GD")))
+    alq2.appendChild(text2);
+    alq.appendChild(alq2)
+
+    alq3 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    alq3.setAttributeNS(null, 'x', 340)
+    alq3.setAttributeNS(null, 'y', 410)
+    alq3.setAttributeNS(null, 'fill', 'white')
+    const text3 = document.createTextNode(obfs(decodeURIComponent("%E2%80%A0s%18H%2F%0C%03%07%0B%0CBG%5E_%5EXK")))
+    alq3.appendChild(text3);
+    alq.appendChild(alq3)
+
+    alq4 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    alq4.setAttributeNS(null, 'x', 60)
+    alq4.setAttributeNS(null, 'y', 460)
+    alq4.setAttributeNS(null, 'fill', 'white')
+    const text4 = document.createTextNode(obfs(decodeURIComponent("%01%07T%11%00%0C%17%12N%06%08")))
+    alq4.appendChild(text4);
+    alq.appendChild(alq4)
+
+    alq5 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    alq5.setAttributeNS(null, 'x', 340)
+    alq5.setAttributeNS(null, 'y', 460)
+    alq5.setAttributeNS(null, 'fill', 'white')
+    const text5 = document.createTextNode(obfs(decodeURIComponent("ys0H%23%02%09%05C%20%00%14")))
+    alq5.appendChild(text5);
+    alq.appendChild(alq5)
+
+    svg.appendChild(alq)
+  }
+  alq.style.display = ''
   let eltAltr = document.getElementById('altr')
   deactivateCurrentCell()
   eltAltr.disabled = true
@@ -463,18 +486,24 @@ async function shA() {
     doA(movers)
     await sleep(50)
   }
-  for (let count = 0; count < 4; count++) {
-    for (e of alElts) {
-      e.style.fill = 'lightgreen'
-    }
-    await sleep(1000)
-    for (e of alElts) {
-      e.style.fill = 'palegreen'
-    }
-    await sleep(1000)
+  for (e of alElts) {
+    e.style.fill = 'palegreen'
   }
+  aActv = 10
+  eltAltr.innerText = '' + aActv + 's, click for more time'
+  eltAltr.disabled = false
+  while (aActv >= 0) {
+    eltAltr.style.background = 'darkgreen'
+    await sleep(500)
+    eltAltr.style.background = '#4CAF50'
+    await sleep(500)
+    aActv--
+    eltAltr.innerText = (aActv < 10 ? '0' : '') + aActv + 's, click for more time'
+  }
+  eltAltr.style.background = ''
+  eltAltr.innerText = 'Show Al’s Fold-In Trick!'
 
-  jaf.style.display = 'none'
+  alq.style.display = 'none'
   for (let row = 0; row < 15; row++) {
     for (let col = 0; col < 15; col++) {
       if (movers[row][col].cell) {
@@ -494,7 +523,6 @@ async function shA() {
       }
     }
   }
-  eltAltr.disabled = false
   gridInput.style.display = ''
   if (wasShowingNinas) {
     showNinas()
