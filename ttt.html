@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<link rel="stylesheet" type="text/css" href="exolve-m.css?v0.22"/>
+<script src="exolve-m.js?v0.22"></script>
+
+<!--
+MIT License
+
+Copyright (c) 2019 Viresh Ratnakar
+
+See the full license notice in exolve-m.js.
+
+Version: Exolve v0.22 September 14 2019
+-->
+
+<title>TODO</title>
+
+<script>
+
+const puzzleText = `
+======REPLACE WITH YOUR PUZZLE BELOW======
+exolve-begin
+  exolve-id: gussalufz-18
+  exolve-title: TODO
+  exolve-setter: Gussalufz
+  exolve-copyright: 2019 Viresh Ratnakar
+  exolve-width: 11
+  exolve-height: 11
+  exolve-grid:
+    E A R S|H A R E|I_T S
+    S L O P E|R E X|C O W
+    T O|W+O|R|K+F|O|R|L I
+    E U R O S+A S_C O T S
+    E D_E N+B R E E Z E S_
+    M_A T H E M A T_I C_S
+    A E R A T_O R+W E L L
+    P R E W A R+E E R_I E
+    S I|A|S|U|M|M|E|R|B E
+    E A T+E R A|U S U R P
+    S L Y|R A Y S|T E A S
+  exolve-prelude:
+    <p>
+    One clue (23a) is missing, but you should be able to find it, eventually.
+    </p>
+    <p>
+    Clues for 1d, 24d, 21d, 19d, 22d, 10d, and 26d have been shuffled
+    into a table at the end of the Down clues. You can reshuffle them,
+    and when you get them in the order listed here, you will know it.
+    The total number of possible ways to shuffle seven clues (5040) might
+    be a bit too high, so, instead of trying randomly, look for hints
+    to piece together. Also, solving the other clues would help.
+    </p>
+  exolve-question: What is the missing clue for 23a? (4,3,1,6) WORK FOR A SUMMER
+  exolve-question: What is revealed after shuffling the table of clues properly? (one word) ALGEBRA
+  exolve-question: What are the two ways in which the above revelation happens? (70)* The first letters of clues, also their Greek labels, in the given order
+
+  exolve-nina: c9 d9 e9 f9 g9 h9 i9 c3 d3 e3 f3 g3 h3 i3
+  exolve-colour: lightyellow a11 a10 a9 a8 a7 a6
+  exolve-colour: papayawhip b1 b2 b3 b4 b5 b6
+  exolve-colour: lightyellow e5 e6 e7
+  exolve-colour: papayawhip f4 f5 f6 f7 f8
+  exolve-colour: lightyellow g5 g6 g7
+  exolve-colour: papayawhip j6 j7 j8 j9 j10 j11
+  exolve-colour: lightyellow k1 k2 k3 k4 k5 k6
+  exolve-colour: honeydew a6 b6 c6 d6 e6 f6 g6 h6 i6 j6 k6
+
+  exolve-across:
+    1 EARS (4)
+    5 HARE (4)
+    9 ITS (3)
+    12 SLOPE (5)
+    13 REX (3)
+    14 COW (3)
+    15 TO (2)
+    16 LI (2)
+    17 EUROS (5)
+    19 ASCOTS (6)
+    20 EDEN (4)
+    21 BREEZES (7)
+    23 ____ ___ _ ______? (11) MATHEMATICS
+    27 AERATOR (7)
+    28 WELL (4)
+    30 PREWAR (6)
+    32 EERIE (5)
+    33 SI (2)
+    36 BE (2)
+    37 EAT (3)
+    38 ERA (3)
+    39 USURP (5)
+    40 SLY (3)
+    41 RAYS (4)
+    42 TEAS (4)
+  exolve-down:
+    2 ALOUD (5)
+    3 ROW (3)
+    4 SPOON (5)
+    5 HERS (4)
+    6 ARK (3)
+    7 REFS (4)
+    8 EXOCET (6)
+    11 SWISS (5)
+    14 CROZIER (7)
+    18 RETREAT (7)
+    25 HAWSER (6)
+    27 APSES (5)
+    28 WEEST (5)
+    29 LIBRA (5)
+    31 AURA (4)
+    32 EMUS (4)
+    34 MAY (3)
+    35 RUE (3)
+    [&Epsilon;] End of NRA starts to reduce mayhem, offers real protection in America (?) 19d. Def: protection in America (U.S. spelling). (-nr)A R(-educe) M(-ayhem) O(-ffers) R(-eal).
+    [&Rho;] Resident of old Mexico standing out in pistol technique (?) 10d. TOLTEC. Def: Reident of old Mexico. Hidden word: (-pis)TOL TEC(-hnique).
+    [&Alpha;] Admiration goes through reversal after a bit of exposure (?) 1d. Def: Admiration. MEETS<< after E(-xpoure).
+    [&Gamma;] Get sex changed for wager! (?) 21d. Def: wager. (-g+B)ET.
+    [&Lambda;] Lofty ambitions encounter realities, inevitably accumulating losses, initially (?) 24d. Def: Lofty. Acrostic: A(-mbitious) E(-ncounter) R(-ealities) I(-nevitably) A(-ccumulating) L(-osses).
+    [&Alpha;] Accommodates TODO aboard ship TODO (?) 26d. SLEEPS.
+    [&Beta;] Backsical perception TODO (?) 22d. EAR.
+exolve-end
+======REPLACE WITH YOUR PUZZLE ABOVE======
+`;
+
+function hashCode(str) {
+  return str.split('').reduce((prevHash, currVal) =>
+    (((prevHash << 5) - prevHash) + currVal.charCodeAt(0))|0, 0);
+}
+
+let shuf = []
+
+function doShuf(shufIndex, dir) {
+  let allClueTRs = document.getElementsByTagName('tr')
+  let indexInAll = [0, 0, 0, 0, 0, 0, 0]
+  let index = -1
+  for (let j = 0; j < shuf.length; j++) {
+    let tr = shuf[j]
+    for (let i = 43; i < 50; i++) {
+      if (allClueTRs[i] == tr) {
+        indexInAll[i - 43] = j
+        if (j == shufIndex) {
+          index = i
+        }
+        break
+      }
+    }
+  }
+  if (index < 43 || index >= 50) {
+    addError('Hmm. shuf-index ' + shufIndex + ' found at ' + index)
+    return
+  }
+  let newIndex = index + dir
+  if (newIndex < 43 || newIndex >= 50) {
+    return
+  }
+  let tr = shuf[shufIndex]
+  if (newIndex == index - 1) {
+    tr.parentNode.insertBefore(tr, allClueTRs[newIndex]);
+  } else if (newIndex == index + 1) {
+    tr.parentNode.insertBefore(allClueTRs[newIndex], tr);
+  }
+  let temp = indexInAll[index - 43]
+  indexInAll[index - 43] = indexInAll[newIndex - 43]
+  indexInAll[newIndex - 43] = temp
+  //console.log(indexInAll)
+  let shufBorder = 'khaki'
+  let cls = ''
+  if (hashCode('' + indexInAll) == -1059631075) {
+    shufBorder = 'darkgreen'
+    cls = 'shuf-green'
+  }
+  for (let tr of shuf) {
+    tr.style.borderTop = '2px solid ' + shufBorder
+    tr.style.borderBottom = '2px solid ' + shufBorder
+    tr.className = cls
+  }
+}
+
+function setupShuffle() {
+  let allClueTRs = document.getElementsByTagName('tr')
+  for (let i = 0; i < 7; i++) {
+    let tr = allClueTRs[43 + i]
+    tr.style.borderTop = '2px solid khaki'
+    tr.style.borderBottom = '2px solid khaki'
+    let td1 = document.createElement('td')
+    td1.innerHTML =
+      '<button class="shuf-button" onclick="let e = arguments[0] || window.event; e.stopPropagation(); doShuf(' +
+                      i + ',-1)">&uarr;</button>'
+    let td2 = document.createElement('td')
+    td2.innerHTML = '<button class="shuf-button" onclick="let e = arguments[0] || window.event; e.stopPropagation(); doShuf(' +
+                      i + ',1)">&darr;</button>'
+    tr.appendChild(td1)
+    tr.appendChild(td2)
+    shuf.push(tr)
+  }
+}
+
+</script>
+
+<style>
+.shuf-button {
+  background-color: papayawhip;
+  border: 1px solid khaki;
+  outline: none;
+  padding: 4px 8px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  border-radius: 2px;
+  font-family: monospace;
+  font-weight: bold;
+  font-size: 14px;
+}
+.shuf-button:hover {
+  background-color: khaki;
+  cursor: pointer;
+}
+.shuf-green td::first-letter {
+  font-weight: bold;
+  color: red;
+  background-color: papayawhip;
+}
+</style>
+
+</head>
+
+<body onload="createPuzzle(); setupShuffle()">
+
+<div class="flex-col" id="outermost-stack">
+  <h2 id="title">Title</h2>
+  <div id="setter"></div>
+  <div id="prelude"></div>
+  <div id="current-clue-parent">
+    <div id="current-clue"></div>
+  </div>
+  <div class="flex-row">
+    <div id="grid-panel">
+      <div id="grid-parent-centerer">
+        <div id="grid-parent">
+          <svg id="grid" zoomAndPan="disable"></svg>
+          <div id="grid-input-wrapper" style="display:none;left:0;top:0"><input id="grid-input" type="text" maxlength="2" autocomplete="off" spellcheck="false" class="cell-text"/></div>
+          <div id="nina-group" style="display:none;left:0;top:0"></div>
+        </div> <!-- #grid-parent -->
+      </div> <!-- #grid-parent-centerer -->
+      <div id="small-print" class="wide-box">
+        <a id="report-bug" href="https://github.com/viresh-ratnakar/exolve/issues/new">Report bug</a>
+        <a id="exolve-link" href="https://github.com/viresh-ratnakar/exolve">Exolve on GitHub</a>
+        <span id="copyright"></span>
+      </div> <!-- #small-print -->
+      <div id="controls-etc">
+        <div id="controls" class="wide-box">
+          <div id="button-row-1" class="controls-row">
+            <button id="clear" class="button"
+                onclick="clearCurrent()">Clear this</button>
+            <button id="clear-all" class="button"
+                onclick="clearAll()">Clear all!</button>
+            <button id="check" class="button" style="display:none"
+                onclick="checkCurrent()">Check this</button>
+            <button id="check-all" class="button" style="display:none"
+                onclick="checkAll()">Check all!</button>
+          </div> <!-- #button-row-1 -->
+          <div id="button-row-2" class="controls-row">
+            <button id="reveal" class="button" style="display:none"
+                onclick="revealCurrent()">Reveal this</button>
+            <button id="ninas" class="button" style="display:none"
+                onclick="toggleNinas()">Show ninas</button>
+            <button id="reveal-all" class="button" style="display:none"
+                onclick="revealAll()">Reveal all!</button>
+          </div> <!-- #button-row-2 -->
+        </div> <!-- #controls -->
+        <div id="errors"></div>
+        <div id="status">
+          Squares filled:
+          <span id="status-num-filled">0</span>/<span
+                id="status-num-total"></span>
+        </div> <!-- #status -->
+        <div id="saving" class="wide-box">
+          Your entries are saved automatically in a cookie, for the most
+          recent puzzle that you open from this site. Bookmark/save the
+          <a id="saving-url" href="">URL</a> for more reliable recovery.
+        </div> <!-- #saving -->
+        <div id="questions" class="wide-box"></div> 
+        <div id="submit-parent">
+          <button id="submit" class="button" style="display:none"
+              onclick="submitSolution()">Submit!</button>
+        </div> <!-- submit-parent -->
+        <div id="explanations" class="wide-box" style="display:none"></div>
+      </div> <!-- #controls-etc -->
+      <br/>
+      <br/>
+    </div> <!-- #grid-panel -->
+    <div id="clues" class="flex-row">
+      <div id="across-clues-panel" class="clues-box" style="display:none">
+        <hr/>
+        <b>Across</b>
+        <table id="across"></table>
+        <br/>
+      </div> <!-- #across-clues-panel -->
+      <div id="down-clues-panel" class="clues-box" style="display:none">
+        <hr/>
+        <b>Down</b>
+        <table id="down"></table>
+        <br/>
+      </div> <!-- #down-clues-panel -->
+      <div id="nodir-clues-panel" class="clues-box" style="display:none">
+        <hr/>
+        <table id="nodir"></table>
+        <br/>
+      </div> <!-- #nodir-clues-panel -->
+    </div> <!-- #clues -->
+  </div>
+</div> <!-- #outermost-stack -->
+
+</body>
+
+</html>
