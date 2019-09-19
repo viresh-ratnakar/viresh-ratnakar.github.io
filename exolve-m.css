@@ -5,7 +5,7 @@ Copyright (c) 2019 Viresh Ratnakar
 
 See the full license notice in exolve-m.js.
 
-Version: Exolve v0.22 September 14 2019
+Version: Exolve v0.23 September 19 2019
 */
 
 .background {
@@ -70,8 +70,6 @@ td:first-child {
 }
 #small-print {
   font-size: small;
-  text-align: right;
-  padding: 0 16px 0 0;
 }
 #errors {
   font-weight: bold;
@@ -114,6 +112,9 @@ td:first-child {
   height: 100%;
   padding: 0;
   background: rgba(255,255,255,0.0);
+}
+#controls-etc {
+  padding: 8px 0 6px 0;
 }
 .controls-row {
   margin: 6px 0 6px 0;
@@ -191,7 +192,7 @@ hr {
   font-size: x-small;
   font-family: monospace;
   color: gray;
-  margin: 0px 0 20px 0;
+  margin: 0px 0 8px 0;
 }
 .question {
   margin: 20px 0 20px 0;
