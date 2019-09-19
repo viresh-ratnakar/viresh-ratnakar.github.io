@@ -17,7 +17,7 @@ See the full license notice in exolve-m.js.
 Version: Exolve v0.22 September 14 2019
 -->
 
-<title>TODO</title>
+<title>TODO Title</title>
 
 <script>
 
@@ -25,13 +25,13 @@ const puzzleText = `
 ======REPLACE WITH YOUR PUZZLE BELOW======
 exolve-begin
   exolve-id: gussalufz-18
-  exolve-title: TODO
+  exolve-title: TODO Title
   exolve-setter: Gussalufz
   exolve-copyright: 2019 Viresh Ratnakar
   exolve-width: 11
   exolve-height: 11
   exolve-grid:
-    E A R S|H A R E|I_T S
+    E A T S|H A R E|I_T S
     S L O P E|R E X|C O W
     T O|W+O|R|K+F|O|R|L I
     E U R O S+A S_C O T S
@@ -39,12 +39,13 @@ exolve-begin
     M_A T H E M A T_I C_S
     A E R A T_O R+W E L L
     P R E W A R+E E R_I E
-    S I|A|S|U|M|M|E|R|B E
-    E A T+E R A|U S U R P
-    S L Y|R A Y S|T E A S
+    P I|A|S|U|M|M|E|R|B E
+    L A T+E R A|U S U R P
+    E L M|R A Y S|T E A S
   exolve-prelude:
     <p>
-    One clue (23a) is missing, but you should be able to find it, eventually.
+    One clue (23a) is missing, but you should be able to find it by reading
+    between lines.
     </p>
     <p>
     Clues for 1d, 24d, 21d, 19d, 22d, 10d, and 26d have been shuffled
@@ -69,7 +70,7 @@ exolve-begin
   exolve-colour: honeydew a6 b6 c6 d6 e6 f6 g6 h6 i6 j6 k6
 
   exolve-across:
-    1 EARS (4)
+    1 Has tea, mixed with a bit of sugar (4) Def: has. TEA* S(-ugar).
     5 HARE (4)
     9 ITS (3)
     12 SLOPE (5)
@@ -81,22 +82,22 @@ exolve-begin
     19 ASCOTS (6)
     20 EDEN (4)
     21 BREEZES (7)
-    23 ____ ___ _ ______? (11) MATHEMATICS
+    23 ____ ___ _ ______? (11) "Work for a summer?"—Cryptic definition.
     27 AERATOR (7)
     28 WELL (4)
     30 PREWAR (6)
     32 EERIE (5)
     33 SI (2)
     36 BE (2)
-    37 EAT (3)
+    37 LAT (3)
     38 ERA (3)
     39 USURP (5)
-    40 SLY (3)
+    40 ELM (3)
     41 RAYS (4)
     42 TEAS (4)
   exolve-down:
-    2 ALOUD (5)
-    3 ROW (3)
+    2 Test a long clue test a long clue test a long clue test a long clue ALOUD (5)
+    3 TOW (3)
     4 SPOON (5)
     5 HERS (4)
     6 ARK (3)
@@ -105,9 +106,9 @@ exolve-begin
     11 SWISS (5)
     14 CROZIER (7)
     18 RETREAT (7)
-    25 HAWSER (6)
-    27 APSES (5)
-    28 WEEST (5)
+    25 The Reverend's cut the woman in line (6) Def: line. Spoonerism of SAW HER.
+    27 APPLE (5)
+    28 The most insignificant direction around a point? (5) Def: The most insignificant. WEST around E.
     29 LIBRA (5)
     31 AURA (4)
     32 EMUS (4)
@@ -118,8 +119,8 @@ exolve-begin
     [&Alpha;] Admiration goes through reversal after a bit of exposure (?) 1d. Def: Admiration. MEETS<< after E(-xpoure).
     [&Gamma;] Get sex changed for wager! (?) 21d. Def: wager. (-g+B)ET.
     [&Lambda;] Lofty ambitions encounter realities, inevitably accumulating losses, initially (?) 24d. Def: Lofty. Acrostic: A(-mbitious) E(-ncounter) R(-ealities) I(-nevitably) A(-ccumulating) L(-osses).
-    [&Alpha;] Accommodates TODO aboard ship TODO (?) 26d. SLEEPS.
-    [&Beta;] Backsical perception TODO (?) 22d. EAR.
+    [&Alpha;] Accommodates a tip from Stan Lee upon afterthought (?) 26d. Def: Accommodates. S(-tan) LEE PS.
+    [&Beta;] Beyonce arrangement showing musical perception (?) 22d. Def: musical perception. Hidden word: (-beyonc)E AR(-rangement).
 exolve-end
 ======REPLACE WITH YOUR PUZZLE ABOVE======
 `;
@@ -179,19 +180,34 @@ function doShuf(shufIndex, dir) {
 }
 
 function setupShuffle() {
-  let allClueTRs = document.getElementsByTagName('tr')
+  let allClueTRs = document.getElementsByTagName('tr');
+  for (let i = 25; i < 43; i++) {
+    let tr = allClueTRs[i]
+    let clueTd = tr.children[1]
+    clueTd.colSpan = 3
+    if (i == 42) {
+      clueTd.style.paddingBottom = '8px'
+    }
+  }
   for (let i = 0; i < 7; i++) {
     let tr = allClueTRs[43 + i]
     tr.style.borderTop = '2px solid khaki'
     tr.style.borderBottom = '2px solid khaki'
+    let clueTd = tr.children[1]
+    clueTd.style.paddingBottom = '6px'
     let td1 = document.createElement('td')
     td1.innerHTML =
-      '<button class="shuf-button" onclick="let e = arguments[0] || window.event; e.stopPropagation(); doShuf(' +
-                      i + ',-1)">&uarr;</button>'
-    let td2 = document.createElement('td')
-    td2.innerHTML = '<button class="shuf-button" onclick="let e = arguments[0] || window.event; e.stopPropagation(); doShuf(' +
-                      i + ',1)">&darr;</button>'
+        '<button class="shuf-button" ' +
+        'onclick="let e = arguments[0] || window.event; e.stopPropagation(); ' +
+        'doShuf(' + i + ',-1)">&uarr;</button>';
+    td1.style.verticalAlign = 'middle'
     tr.appendChild(td1)
+    let td2 = document.createElement('td')
+    td2.innerHTML =
+        '<button class="shuf-button" ' +
+        'onclick="let e = arguments[0] || window.event; e.stopPropagation(); ' +
+        'doShuf(' + i + ',1)">&darr;</button>';
+    td2.style.verticalAlign = 'middle'
     tr.appendChild(td2)
     shuf.push(tr)
   }
@@ -205,6 +221,7 @@ function setupShuffle() {
   border: 1px solid khaki;
   outline: none;
   padding: 4px 8px;
+  margin: 4px 4px;
   text-align: center;
   text-decoration: none;
   display: inline-block;
