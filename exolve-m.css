@@ -70,6 +70,7 @@ td:first-child {
 }
 #small-print {
   font-size: small;
+  margin: 0 0 4px 0;
 }
 #errors {
   font-weight: bold;
@@ -129,7 +130,7 @@ td:first-child {
 }
 hr {
   margin: 0 0 4px 0;
-  background-color: darkgreen;
+  background-color: lightgreen;
 }
 .button {
   background-color: #4CAF50; /* Green */
@@ -192,7 +193,7 @@ hr {
   font-size: x-small;
   font-family: monospace;
   color: gray;
-  margin: 0px 0 8px 0;
+  margin: 0px 0 6px 0;
 }
 .question {
   margin: 20px 0 20px 0;
