@@ -2002,7 +2002,9 @@ addError('gridInputval: ' + newInput)
   let oldLetter = grid[currentRow][currentCol].currentLetter
   grid[currentRow][currentCol].currentLetter = letter
   grid[currentRow][currentCol].textNode.nodeValue = keyChar
+addError('about to set gridInput (' + currentRow + ',' + currentCol + ')')
   gridInput.value = keyChar
+addError('set gridInput (' + currentRow + ',' + currentCol + ')')
   if (oldLetter == '1' || letter == '1') {
     let symRow = gridHeight - 1 - currentRow
     let symCol = gridWidth - 1 - currentCol
@@ -2013,7 +2015,9 @@ addError('gridInputval: ' + newInput)
       grid[symRow][symCol].textNode.nodeValue = symChar
     }
   }
+addError('about to save-state gridInput (' + currentRow + ',' + currentCol + ')')
   updateAndSaveState()
+addError('saved state gridInput (' + currentRow + ',' + currentCol + ')')
 
   if (((letter >= 'A' && letter <= 'Z') || letter == '1') &&
       !grid[currentRow][currentCol].isDiagramless) {
