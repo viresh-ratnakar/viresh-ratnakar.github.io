@@ -39,7 +39,7 @@ const puzzleText = `
 ======REPLACE WITH YOUR PUZZLE BELOW======
 exolve-begin
   exolve-id: gussalufz-16
-  exolve-title: THCC July 2019 C
+  exolve-title: THCC July 2019 D
   exolve-setter: Gussalufz
   exolve-copyright: 2019 Viresh Ratnakar
   exolve-width: 15
@@ -2012,10 +2012,10 @@ addError('currletter: ' + currentLetter)
   let oldLetter = grid[currentRow][currentCol].currentLetter
   grid[currentRow][currentCol].currentLetter = letter
   grid[currentRow][currentCol].textNode.nodeValue = keyChar
-addError('about to set gridInput (' + currentRow + ',' + currentCol + ')')
+addError('about to set gridInput (' + currentRow + ',' + currentCol + ') to' + keyChar)
   handlingGridInput = true;  // See comment at the top.
   gridInput.value = keyChar
-addError('set gridInput (' + currentRow + ',' + currentCol + ')')
+addError('set gridInput (' + currentRow + ',' + currentCol + ') to ' + keyChar)
   if (oldLetter == '1' || letter == '1') {
     let symRow = gridHeight - 1 - currentRow
     let symCol = gridWidth - 1 - currentCol
