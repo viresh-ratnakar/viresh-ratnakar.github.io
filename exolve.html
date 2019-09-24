@@ -1895,6 +1895,7 @@ function toggleCurrentDirection() {
 // Handle navigation keys. Used by a listener, and also used to auto-advance
 // after a cell is filled.
 function handleKeyUpInner(key) {
+addError('handle KeyUpInner ' + key + '(' + currentRow + ',' + currentCol + ')')
   if (currentRow < 0 || currentRow >= gridHeight ||
       currentCol < 0 || currentCol >= gridWidth) {
     return
