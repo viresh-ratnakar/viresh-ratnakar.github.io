@@ -39,7 +39,7 @@ const puzzleText = `
 ======REPLACE WITH YOUR PUZZLE BELOW======
 exolve-begin
   exolve-id: gussalufz-16
-  exolve-title: THCC July 2019 A
+  exolve-title: THCC July 2019 B
   exolve-setter: Gussalufz
   exolve-copyright: 2019 Viresh Ratnakar
   exolve-width: 15
@@ -1962,17 +1962,17 @@ addError('handle KeyUpInner ' + key + '(' + currentRow + ',' + currentCol + ')')
 }
 
 function handleKeyUp(e) {
-  if (handlingGridInput) {
-    // As of Sept 24, on Firefox on Android, changing the value of gridInput
-    // immediately triggers another INPUT event. This protects against that bug.
-    return
-  }
   let key = e.which || e.keyCode
 addError('handle KeyUp ' + key + '(' + currentRow + ',' + currentCol + ')')
   handleKeyUpInner(key)
 }
 
 function handleGridInput() {
+  if (handlingGridInput) {
+    // As of Sept 24, on Firefox on Android, changing the value of gridInput
+    // immediately triggers another INPUT event. This protects against that bug.
+    return
+  }
 addError('handle gridInput (' + currentRow + ',' + currentCol + ')')
   if (currentRow < 0 || currentRow >= gridHeight ||
       currentCol < 0 || currentCol >= gridWidth) {
