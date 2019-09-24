@@ -39,7 +39,7 @@ const puzzleText = `
 ======REPLACE WITH YOUR PUZZLE BELOW======
 exolve-begin
   exolve-id: gussalufz-16
-  exolve-title: THCC July 2019 B
+  exolve-title: THCC July 2019 C
   exolve-setter: Gussalufz
   exolve-copyright: 2019 Viresh Ratnakar
   exolve-width: 15
@@ -1971,6 +1971,7 @@ function handleGridInput() {
   if (handlingGridInput) {
     // As of Sept 24, on Firefox on Android, changing the value of gridInput
     // immediately triggers another INPUT event. This protects against that bug.
+addError('gah!')
     return
   }
 addError('handle gridInput (' + currentRow + ',' + currentCol + ')')
@@ -1984,10 +1985,11 @@ addError('handle gridInput (' + currentRow + ',' + currentCol + ')')
   }
   let newInput = gridInput.value
 addError('gridInputval: ' + newInput)
-  if (grid[currentRow][currentCol].currentLetter != '' &&
-      newInput != grid[currentRow][currentCol].currentLetter) {
+  let currentLetter = grid[currentRow][currentCol].currentLetter
+addError('currletter: ' + currentLetter)
+  if (currentLetter != '' && newInput != currentLetter) {
     // The "new" input may be before or after the old input.
-    let index = newInput.indexOf(grid[currentRow][currentCol].currentLetter)
+    let index = newInput.indexOf(currentLetter)
     if (index == 0) {
       newInput = newInput.substr(1)
     }
