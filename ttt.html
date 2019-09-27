@@ -11,13 +11,13 @@ Copyright (c) 2019 Viresh Ratnakar
 
 See the full license notice in exolve-m.js.
 
-Version: Exolve v0.23 September 19 2019
+Version: Exolve v0.24 September 26 2019
 -->
 
-<link rel="stylesheet" type="text/css" href="exolve-m.css?v0.23"/>
-<script src="exolve-m.js?v0.23"></script>
+<link rel="stylesheet" type="text/css" href="exolve-m.css?v0.24"/>
+<script src="exolve-m.js?v0.24"></script>
 
-<title>TODO Title</title>
+<title>Abki Bar</title>
 
 <script>
 
@@ -25,7 +25,7 @@ const puzzleText = `
 ======REPLACE WITH YOUR PUZZLE BELOW======
 exolve-begin
   exolve-id: gussalufz-18
-  exolve-title: TODO Title
+  exolve-title: Abki Bar
   exolve-setter: Gussalufz
   exolve-copyright: 2019 Viresh Ratnakar
   exolve-width: 11
@@ -70,26 +70,26 @@ exolve-begin
   exolve-colour: honeydew a6 b6 c6 d6 e6 f6 g6 h6 i6 j6 k6
 
   exolve-across:
-    1 Has tea, mixed with a bit of sugar (4) Def: has. TEA* S(-ugar).
+    1 Has tea, mixed with a little sugar (4) Def: has. TEA* S(-ugar).
     5 HARE (4)
     9 ITS (3)
     12 SLOPE (5)
     13 REX (3)
-    14 COW (3)
+    14 Scare with angry look after taking jacket off (3) Def: Scare. (-s)COW(-l).
     15 TO (2)
     16 LI (2)
-    17 EUROS (5)
-    19 ASCOTS (6)
-    20 EDEN (4)
+    17 God protects, you said, for money (5) Def: money. EROS around U.
+    19 Ties a sadomasochist at first, then beds (6) Def: Ties. A S(-adomasochist) COTS.
+    20 Online study heaven? (4)
     21 BREEZES (7)
     23 ____ ___ _ ______? (11) "Work for a summer?"—Cryptic Definition.
     27 AERATOR (7)
     28 WELL (4)
-    30 PREWAR (6)
+    30 Before the battle of Rap, we organized a little recreation (6) Def: Before the battle. RAPWE* R(-ecreation).
     32 EERIE (5)
     33 SI (2)
     36 BE (2)
-    37 Is this currency in circulation in Talsi? (3) Def: currency. Composite Anagram: ISTAL* = TALSI. Moreover, the clue is &lit (Talsi is a city in Latvia), and the anagram is actually a reversal, so the clue can be thought of as an "&lit composite reversal."
+    37 Is this currency in circulation in Talsi? (3) Def: currency. Composite Anagram: ISLAT* = TALSI. Moreover, the clue is &lit (Talsi is a city in Latvia), and the anagram is actually a reversal, so the clue can be thought of as an "&lit composite reversal."
     38 ERA (3)
     39 USURP (5)
     40 ELM (3)
@@ -104,7 +104,7 @@ exolve-begin
     7 REFS (4)
     8 EXOCET (6)
     11 SWISS (5)
-    14 CROZIER (7)
+    14 Bishop's staff is more enthusiastic after dropping a strip of acid and eating a bit of opium (7) Def: Bishop's staff. CR(-a+O)ZIER.
     18 RETREAT (7)
     25 The Reverend's cut the woman in line (6) Def: line. Spoonerism of SAW HER.
     27 APPLE (5)
@@ -294,11 +294,42 @@ function setupShuffle() {
           <a id="saving-url" href="">URL</a> for more reliable recovery.
         </div> <!-- #saving -->
         <div id="small-print" class="wide-box">
-          <a id="report-bug" href="https://github.com/viresh-ratnakar/exolve/issues/new">Report bug</a>
-          <a id="exolve-link" href="https://github.com/viresh-ratnakar/exolve">Exolve on GitHub</a>
+          <div id="control-keys-list" style="display:none">
+            <ul>
+              <li>
+                <b>Tab, ]:</b>
+                Jump to the next clue in the current direction
+              </li>
+              <li>
+                <b>Shift-Tab, [:</b>
+                Jump to the previous clue in the current direction
+              </li>
+              <li>
+                <b>Enter, Click/Tap:</b>
+                Toggle current direction
+              </li>
+              <li>
+                <b>Arrow keys:</b>
+                Move to the nearest light square in that direction
+              </li>
+              <li>
+                <b>Spacebar:</b>
+                Place/clear block in the current square if it's diagramless
+              </li>
+            </ul>
+          </div>
+          <a id="show-control-keys" href=""
+            title="Show/hide list of control keys"
+            onclick="toggleShowControls();return false">Controls</a>
+          <a id="report-bug"
+            href="https://github.com/viresh-ratnakar/exolve/issues/new">Report
+            bug</a>
+          <a id="exolve-link"
+            href="https://github.com/viresh-ratnakar/exolve">Exolve on
+            GitHub</a>
           <span id="copyright"></span>
         </div> <!-- #small-print -->
-	<hr/>
+        <hr/>
         <div id="questions" class="wide-box"></div> 
         <div id="submit-parent">
           <button id="submit" class="button" style="display:none"
