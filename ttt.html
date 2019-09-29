@@ -17,7 +17,7 @@ Version: Exolve v0.25 September 28 2019
 <link rel="stylesheet" type="text/css" href="exolve-m.css?v0.25"/>
 <script src="exolve-m.js?v0.25"></script>
 
-<title>Abki Bar</title>
+<title>A Simple Puzzle Barring One Clue</title>
 
 <script>
 
@@ -25,7 +25,7 @@ const puzzleText = `
 ======REPLACE WITH YOUR PUZZLE BELOW======
 exolve-begin
   exolve-id: gussalufz-18
-  exolve-title: Abki Bar
+  exolve-title: A Simple Puzzle Barring One Clue
   exolve-setter: Gussalufz
   exolve-copyright: 2019 Viresh Ratnakar
   exolve-width: 11
@@ -57,7 +57,7 @@ exolve-begin
     </p>
   exolve-question: What is the missing clue for 23a? (4,3,1,6) WORK FOR A SUMMER
   exolve-question: What is revealed after shuffling the table of clues properly? (one word) ALGEBRA
-  exolve-question: What are the two ways in which the above revelation happens? (70)* The first letters of clues, also their Greek labels, in the given order
+  exolve-question: What are the two ways in which the above revelation happens? (64)* First letters of clues, also Greek labels, in the given order
 
   exolve-nina: c9 d9 e9 f9 g9 h9 i9 c3 d3 e3 f3 g3 h3 i3
   exolve-colour: lightyellow a11 a10 a9 a8 a7 a6
@@ -69,6 +69,27 @@ exolve-begin
   exolve-colour: lightyellow k1 k2 k3 k4 k5 k6
   exolve-colour: honeydew a6 b6 c6 d6 e6 f6 g6 h6 i6 j6 k6
 
+  exolve-explanations:
+    <p>
+      <b>Notes</b>
+    </p>
+    <p>
+    This is my first barred grid. The grid-fill was challenging, even with
+    software (qxw) help!
+    </p>
+    The puzzle title ("Easy Puzzle, <i>Bar</i>ring One Clue") and the hint in
+    the preamble ("you should be able to find it by reading between
+    <i>lines</i>") allude cryptically to the fact that the clue for 23a is a
+    nina found between separator bars in the grid.
+    </p>
+    <p>
+    When you arrange the clues in the table at the end of the Down clues
+    correctly in order, their first letters spell the word ALGEBRA (as is
+    hinted in the instruction, "... look for <i>hints</i> to piece together").
+    Their greek labels also spell ALGEBRA (Alpha Lambda Gamma Epsilon Beta Rho
+    Alpha).
+    </p>
+
   exolve-across:
     1 Has tea, mixed with a little sugar (4) Def: has. TEA* S(-ugar).
     5 HARE (4)
@@ -76,8 +97,8 @@ exolve-begin
     12 SLOPE (5)
     13 REX (3)
     14 Scare with angry look after taking jacket off (3) Def: Scare. (-s)COW(-l).
-    15 TO (2)
-    16 LI (2)
+    15 Reaching as far as Tokyo's limits (2) Def: Reaching as far as. T(-oky)O.
+    16 An old Chinese measurement of half-life (2) Def: An old Chinese measurement. LI(-fe).
     17 God protects, you said, for money (5) Def: money. EROS around U.
     19 Ties a sadomasochist at first, then beds (6) Def: Ties. A S(-adomasochist) COTS.
     20 Online study heaven? (4)
@@ -87,7 +108,7 @@ exolve-begin
     28 WELL (4)
     30 Before the battle of Rap, we organized a little recreation (6) Def: Before the battle. RAPWE* R(-ecreation).
     32 EERIE (5)
-    33 SI (2)
+    33 An abundant element is getting wasted (2) Def: An abundant element. IS*.
     36 BE (2)
     37 Is this currency in circulation in Talsi? (3) Def: currency. Composite Anagram: ISLAT* = TALSI. Moreover, the clue is &lit (Talsi is a city in Latvia), and the anagram is actually a reversal, so the clue can be thought of as an "&lit composite reversal."
     38 ERA (3)
@@ -212,6 +233,15 @@ function setupShuffle() {
     shuf.push(tr)
   }
 }
+
+// Override revealAll() to also order the clues.
+revealAll = (function() {
+  var cached_function = revealAll;
+  return function() {
+    cached_function.apply(this);
+    console.log("Success")  // TODO
+  };
+})();
 
 </script>
 
