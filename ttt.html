@@ -77,7 +77,7 @@ exolve-begin
     This is my first barred grid. The grid-fill was challenging, even with
     software (qxw) help!
     </p>
-    The puzzle title ("Easy Puzzle, <i>Bar</i>ring One Clue") and the hint in
+    The puzzle title ("A Simple Puzzle <i>Bar</i>ring One Clue") and the hint in
     the preamble ("you should be able to find it by reading between
     <i>lines</i>") allude cryptically to the fact that the clue for 23a is a
     nina found between separator bars in the grid.
@@ -152,6 +152,21 @@ function hashCode(str) {
 }
 
 let shuf = []
+
+function getCurrShuf() {
+  let allClueTRs = document.getElementsByTagName('tr')
+  let indexInAll = [0, 0, 0, 0, 0, 0, 0]
+  for (let j = 0; j < shuf.length; j++) {
+    let tr = shuf[j]
+    for (let i = 43; i < 50; i++) {
+      if (allClueTRs[i] == tr) {
+        indexInAll[i - 43] = j
+        break
+      }
+    }
+  }
+  return indexInAll
+}
 
 function doShuf(shufIndex, dir) {
   let allClueTRs = document.getElementsByTagName('tr')
@@ -239,7 +254,19 @@ revealAll = (function() {
   var cached_function = revealAll;
   return function() {
     cached_function.apply(this);
-    console.log("Success")  // TODO
+    let y = '' + (hashCode('424242') - 1534060131)
+    for (let i = 0; i < 7; i++) {
+      let currShuf = getCurrShuf()
+       for (let j = i; j < 7; j++) {
+	 let z = parseInt(y[i])
+         if (z == currShuf[j]) {
+	   for (let k = 0; k < j - i; k++) {
+	     doShuf(z, -1)
+           }
+	   break;
+	 }
+       }
+    }
   };
 })();
 
