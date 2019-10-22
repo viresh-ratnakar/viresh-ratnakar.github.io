@@ -1,0 +1,28 @@
+.shuf-button {
+  background-color: papayawhip;
+  border: 1px solid khaki;
+  outline: none;
+  padding: 4px 8px;
+  margin: 4px 4px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  border-radius: 2px;
+  font-family: monospace;
+  font-weight: bold;
+  font-size: 14px;
+}
+.shuf-button:hover {
+  background-color: khaki;
+  cursor: pointer;
+}
+.shuf-green td::first-letter {
+  font-weight: bold;
+  color: red;
+  background-color: papayawhip;
+}
+@media print {
+  .shuf-button {
+    display: none;
+  }
+}
