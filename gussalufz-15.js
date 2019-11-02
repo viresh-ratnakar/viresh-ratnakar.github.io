@@ -13,7 +13,8 @@ function hashCode(str) {
 function chA() {
   const elt = document.getElementsByClassName('answer')[0]
   let eltAltr = document.getElementById('altr')
-  if (hashCode(elt.value) == 34710129) {
+  let hc = hashCode(elt.value)
+  if (hc == 34710129 || hc == 2079330534 || hc == 34697636) {
     if (!eltAltr) {
       eltAltrPar = document.createElement('span');
       eltAltrPar.innerHTML = '&nbsp; <button class="button" style="font-size:10px;padding:4px 8px" onclick="shA()" id="altr">Show Al’s ' + elt.value + ' Trick!</button>'
