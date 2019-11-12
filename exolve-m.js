@@ -984,7 +984,7 @@ function parseClueLists() {
         continue;
       }
       if (clueLine.substr(0, 3) == '---') {
-	startNewTable = true
+        startNewTable = true
         continue;
       }
       let clueParse = parseClue(clueDirection, clueLine)
@@ -2086,9 +2086,9 @@ function handleKeyUpInner(key) {
       let next = clues[currentClueIndex].next
       let cells = clues[next].cells
       if (cells && cells.length > 0) {
-	if (next.charAt(0) == 'X') {
-	  currentDir = next
-	}
+        if (next.charAt(0) == 'X') {
+          currentDir = next
+        }
         activateCell(cells[0][0], cells[0][1])
       }
     }
@@ -2099,9 +2099,9 @@ function handleKeyUpInner(key) {
       let prev = clues[currentClueIndex].prev
       let cells = clues[prev].cells
       if (cells && cells.length > 0) {
-	if (prev.charAt(0) == 'X') {
-	  currentDir = prev
-	}
+        if (prev.charAt(0) == 'X') {
+          currentDir = prev
+        }
         activateCell(cells[0][0], cells[0][1])
       }
     }
