@@ -102,16 +102,26 @@ revealAll = (function() {
     let y = '' + (hashCode('424242') - 1534060131)
     for (let i = 0; i < 7; i++) {
       let currShuf = getCurrShuf()
-       for (let j = i; j < 7; j++) {
-         let z = parseInt(y[i])
-         if (z == currShuf[j]) {
-           for (let k = 0; k < j - i; k++) {
-             doShuf(z, -1)
-           }
-           break;
-         }
-       }
+      for (let j = i; j < 7; j++) {
+        let z = parseInt(y[i])
+        if (z == currShuf[j]) {
+          for (let k = 0; k < j - i; k++) {
+            doShuf(z, -1)
+          }
+          doShuf(z, 0)
+          break;
+        }
+      }
     }
+  };
+})();
+
+// Override clearAll() to still highlight if sorted
+clearAll = (function() {
+  var cached_function = clearAll;
+  return function() {
+    cached_function.apply(this);
+    doShuf(0, 0)
   };
 })();
 
