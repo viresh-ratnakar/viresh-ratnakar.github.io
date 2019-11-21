@@ -116,7 +116,14 @@ revealAll = (function() {
   };
 })();
 
-// Override clearAll() to still highlight if sorted
+// Override revealCurrent()/clearAll() to still highlight if sorted
+revealCurrent = (function() {
+  var cached_function = revealCurrent;
+  return function() {
+    cached_function.apply(this);
+    doShuf(0, 0)
+  };
+})();
 clearAll = (function() {
   var cached_function = clearAll;
   return function() {
