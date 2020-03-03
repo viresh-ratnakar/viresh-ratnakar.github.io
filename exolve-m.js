@@ -1824,7 +1824,7 @@ function restoreState() {
     let name = puzzleId + '=';
     let decodedCookie = decodeURIComponent(document.cookie);
     let ca = decodedCookie.split(';');
-    for(let i = 0; i < ca.length; i++) {
+    for (let i = 0; i < ca.length; i++) {
       let c = ca[i];
       while (c.charAt(0) == ' ') {
         c = c.substring(1);
@@ -2224,18 +2224,6 @@ function copyOrphanEntry(clueIndex) {
 }
 
 function updateOrphanEntry(clueIndex) {
-  if (hasDiagramlessCells) {
-    return
-  }
-  let e = document.getElementById('orphan-entry')
-  let b = document.getElementById('copy-orphan-entry')
-  if (e) {
-    e.innerHTML = ''
-    e.style.display = 'none'
-  }
-  if (b) {
-    b.style.display = 'none'
-  }
   if (!clueIndex || !clues[clueIndex] || !clues[clueIndex].clueTR) {
     return
   }
@@ -2243,15 +2231,16 @@ function updateOrphanEntry(clueIndex) {
   if (ips.length != 1) {
     return
   }
-  if (ips[0].value.length < 1) {
+  ips[0].value = ips[0].value.toUpperCase()
+  updateAndSaveState()
+  if (hasDiagramlessCells) {
     return
   }
-  ips[0].value = ips[0].value.toUpperCase()
-  if (e) {
+  let e = document.getElementById('orphan-entry')
+  let b = document.getElementById('copy-orphan-entry')
+  if (e && b) {
     e.innerHTML = ips[0].value
     e.style.display = ''
-  }
-  if (b) {
     b.style.display = ''
   }
 }
