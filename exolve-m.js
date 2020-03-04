@@ -104,6 +104,8 @@ let allClueIndices = []
 let orphanClueIndices = []
 // For the orhpan-clues widget.
 let posInOrphanClueIndices = 0
+const CURR_ORPHAN_ID = 'curr-orphan'
+const DEFAULT_ORPHAN_LEN = 10
 
 const BLOCK_CHAR = '⬛';
 // We have special meanings for 0 (unfilled) and 1 (block in diagramless cell)
@@ -1663,21 +1665,12 @@ function displayClues() {
     if (!hasDiagramlessCells && isOrphan(clueIndex) &&
         !clues[clueIndex].parentClueIndex) {
       let placeholder = ''
-      let len = 10
+      let len = DEFAULT_ORPHAN_LEN
       if (clues[clueIndex].placeholder) {
         placeholder = clues[clueIndex].placeholder
         len = placeholder.length
       }
-      col2.insertAdjacentHTML(
-        'beforeend',
-        '<span class="nobr">' +
-        '<input size="' + len + '" class="incluefill" placeholder="' +
-        placeholder + '" type="text" ' +
-        'oninput="updateOrphanEntry(\'' + clueIndex + '\')" ' +
-        'title="You can record your solution here before copying to squares" ' +
-        'autocomplete="off" spellcheck="off"></input>' +
-        '<button title="Copy into currently highlighted squares" ' +
-        'class="small-button">&#8690;</button></span>')
+      addOrphanEntryUI(col2, false, len, placeholder, clueIndex)
       col2.lastElementChild.lastElementChild.addEventListener(
         'click', function(e) {
         copyOrphanEntry(clueIndex);
@@ -1780,7 +1773,9 @@ function updateDisplayAndGetState() {
   statusNumFilled.innerHTML = numFilled
   for (let a of answersList) {
     if (a.isq) {
-      a.input.value = a.input.value.toUpperCase()
+      let cursor = a.input.selectionStart
+      a.input.value = a.input.value.toUpperCase().trimLeft()
+      a.input.selectionEnd = cursor 
     } else {
       break
     }
@@ -2223,26 +2218,57 @@ function copyOrphanEntry(clueIndex) {
   updateAndSaveState()
 }
 
-function updateOrphanEntry(clueIndex) {
-  if (!clueIndex || !clues[clueIndex] || !clues[clueIndex].clueTR) {
+// inCurr is set to true when this is called oninput in the currentClue strip.
+function updateOrphanEntry(clueIndex, inCurr) {
+  if (!clueIndex || !clues[clueIndex] || !clues[clueIndex].clueTR ||
+      !isOrphan(clueIndex) || clues[clueIndex].parentClueIndex) {
     return
   }
-  let ips = clues[clueIndex].clueTR.getElementsByTagName('input')
-  if (ips.length != 1) {
+  let clueInputs = clues[clueIndex].clueTR.getElementsByTagName('input')
+  if (clueInputs.length != 1) {
+    addError('Missing placeholder input for clue ' + clueIndex)
     return
   }
-  ips[0].value = ips[0].value.toUpperCase()
-  updateAndSaveState()
-  if (hasDiagramlessCells) {
+  if (!inCurr) {
+    let cursor = clueInputs[0].selectionStart
+    clueInputs[0].value = clueInputs[0].value.toUpperCase().trimLeft()
+    clueInputs[0].selectionEnd = cursor
+    updateAndSaveState()
+  }
+  let curr = document.getElementById(CURR_ORPHAN_ID)
+  if (!curr) {
     return
   }
-  let e = document.getElementById('orphan-entry')
-  let b = document.getElementById('copy-orphan-entry')
-  if (e && b) {
-    e.innerHTML = ips[0].value
-    e.style.display = ''
-    b.style.display = ''
+  let currInputs = curr.getElementsByTagName('input')
+  if (clueInputs.length != 1) {
+    return
   }
+  if (inCurr) {
+    let cursor = currInputs[0].selectionStart
+    currInputs[0].value = currInputs[0].value.toUpperCase().trimLeft()
+    currInputs[0].selectionEnd = cursor
+    clueInputs[0].value = currInputs[0].value
+    updateAndSaveState()
+  } else {
+    currInputs[0].value = clueInputs[0].value
+  }
+}
+
+function addOrphanEntryUI(elt, inCurr, len, placeholder, clueIndex) {
+  let span = '<span'
+  if (inCurr) {
+    span = span + ' id="' + CURR_ORPHAN_ID + '"'
+  }
+  elt.insertAdjacentHTML(
+    'beforeend',
+    span + ' class="nobr">' +
+    '<input size="' + len + '" class="incluefill" placeholder="' +
+    placeholder + '" type="text" ' +
+    'oninput="updateOrphanEntry(\'' + clueIndex + '\', ' + inCurr + ')" ' +
+    'title="You can record your solution here before copying to squares" ' +
+    'autocomplete="off" spellcheck="off"></input>' +
+    '<button title="Copy into currently highlighted squares" ' +
+    'class="small-button">&#8690;</button></span>')
 }
 
 // From a click in a  diagramless cell or a cell without a known clue
@@ -2256,16 +2282,6 @@ function showOrphanCluesAsActive() {
     clueIndex = clues[clueIndex].parentClueIndex
   }
   let displayedClue = clues[clueIndex].fullDisplayLabel + clues[clueIndex].clue
-  if (!hasDiagramlessCells) {
-    displayedClue = displayedClue +
-      ' <span class="nobr">' +
-      '<span id="orphan-entry"></span> ' +
-      '<button id="copy-orphan-entry" ' +
-      'title="Copy into currently highlighted squares" ' +
-      'class="small-button" ' +
-      'onclick="copyOrphanEntry(\'' + clueIndex + '\')">' +
-      '&#8690;</button></span>'
-  }
   currentClue.innerHTML =
     '<span>' +
     '<button class="small-button" onclick="orphanCluesBrowse(-1)">' +
@@ -2273,7 +2289,19 @@ function showOrphanCluesAsActive() {
     '<span title="You have to figure out which clue to use"> CLUES </span>' +
     '<button class="small-button" onclick="orphanCluesBrowse(1)">' +
     '&rsaquo;</button></span> ' + displayedClue
-  updateOrphanEntry(clueIndex)
+  if (!hasDiagramlessCells) {
+    let placeholder = ''
+    let len = DEFAULT_ORPHAN_LEN
+    if (clues[clueIndex].placeholder) {
+      placeholder = clues[clueIndex].placeholder
+      len = placeholder.length
+    }
+    addOrphanEntryUI(currentClue, true, len, placeholder, clueIndex)
+    updateOrphanEntry(clueIndex, false /* need to copy to curr */)
+    currentClue.lastElementChild.lastElementChild.addEventListener(
+      'click', function(e) {
+      copyOrphanEntry(clueIndex);});
+  }
   currentClue.style.background = ORPHAN_CLUES_COLOUR;
   makeCurrentClueVisible();
 }
@@ -2317,7 +2345,7 @@ function toggleCurrentDirAndActivate() {
 }
 
 // Handle navigation keys. Used by a listener, and also used to auto-advance
-// after a cell is filled.
+// after a cell is filled. Returns false only if a tab input was actually used.
 function handleKeyUpInner(key) {
   if (key == 221) {
     // ] or tab
@@ -2334,8 +2362,9 @@ function handleKeyUpInner(key) {
         deactivateCurrentCell()
         selectClue(next)
       }
+      return false
     }
-    return
+    return true
   } else if (key == 219) {
     // [ or shift-tab
     if (currentClueIndex && clues[currentClueIndex] &&
@@ -2351,29 +2380,30 @@ function handleKeyUpInner(key) {
         deactivateCurrentCell()
         selectClue(prev)
       }
+      return false
     }
-    return
+    return true
   }
   if (currentRow < 0 || currentRow >= gridHeight ||
       currentCol < 0 || currentCol >= gridWidth) {
-    return
+    return true
   }
   if (key == 8) {
     if (grid[currentRow][currentCol].currentLetter != '0' &&
         !grid[currentRow][currentCol].prefill) {
-      return
+      return true
     }
     // backspace in an empty or prefilled cell
     if (retreatCursorIfPred()) {
       // retreated across linked clue!
-      return
+      return true
     }
     if (currentDir == 'A') {
       key = 37  // left
     } else if (currentDir == 'D') {
       key = 38  // up
     } else {
-      return
+      return true
     }
   }
   if (key == 13) {
@@ -2424,6 +2454,7 @@ function handleKeyUpInner(key) {
       activateCell(row, currentCol);
     }
   }
+  return true
 }
 
 function handleKeyUp(e) {
@@ -2435,10 +2466,12 @@ function handleKeyUp(e) {
 function handleTabKeyDown(e) {
   let key = e.which || e.keyCode
   if (key == 9) {
-    e.preventDefault()
     // tab. replace with [ or ]
     key = e.shiftKey ? 219 : 221
-    handleKeyUpInner(key)
+    if (!handleKeyUpInner(key)) {
+      // Tab input got used already.
+      e.preventDefault()
+    }
   }
 }
 

@@ -96,12 +96,6 @@ td:first-child:not(.filler) {
   margin: 0 0 0 8px;
   padding: 0 4px 4px 0;
 }
-#orphan-entry {
-  background-color: mistyrose;
-  padding: 0 2px 2px 2px;
-  font-weight: normal;
-  color: darkgreen;
-}
 #grid-panel {
   margin: 0 8px 0 8px;
 }
