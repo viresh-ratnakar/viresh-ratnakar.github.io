@@ -248,7 +248,7 @@ async function shA() {
   }
   alq.style.display = ''
   let eltAltr = document.getElementById('altr')
-  deactivateGnav()
+  deactivateCurrentCell()
   eltAltr.disabled = true
   gridInput.style.display = 'none'
   let wasShowingNinas = showingNinas
