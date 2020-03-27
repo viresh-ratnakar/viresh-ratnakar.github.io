@@ -13,6 +13,9 @@ function sleep(ms) {
 
 function getNotePlayer(ellipse, stem, audio, text) {
   return async function() {
+    if (audio.readyState < 2) {
+      audio.load()
+    }
     let stemDisplay = stem.style.display
 
     ellipse.setAttributeNS(null, 'fill', PLAY_COLOUR)
@@ -36,6 +39,9 @@ async function playTune() {
   playButton.disabled = true
   deactivateCurrentCell()
   deactivateCurrentClue()
+  if (fullTune.readyState < 2) {
+    fullTune.load()
+  }
   await sleep(1000);
 
   fullTune.play()
@@ -82,6 +88,7 @@ function makeStem(row, col, h) {
 function makeNote(row, col, noteFile, stemRow, stemCol, stemH, text) {
   let audio = document.createElement('audio')
   audio.controls = false
+  audio.preload = 'auto'
   audio.setAttributeNS(null, 'src', noteFile)
   audio.setAttributeNS(null, 'type', 'audio/mpeg')
   playPanel.appendChild(audio)
@@ -217,6 +224,7 @@ function customizePuzzle() {
   gp.appendChild(playPanel);
   
   fullTune = document.createElement('audio')
+  fullTune.preload = 'auto'
   fullTune.controls = false
   fullTune.setAttributeNS(null, 'src', 'kr-fe.mp3')
   fullTune.setAttributeNS(null, 'type', 'audio/mpeg')
