@@ -39,7 +39,7 @@ async function playTune() {
   playButton.disabled = true
   deactivateCurrentCell()
   deactivateCurrentClue()
-  if (fullTune.readyState < 2) {
+  if (fullTune.readyState < 4) {
     fullTune.load()
   }
   await sleep(1000);
@@ -192,6 +192,7 @@ function customizePuzzle() {
   clefSig.setAttributeNS(null, 'href', 'kr-clef-sig.png');
   clefSig.setAttributeNS(null, 'x', 0);
   clefSig.setAttributeNS(null, 'height', 233);
+  clefSig.setAttributeNS(null, 'width', 144);
   clefSig.setAttributeNS(null, 'y', 32);
   svg.appendChild(clefSig)
 
@@ -201,6 +202,7 @@ function customizePuzzle() {
   sharp1.setAttributeNS(null, 'x',
     5 + STAVE_OFFSET_LEFT + 7 * (GRIDLINE + SQUARE_DIM));
   sharp1.setAttributeNS(null, 'height', 43);
+  sharp1.setAttributeNS(null, 'width', 22);
   sharp1.setAttributeNS(null, 'y', 0);
   svg.appendChild(sharp1)
 
