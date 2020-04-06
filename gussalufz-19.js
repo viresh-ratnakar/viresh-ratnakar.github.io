@@ -230,7 +230,7 @@ function customizePuzzle() {
   let p = document.getElementById('questions')
   p.appendChild(lim)
   lh = document.createElement('span')
-  lh.innerHTML = '&#128420;'
+  lh.innerHTML = '&#x2764;'
   lh.style.color = 'red'
   lh.style.display = 'none'
   answersList[0].input.parentElement.appendChild(lh)
