@@ -224,7 +224,7 @@ function customizePuzzle() {
   lim.setAttributeNS(null, 'width', 150)
   lim.setAttributeNS(null, 'height', 100)
   lim.style.position = 'relative'
-  lim.style.left = '320px'
+  lim.style.left = '350px'
   lim.style.top = '-175px'
   lim.style.display = 'none'
   let p = document.getElementById('questions')
