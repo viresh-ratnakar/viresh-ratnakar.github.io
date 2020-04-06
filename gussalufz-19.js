@@ -29,6 +29,8 @@ let p1 = {}
 let p2 = {}
 const PATH_OFFSET = 6
 const PATH_THICKNESS = 3
+let lim = null
+let lh = null
 
 function join(rc1, rc2, color) {
   const path =
@@ -202,10 +204,36 @@ updateAndSaveState = (function() {
         e.style.color = '' 
       }
     }
+    if (lim) {
+      if (hashCode(answersList[0].input.value) == 72196554) {
+        lim.style.display = ''
+        lh.style.display = ''
+      } else {
+        lim.style.display = 'none'
+        lh.style.display = 'none'
+      }
+    }
   };
 })();
 
 function customizePuzzle() {
   setupWh()
+
+  lim = document.createElement('img');
+  lim.setAttributeNS(null, 'src', 'gussalufz-19.svg')
+  lim.setAttributeNS(null, 'width', 180)
+  lim.setAttributeNS(null, 'height', 120)
+  lim.style.position = 'relative'
+  lim.style.left = '300px'
+  lim.style.top = '-170px'
+  lim.style.display = 'none'
+  let p = document.getElementById('questions')
+  p.appendChild(lim)
+  lh = document.createElement('span')
+  lh.innerHTML = '&#128420;'
+  lh.style.color = 'red'
+  lh.style.display = 'none'
+  answersList[0].input.parentElement.appendChild(lh)
+
   updateAndSaveState()
 }
