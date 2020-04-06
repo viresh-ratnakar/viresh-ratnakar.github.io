@@ -221,11 +221,11 @@ function customizePuzzle() {
 
   lim = document.createElement('img');
   lim.setAttributeNS(null, 'src', 'gussalufz-19.svg')
-  lim.setAttributeNS(null, 'width', 180)
-  lim.setAttributeNS(null, 'height', 120)
+  lim.setAttributeNS(null, 'width', 150)
+  lim.setAttributeNS(null, 'height', 100)
   lim.style.position = 'relative'
-  lim.style.left = '300px'
-  lim.style.top = '-170px'
+  lim.style.left = '320px'
+  lim.style.top = '-175px'
   lim.style.display = 'none'
   let p = document.getElementById('questions')
   p.appendChild(lim)
