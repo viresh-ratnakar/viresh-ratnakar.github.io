@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<!--
+MIT License
+
+Copyright (c) 2019 Viresh Ratnakar
+
+See the full license notice in exolve-m.js.
+
+Version: Exolve v0.71 May 7 2020
+-->
+
+<link rel="stylesheet" type="text/css" href="exolve-m.css?v0.71"/>
+<script src="exolve-m.js?v0.71"></script>
+<script src="gussalufz-19.js"></script>
+
+<title>Wormholes</title>
+
+<script>
+
+const puzzleText = `
+======REPLACE WITH YOUR PUZZLE BELOW======
+exolve-begin
+  exolve-id: gussalufz-19
+  exolve-title: Wormholes
+  exolve-setter: Gussalufz
+  exolve-copyright: 2020 Viresh Ratnakar
+  exolve-width: 11
+  exolve-height: 11
+  exolve-grid:
+    S  T  R_ A  P| T W  I_ S  T| E@
+    L  A| N@|B  R  E A  T_ H  E  R
+    E  B_ O  L  A| A_S  T@+O  N_ O
+    I| E@|V  E_ I  L|P_ A  R  S  I
+    G  N  A_ T| S  E R@+R| T| U| D_
+    H_ I  P| R  E_ V U  E| S_ P  A
+    S| T| E| E| P@_E N| A_ C  E  D
+    P  Y_ R  E_ S| E_U  L  A| R@+D
+    A  L  I| I@_N  I|S  I  S  A  L
+    C  A  S  C_ A  D E  S| S@+Y  E
+    E@|W  H  I  P  S|D  A  Z  E  D
+  exolve-colour: peachpuff k11 c10 b8 e5 d3
+  exolve-colour: papayawhip c9 c8 c7 k10 k9 k8 k7 b7 b6 b5 b4 f5 g5 e3 f3
+  exolve-colour: lightblue h9 g7 j4 i2 a1
+  exolve-colour: lightcyan f9 g9 e7 f7 j8 j7 j6 j5 i5 i4 i3 a5 a4 a3 a2
+  exolve-prelude:
+    <p>
+    Wormholes can connect far-flung points in space. There are five wormholes
+    in this grid. Wormhole hoppers land on the blue circular portals of these
+    wormholes and then emerge and continue from the orange circular portals
+    (possibly switching from across to down or vice versa in the transition).
+    </p>
+    <p>
+    Once a wormhole hopper is filled in correctly in the grid, the Manhattan
+    distance between the pair of portals for that wormhole will automatically
+    get displayed in a slot above the first question. These numbers point to
+    the traveller within that question, overlooking space.
+    </p>
+
+  exolve-question: <span id="pd0">00</span> <span id="pd1">00</span> <span id="pd2">00</span> <span id="pd3">00</span> <span id="pd4">00</span> <i>(... overlooking space.)</i><br/>Murakami novel features this tragic traveller (5) LAIKA
+  exolve-question: Name another traveller seen crisscrossing the wormhole portals (10) ENTERPRISE
+
+  exolve-option: hide-copy-placeholder-buttons
+  exolve-nodir:
+    <b>Wormhole hoppers</b><br/>
+    <span style="color:gray">You can use the blank underlined placeholder slots to jot down your solutions until you're ready to place them in the grid.</span>
+    [A] A very energetic star's ultimate slump in a nervous breakdown (one word) 21d, 11d: Distance between portals: 13. SUPERNOVA. Def: A very energetic star. {ultimate} (-slum)P in ANERVOUS* {breakdown}.
+    [B] A probing observer described in Arabic as sinister (one word) 34d, 41a: Distance between portals: 6. CASSINI. Def: A probing observer. Hidden answer {described in}: (-arabi)C AS SINI(-ster).
+    [C] An impressive device limiting fungal growth in hot tub with traces of enzyme neutralizers (two words) 31d, 32a: Distance between portals: 8. SPACE PEN. Def: An "impressive" device. {limiting} CEP in SPA E(-nzyme) N(-eutralizers) {traces of}.
+    [D] Is a rodent somehow unleashing a hint of nausea as a visitor? (one word) 14a, 9d: Distance between portals: 5. ASTEROID. Def: a visitor. ISARODE(-n)T* {somehow} {unleashing = deletion} {a hint of = first letter of nausea}.
+    [E] A legendary vehicle I enter excitedly, to span speedway limits (one word) 24a, 16d: Distance between portals: 6. SERENITY. Def: A legendary vehicle (the spaceship from the movie Serenity and the TV series Firefly). IENTER* {excitedly} in {to span} S(-peedwa)Y {limits}.
+  exolve-across:
+    1 Secure shares in return (5) STRAP. Def: Secure. PARTS<< {in return}.
+    5 Surprise! Wife is in the embrace of a couple of models! (5) TWIST. Def: Surprise. W+IS in TT {a couple of models}.
+    10 A note that is clear but oddly lacking? (2) LA. Def: A note. (c)L(-e)A(-r) {oddly lacking}.
+    12 Boy settled the rear for a short rest (8) BREATHER. Def: a short rest. B THEREAR* {settled}.
+    13 An illness abdominal obesity brought about, to some extent (5) EBOLA. Def: An illness. Reversed {brought about} hidden word {to some extent}: (-abdomin)AL OBE(-sity)<<.
+    15 A singer, songwriter, and peace activist working with love (3) ONO. Def: A singer, songwriter, and peace activist. ON {working} O {love}.
+    17 Show live broadcast (4) VEIL. Def: Show. LIVE* {broadcast}.
+    19 A French city where one has to go back as a member of an Indian community (5) PARSI. Def: a member of an Indian community. PARIS with I moving to the back.
+    22 A bug initially got neglected as trivial (4) GNAT. Def: A bug. Acrostic {initially}: G(-ot) N(-eglected) A(-s) T(-rivial).
+    25 Husband with setter, quietly stylish (3) HIP. Def: stylish. H {Husband} I {setter} P {quietly}.
+    27 Show income after deducting exemption limits (5) REVUE. Def: Show. REV(-en)UE {en = E(-xemptio)N}.
+    29 Nothing hidden by soap swirling in a bath! (3) SPA. Def: a bath. S(-o {nothing hidden})AP* {swirling}.
+    33 Daughter, after having regularly read ABCDEF..., did really well on her test (4) ACED. Def: did really well on her test. D after A(-b)C(-d)E(-f) {regularly read}.
+    35 Fiery platforms, somewhat wimpy results (5) PYRES. Def: Fiery platforms. Hidden answer {somewhat}: (-wim)PY RES(-ults)/
+    37 Terms and conditions: benefit is cut short after retirement (4) EULA. Def: Terms and conditions. VALUE<< {after retirement} -v {cut short}.
+    39 The greatest line in a Spielberg movie? (3) ALI. Def: The greatest. L in AI.
+    43 Girl returns holding one plant (5) SISAL. Def: plant. LASS<< around I.
+    45 Panic as cad escapes clutches, falls (8) CASCADES. Def: falls. Hidden answer {clutches}: (-pani)C AS CAD ES(-capes).
+    46 Back in the day, you ogled without restraints! (2) YE. Def: Back in the day, you. (-e)YE(-d) {without restraints}.
+    47 Married couple starts to investigate pleasurable straps and lashes (5) WHIPS. Def: lashes. WH {married couple} + {starts to} I(-nvestigate) P(-leasurable) S(-traps).
+    48 Disoriented zombie leader admitted to coming back no longer alive (5) DAZED. Def: Disoriented. Z(-ombie) in DEAD<<.
+  exolve-down:
+    1 Bob's murder reported (6) SLEIGH. Def: Bob. Homophone {reported} of SLAY.
+    2 Cost of sudden, sharp cut that is pointless? (3) TAB. Def: Cost. (-s {pointless})TAB.
+    3 Fit to make a comeback in parallel bars (4) ABLE. Def: Fit. Reversed hidden answer {to make a comeback in}: (-parall)EL BA(-rs)<<.
+    4 For a good performance, this may get showered with rupee coins all over (6) PRAISE. Def: For a good performance, this may get showered. R {rupee} in PAISE {coins}.
+    5 Time to take a welcoming beverage, finally (3) TEA. Def: &lit. T {time} + A around {welcoming} (-beverag)E.
+    6 This buzzer used to be quiet (4) WASP. Def: buzzer. WAS P.
+    7 Comfortable pants, tops? I should change too! (6) SHORTS. Def: Comfortable pants. SH(-i+O)RTS {I should change to O}.
+    8 Afterwards, husband deleted number (3) TEN. Def: number. T(-h)EN.
+    18 Embankment flattened shortly after dropping a couple of pounds (5) LEVEE. Def: Embankment. LEVE(-ll {dropping a couple of pounds})E(-d {shortly}).
+    20 Region near Earth's core (4) AREA. Def: Region. Hidden word {'s core}: (-ne)AR EA(-rth).
+    23 Mango or apple menu essentially lacking in main course (4) TREE. Def: Mang or apple (by example). (-en {mENu essentially})TREE.
+    26 Extraordinarily ripe small squash, ultimately to rot (6) PERISH. Def: to rot. RIPE* S {small} (-squa)H {ultimately}.
+    28 Fresh nude shot framing you and me (6) UNUSED. Def: Fresh. NUDE* around US.
+    30 Count took charge at sea (6) ADDLED. Def: at sea. ADD {count} LED {took charge}.
+    36 Catch second stint of sleep (4) SNAP. Def: Catch. S NAP.
+    38 A Simpson was ill, secretly throwing up (4) LISA. Def: A Simpson. Reverse {throwing up} hidden word {secretly}: (-w)AS IL(-l)<<.
+    40 Constitution scribe recycled? (3) LAW. Def: Constitution. AWL {scribe} with the last letter moved to the front {recycled}.
+    42 Passports found in raid seized (3) IDS. Def: Passports. Hidden answer {found in}: (-ra)ID S(-eized).
+    44 Setter said to give a vote of confidence (3) AYE. Def: a vote of confidence. Homophone {said} of I.
+exolve-end
+======REPLACE WITH YOUR PUZZLE ABOVE======
+`;
+
+</script>
+
+</head>
+
+<body onload="createPuzzle()">
+</body>
+
+</html>
