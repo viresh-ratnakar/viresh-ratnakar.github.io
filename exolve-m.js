@@ -3809,9 +3809,9 @@ function displayNinas() {
                    ' is not a cell/clue location nor a class with html tags');
           return
         }
-        for (const elt of elts) {
+        for (let x = 0; x < elts.length; x++) {
           ninaClassElements.push({
-            'element': elt,
+            'element': elts[x],
             'colour':  NINA_COLORS[ninaColorIndex],
           });
         }
