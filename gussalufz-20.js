@@ -38,7 +38,7 @@ let keyLocs = [
 
 function revealer(circle) {
   return function() {
-    circle.cellCircle.style.stroke = circle.color
+    circle.cellCircle.style.stroke = circle.currStroke
     circle.shown = true
   }
 }
@@ -79,9 +79,16 @@ function getToShowAndBugVisibility() {
         hashCode(rc + gridCell.currentLetter) == circle['hash'];
       if (!found) {
         circle.cellCircle.style.stroke = 'transparent'
+        circle.currStroke = 'transparent'
         circle.shown = false
-      } else if (!circle.shown) {
-        unshown[circle.index] = [row, col, circle]
+      } else {
+        circle.currStroke = (row == currentRow && col == currentCol) ?
+          'white' : circle.color
+        if (!circle.shown) {
+          unshown[circle.index] = [row, col, circle]
+        } else {
+          circle.cellCircle.style.stroke = circle.currStroke
+	}
       }
     }
   }
@@ -155,7 +162,7 @@ function setUpCircles() {
       cellCircle.setAttributeNS(null, 'class', 'cell-circle');
       cellCircle.setAttributeNS(null, 'r', CIRCLE_RADIUS);
       cellCircle.style.stroke = 'transparent'
-      cellCircle.style.strokeWidth = '2px'
+      circle.currStroke = 'transparent'
       svg.appendChild(cellCircle)
       cellCircle.addEventListener('click', getRowColActivator(row, col));
       circle.cellCircle = cellCircle
