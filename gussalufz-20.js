@@ -155,6 +155,7 @@ function setUpCircles() {
       cellCircle.setAttributeNS(null, 'class', 'cell-circle');
       cellCircle.setAttributeNS(null, 'r', CIRCLE_RADIUS);
       cellCircle.style.stroke = 'transparent'
+      cellCircle.style.strokeWidth = '2px'
       svg.appendChild(cellCircle)
       cellCircle.addEventListener('click', getRowColActivator(row, col));
       circle.cellCircle = cellCircle
