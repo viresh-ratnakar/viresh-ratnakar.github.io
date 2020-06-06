@@ -1,72 +1,70 @@
-class Bug {
-  x;
-  y;
-  homeRow;
-  homeCol;
-  w;
-  h;
-  img;
-
-  timer;
-  interval;
-  delta;
-  path;
-  pathIndex;
-
-  visible;
-
-  constructor(row, col, imgSrc) {
-    if (!Bug.checkRowCol(row, col)) {
-      console.log('Invalid location: ' + row + ',' + col)
-      return
+function Bug(row, col, imgSrc) {
+  this.getMoveFunction = function(b) {
+    return function() {
+      b.move()
     }
-    this.homeRow = row
-    this.homeCol = col
-
-    this.img = document.createElement('img')
-    this.img.src = imgSrc
-    this.img.style.transform = 'scaleX(-1)'  // flip
-
+  }
+  this.checkRowCol = function(row, col) {
+    if (row < 0 || row >= gridHeight || col < 0 || col >= gridWidth) {
+      return false
+    }
     let gridCell = grid[row][col]
-    this.w = 24
-    this.h = 24
-    this.x = this.xFromGridCell(gridCell)
-    this.y = this.yFromGridCell(gridCell)
-
-    this.timer = null;
-    this.interval = 40  // millis
-    this.delta = 4
-    this.path = []
-    this.pathIndex = 0
-
-    this.img.style.position = 'absolute'
-    this.img.style.top = this.y + 'px'
-    this.img.style.left = this.x + 'px'
-    this.img.style.width = this.w + 'px'
-    this.img.style.height = this.h + 'px'
-
-    this.visible = false
-    this.img.style.display = 'none'
-    document.getElementById('grid-parent').appendChild(this.img)
+    if (!gridCell.cellRect) {
+      return false
+    }
+    return true
+  }
+  this.xFromGridCell = function(gridCell) {
+    return gridCell.cellLeft + (SQUARE_DIM - (5 * this.w / 8) + 1)
+  }
+  this.yFromGridCell = function(gridCell) {
+    return gridCell.cellTop + (SQUARE_DIM - (11 * this.h / 16))
   }
 
-  hide() {
+
+  if (!this.checkRowCol(row, col)) {
+    console.log('Invalid location: ' + row + ',' + col)
+    return
+  }
+  this.homeRow = row
+  this.homeCol = col
+
+  this.img = document.createElement('img')
+  this.img.src = imgSrc
+  this.img.style.transform = 'scaleX(-1)'  // flip
+
+  let gridCell = grid[row][col]
+  this.w = 24
+  this.h = 24
+  this.x = this.xFromGridCell(gridCell)
+  this.y = this.yFromGridCell(gridCell)
+
+  this.timer = null;
+  this.interval = 40  // millis
+  this.delta = 4
+  this.path = []
+  this.pathIndex = 0
+
+  this.img.style.position = 'absolute'
+  this.img.style.top = this.y + 'px'
+  this.img.style.left = this.x + 'px'
+  this.img.style.width = this.w + 'px'
+  this.img.style.height = this.h + 'px'
+
+  this.visible = false
+  this.img.style.display = 'none'
+  document.getElementById('grid-parent').appendChild(this.img)
+
+  this.hide = function() {
     this.visible = false
     this.img.style.display = 'none'
   }
-  show() {
+  this.show = function() {
     this.visible = true
     this.img.style.display = ''
   }
 
-  xFromGridCell(gridCell) {
-    return gridCell.cellLeft + (SQUARE_DIM - (5 * this.w / 8) + 1)
-  }
-  yFromGridCell(gridCell) {
-    return gridCell.cellTop + (SQUARE_DIM - (11 * this.h / 16))
-  }
-
-  adjustMove(d) {
+  this.adjustMove = function(d) {
     if (d > 0) {
       if (d > this.delta) {
         return(this.delta)
@@ -79,7 +77,7 @@ class Bug {
     return d
   }
 
-  addPath(targetX, targetY, func = null) {
+  this.addPath = function(targetX, targetY, func = null) {
     if (this.path.length == 0) {
       return
     }
@@ -98,7 +96,7 @@ class Bug {
     }
   }
 
-  addPathToNearestGridCell() {
+  this.addPathToNearestGridCell = function() {
     let nearestGridXY = null
     let nearestGridRowCol = null
     let nearestDistanceSq = Number.MAX_SAFE_INTEGER
@@ -124,7 +122,7 @@ class Bug {
     return nearestGridRowCol
   }
 
-  move() {
+  this.move = function() {
     if (!this.timer || !this.path.length ||
         this.pathIndex < 0 || this.pathIndex >= this.path.length) {
       return
@@ -145,23 +143,7 @@ class Bug {
     }
   }
 
-  static getMoveFunction(b) {
-    return function() {
-      b.move()
-    }
-  }
-  static checkRowCol(row, col) {
-    if (row < 0 || row >= gridHeight || col < 0 || col >= gridWidth) {
-      return false
-    }
-    let gridCell = grid[row][col]
-    if (!gridCell.cellRect) {
-      return false
-    }
-    return true
-  }
-
-  addGridPath(startRow, startCol, endRow, endCol, func = null) {
+  this.addGridPath = function(startRow, startCol, endRow, endCol, func = null) {
     // Solve the maze.
     let best = new Array(gridHeight)
     for (let row = 0; row < gridHeight; row++) {
@@ -186,7 +168,7 @@ class Bug {
       for (let nbr of nbrs) {
         let nbrRow = nbr[0]
         let nbrCol = nbr[1]
-        if (!Bug.checkRowCol(nbrRow, nbrCol)) {
+        if (!this.checkRowCol(nbrRow, nbrCol)) {
           continue
         }
         if (!best[nbrRow][nbrCol]) {
@@ -226,13 +208,13 @@ class Bug {
     }
   }
 
-  gridMoveTo(row, col, func = null) {
+  this.gridMoveTo = function(row, col, func = null) {
     this.gridMoves([[row, col, func]], false)
   }
 
   // gridPath should be an array, with each entry being a [row, col] or
   // [row, col, func]
-  gridMoves(gridPath, goHomeAfterwards = false) {
+  this.gridMoves = function(gridPath, goHomeAfterwards = false) {
     if (gridInputWrapper.style.display == '') {
       gridInput.focus()
     }
@@ -248,7 +230,7 @@ class Bug {
     for (let rcf of gridPath) {
       let row = rcf[0]
       let col = rcf[1]
-      if (!Bug.checkRowCol(row, col)) {
+      if (!this.checkRowCol(row, col)) {
         console.log('Invalid destination: ' + row + ',' + col)
         return
       }
@@ -263,6 +245,6 @@ class Bug {
     if (this.timer) {
       clearInterval(this.timer)
     }
-    this.timer = setInterval(Bug.getMoveFunction(this), this.interval)
+    this.timer = setInterval(this.getMoveFunction(this), this.interval)
   }
 };
