@@ -2445,7 +2445,6 @@ function updateDisplayAndGetState() {
   revealButton.disabled = (activeCells.length == 0) &&
                           !(ci && theClue && (theClue.anno || revOrphan))
   clearButton.disabled = revealButton.disabled
-  submitButton.disabled = (numCellsFilled != numCellsToFill)
   return state
 }
 
@@ -4354,10 +4353,14 @@ function scratchPadShuffle() {
 }
 
 function submitSolution() {
-  if (!confirm('Are you sure you are ready to submit!?')) {
+  let message = 'Are you sure you are ready to submit!?';
+  let state = updateDisplayAndGetState()
+  if (numCellsFilled != numCellsToFill) {
+    message = 'Are you sure you want to submit an INCOMPLETE solution!?';
+  }
+  if (!confirm(message)) {
     return
   }
-  let state = updateDisplayAndGetState()
   let fullSubmitURL = submitURL + '&' + submitKeys[0] + '=' +
                       encodeURIComponent(state)
   for (let i = 0; i < answersList.length; i++) {
@@ -4388,7 +4391,6 @@ function displayButtons() {
     revealAllButton.style.display = ''
 
     checkButton.disabled = true
-    submitButton.disabled = true
   }
   if (!hasUnsolvedCells || hasReveals) {
     revealButton.style.display = ''
