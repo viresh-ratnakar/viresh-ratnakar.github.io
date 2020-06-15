@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<!--
+MIT License
+
+Copyright (c) 2019 Viresh Ratnakar
+
+See the full license notice in exolve-m.js.
+
+Version: Exolve v0.76 June 13 2020
+-->
+
+<link rel="stylesheet" type="text/css" href="exolve-m.css?v0.76"/>
+<script src="exolve-m.js?v0.76"></script>
+<script src="bug.js"></script>
+<script src="gussalufz-20.js"></script>
+
+<title>Unlock and find a bug</title>
+
+<script>
+
+const puzzleText = `
+======REPLACE WITH YOUR PUZZLE BELOW======
+exolve-begin
+  exolve-id: gussalufz-20
+  exolve-title: Unlock and find a bug
+  exolve-setter: Gussalufz
+  exolve-copyright: 2020 Viresh Ratnakar
+  exolve-width: 15
+  exolve-height: 15
+  exolve-option: color-background:#2f4f4f
+  exolve-option: color-imp-text:midnightblue
+  exolve-option: color-button:dodgerblue
+  exolve-option: color-button-hover:midnightblue
+  exolve-option: color-small-button-hover:lightblue
+  exolve-option: color-small-button-text:midnightblue
+  exolve-option: color-solved:#60affe
+  exolve-option: color-active:#BDEFFF color-caret:lightgray
+  exolve-option: color-arrow:aliceblue
+  exolve-option: color-input:#60affe
+  exolve-option: color-light-text-input:white
+  exolve-option: color-light-label-input:white
+  exolve-option: color-orphan:#DDDDFF
+  exolve-grid:
+        0000.00000.0000
+        0.0.0.0.0.0.0.0
+        000000000.00000
+        0.0.0.0.0.0.0.0
+        00000.000000000
+        0...0.0.....0.0
+        0000000000.0000
+        ..0.0.0.0.0.0..
+        0000.0000000000
+        0.0.....0.0...0
+        000000000.00000
+        0.0.0.0.0.0.0.0
+        00000.000000000
+        0.0.0.0.0.0.0.0
+        0000.00000.0000
+  exolve-prelude:
+    <p>
+    In this puzzle, you have to do some unlocking. Solving all the "key" clues
+    should let you unlock all the "lock" clues.
+    <p>
+    <p>
+    Solutions to all the ten un-numbered "lock" and "key" clues need to be
+    placed in the ten numbered lights that do not have clues provided, like in a
+    jigsaw puzzle.
+    </p>
+    <p>
+    While solving, you should also look for a bug. Once you find the bug, it
+    will eventually help you find two additional unlockers. But beware—if your
+    grid entries have errors then the unlockers may not be found correctly.
+    <p>
+  exolve-question: Unlocker 1? (6)
+  exolve-question: Unlocker 2? (10)
+  exolve-question: Your name or arbitrary pseudonym<sup>*</sup> (30)* [lowercase-ok]
+  exolve-question: Comments and feedback (400)* [lowercase-ok]
+  exolve-submit: https://docs.google.com/forms/d/e/1FAIpQLScO-7A7w1QeHpRQwuGMpfsTSI3Z5bSpFM5vKLcPnEkoLfwERg/viewform?usp=pp_url entry.1935561980 entry.21114399 entry.1745446663 entry.1969921185 entry.1043462600
+  exolve-across:
+    3 Good army spirit (5)
+    11 No-frills Italian song about longing (9)
+    12 Unwrap a perverted, revealing publication (5)
+    13 It's an engineered material (5)
+    14 Disorder of male evident in bed (9)
+    15 Yoga—valued in U.S.—is ill-used in this old country (10)
+    20 Swap timepass food? (4)
+    23 New, working online openings for failures (3-6)
+    26 Send message: "Well, I am effectively retiring, to some extent" (5)
+    28 Instruments regularly used in our blood tests (5)
+    29 When drunk, post lines without rhyme or reason (9)
+    30 Grave reversal of club motto exposed (4)
+  exolve-down:
+    2 Start running group (5)
+    4 Stoned? A rich, spoiled brat's place to eat munchies is here! (9)
+    5 While cycling, to push ahead of leading man gives cramp (5)
+    7 This may enhance the impact of a recording of a politician, if caught by deception, right? (9)
+    8 Defect in preparation of rice lacking consistency (7)
+    9 Witch's in ragged clothing—revolting dress! (7)
+    10 Toy pearl regularly displayed as a gemstone (4)
+    16 Roger Moore, randomly rejecting or accepting new behind-the-scenes spot (9)
+    17 No end to stalemate: Gussalufz's unmoved (9)
+    19 Plainness of style followed by pen (7)
+    22 Man at the top—kind and very quiet—is one lacking courage (7)
+    27 Happen to be new, for starters, at theatre (5)
+  exolve-nodir:
+    <span style="color:gray">You can jot down your solutions to "lock" and "key" clues in the blank underlined placeholder slots, until you are ready to place them in the grid. Clicking the button next to a placeholder slot will copy its letters into the highlighted light in the grid (if there is one). Additionally, above each "lock" clue, you have a scratch pad where you can try to unlock the clue.</span>
+    <br/>
+    <span contenteditable class="incluefill" spellcheck="false" style="color:dodgerblue;margin-left:2ch;margin-top:4px;padding-left:6px" type="text" title="You can use this scrach pad to unlock the locked clue" id="locked-clue-1">Eivwcr is cxtrcacly wuffy vftcr slccw</span> <button class="small-button" style="font-weight:normal" onclick="document.getElementById('locked-clue-1').innerText='Eivwcr is cxtrcacly wuffy vftcr slccw'">Reset</button>
+    [&#128274;] Eivwcr is cxtrcacly wuffy vftcr slccw (one word)
+    <span contenteditable class="incluefill" spellcheck="false" style="color:dodgerblue;margin-left:2ch;margin-top:4px;padding-left:6px" type="text" title="You can use this scrach pad to unlock the locked clue" id="locked-clue-2">Orecrce usce kcybovre</span> <button class="small-button" style="font-weight:normal" onclick="document.getElementById('locked-clue-2').innerText='Orecrce usce kcybovre'">Reset</button>
+    [&#128274;] Orecrce usce kcybovre (one word)
+    <span contenteditable class="incluefill" spellcheck="false" style="color:dodgerblue;margin-left:2ch;margin-top:4px;padding-left:6px" type="text" title="You can use this scrach pad to unlock the locked clue" id="locked-clue-3">Evnding acn in v wcn? Acrdy!</span> <button class="small-button" style="font-weight:normal" onclick="document.getElementById('locked-clue-3').innerText='Evnding acn in v wcn? Acrdy!'">Reset</button>
+    [&#128274;] Evnding acn in v wcn? Acrdy! (one word)
+    <span contenteditable class="incluefill" spellcheck="false" style="color:dodgerblue;margin-left:2ch;margin-top:4px;padding-left:6px" type="text" title="You can use this scrach pad to unlock the locked clue" id="locked-clue-4">This dluc, wcrhvws</span> <button class="small-button" style="font-weight:normal" onclick="document.getElementById('locked-clue-4').innerText='This dluc, wcrhvws'">Reset</button>
+    [&#128274;] This dluc, wcrhvws (one word)
+    ---
+    [&#128273;] Permit playing the role of one arch-villain, upon return (one word)
+    [&#128273;] Pack of foreign cigarettes? Get it right out! (one word)
+    [&#128273;] This privileged American class of people used to be quiet (one word)
+    [&#128273;] Dad took me regularly to this spot (one word)
+    [&#128273;] Eat at a restaurant due to rebuilding going around at home (two words)
+    [&#128273;] Record held by Dravid is crossed (one word)
+  exolve-postscript:
+    <br>
+    <sup>*</sup>The name that you provide might be displayed when results are
+    announced, if your entry is received in time. But feel free to use any
+    arbitrary pseudonym.
+    <br>
+    <br>
+    <iframe style="width:100%;height:400px;border:none" src="index.html" title="Links to all puzzles by Gussalufz (and doppelgängers)"><a href="index.html">All puzzles by Gussalufz (and doppelgängers)</a></iframe>
+exolve-end
+======REPLACE WITH YOUR PUZZLE ABOVE======
+`;
+
+</script>
+
+</head>
+
+<body onload="createPuzzle()">
+</body>
+
+</html>
