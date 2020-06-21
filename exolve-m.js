@@ -115,7 +115,7 @@ let numCellsPrefilled = 0
 
 let allClueIndices = []
 const CURR_ORPHAN_ID = 'curr-orphan'
-const DEFAULT_ORPHAN_LEN = 10
+const DEFAULT_ORPHAN_LEN = 15
 
 const BLOCK_CHAR = '⬛';
 // We have special meanings for 0 (unfilled) and 1 (block in diagramless cell)
