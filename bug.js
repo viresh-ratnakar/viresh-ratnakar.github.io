@@ -34,8 +34,8 @@ function Bug(row, col, imgSrc) {
   this.img.style.transform = 'scaleX(-1)'  // flip
 
   let gridCell = grid[row][col]
-  this.w = 24
-  this.h = 24
+  this.w = Math.floor(24 * SQUARE_DIM / 31)
+  this.h = this.w
   this.x = this.xFromGridCell(gridCell)
   this.y = this.yFromGridCell(gridCell)
 
