@@ -220,26 +220,31 @@ async function shA() {
     alq = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     alq.setAttributeNS(null, 'id', 'alq')
 
+    let gs = (SQUARE_DIM + GRIDLINE) * gridWidth + GRIDLINE
+
     alq1 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    alq1.setAttributeNS(null, 'x', 340)
-    alq1.setAttributeNS(null, 'y', 360)
+    alq1.setAttributeNS(null, 'x', Math.floor(340 * gs / 481))
+    alq1.setAttributeNS(null, 'y', Math.floor(360 * gs / 481))
     alq1.setAttributeNS(null, 'fill', 'white')
+    alq1.style.fontSize = '14px'
     const text1 = document.createTextNode(obfs(decodeURIComponent("%16a%11%1A%0C%02%10%12N%19%0B%08%1F%0A%09")))
     alq1.appendChild(text1);
     alq.appendChild(alq1)
 
     alq2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    alq2.setAttributeNS(null, 'x', 340)
-    alq2.setAttributeNS(null, 'y', 410)
+    alq2.setAttributeNS(null, 'x', Math.floor(340 * gs / 481))
+    alq2.setAttributeNS(null, 'y', Math.floor(410 * gs / 481))
     alq2.setAttributeNS(null, 'fill', 'white')
+    alq2.style.fontSize = '14px'
     const text2 = document.createTextNode(obfs(decodeURIComponent("YKT%09%02%08E%00%1C%0CN%03%0A%07%08GD")))
     alq2.appendChild(text2);
     alq.appendChild(alq2)
 
     alq3 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    alq3.setAttributeNS(null, 'x', 340)
-    alq3.setAttributeNS(null, 'y', 460)
+    alq3.setAttributeNS(null, 'x', Math.floor(340 * gs / 481))
+    alq3.setAttributeNS(null, 'y', Math.floor(460 * gs / 481))
     alq3.setAttributeNS(null, 'fill', 'white')
+    alq3.style.fontSize = '14px'
     const text3 = document.createTextNode(obfs(decodeURIComponent("%E2%80%A0s%18H%2F%0C%03%07%0B%0CBG%5E_%5EXK")))
     alq3.appendChild(text3);
     alq.appendChild(alq3)
