@@ -25,7 +25,7 @@ The latest code and documentation for exolve can be found at:
 https://github.com/viresh-ratnakar/exolve
 */
 
-const VERSION = 'Exolve v0.79 July 10 2020'
+const VERSION = 'Exolve v0.80 July 16 2020'
 
 // ------ Begin globals.
 
@@ -2604,7 +2604,8 @@ function updateAndSaveState() {
   let d = new Date();
   d.setTime(d.getTime() + (KEEP_FOR_DAYS * 24 * 60 * 60 * 1000));
   let expires = 'expires=' + d.toUTCString();
-  document.cookie = puzzleId + '=' + state + ';' + expires + ';path=/';
+  document.cookie = puzzleId + '=' + state +
+                    '; samesite=none; secure; ' + expires + ';path=/';
 
   // Also save the state in location.hash.
   location.hash = '#' + state
