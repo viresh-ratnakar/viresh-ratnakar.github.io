@@ -56,7 +56,9 @@ https://github.com/viresh-ratnakar/exolve
   }
   function prepareToReceivePuzzle() {
     window.addEventListener("message", receivePuzzle, false);
-    window.parent.postMessage("EXOLVE-READY", "*");
+    let params = new URLSearchParams(document.location.search.substring(1));
+    let id = params.get("id");
+    window.parent.postMessage("EXOLVE-READY-" + id, "*");
   }
 </script>
 

@@ -46,7 +46,7 @@ function ExolveWidgetCreator(puzzleText, url, height=1500) {
             this.puzzleText, "*");
   };
   this.receiveExolveReady = (event) => {
-    if (event.data == "EXOLVE-READY") {
+    if (event.data == "EXOLVE-READY-" + this.id) {
       this.sendPuzzleToExolveWidget();
         window.removeEventListener("message", this.receiveExolveReady);
     }
@@ -61,7 +61,7 @@ function ExolveWidgetCreator(puzzleText, url, height=1500) {
   placeholder.id = "exolve-widget-" + this.id;
   placeholder.insertAdjacentHTML('beforeend', `
     <iframe
-      src="${url}"
+      src="${url}?id=${this.id}"
       width="100%" height="${height}" allow="fullscreen"
       id="exolve-iframe-${this.id}" frameborder="0"
       style="display:block; border:none; margin-left:auto; margin-right:auto">
