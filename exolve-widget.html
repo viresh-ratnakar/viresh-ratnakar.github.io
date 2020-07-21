@@ -87,6 +87,9 @@ https://github.com/viresh-ratnakar/exolve
 <script>
   let puzzleText = '';
   function receivePuzzle(event) {
+    if (event.data.indexOf('exolve-begin') < 0) {
+      return;
+    }
     puzzleText = event.data;
     createPuzzle();
     window.removeEventListener("message", receivePuzzle);
