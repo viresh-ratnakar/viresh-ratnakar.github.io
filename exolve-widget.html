@@ -2,52 +2,12 @@
 <html lang="en">
 <!--
   This file can be hosted for use by any site as an iframe src, where
-  the puzzle specs is provided to Exolve via a message. There is one
-  instance of this widget hosted at:
+  the puzzle specs is provided to Exolve via a message. To use this widget,
+  follow the instructions at:
 
-    https://viresh-ratnakar.github.io/exolve-widget.html
+    https://github.com/viresh-ratnakar/exolve#exolve-widget
 
-  If you are hosting this widget on your own site, replace the two references
-  to "https://viresh-ratnakar.github.io/exolve-widget.html" with your own URL
-  in the HTML snippet below.
-
-  To use this widget, just copy and paste the following HTML snippet into
-  your blog/website, and edit the puzzle specs between the "exolve-begin"
-  and the "exolve-end" lines to specify your grid and clues.
-
-  <script
-    src="https://viresh-ratnakar.github.io/exolve-widget-creator.js?v0.80">
-  </script>
-  <div id="exolve-widget-placeholder"></div>
-  <script>
-    exolveWidget = new ExolveWidgetCreator(
-    `
-    ======REPLACE WITH YOUR PUZZLE BELOW======
-
-    exolve-begin
-      exolve-id: some-unique-id-for-this-puzzle
-      exolve-title: Quick 3x3 (replace with puzzle title)
-      exolve-setter: Gussalufz (replace with setter's pseudonym)
-      exolve-copyright: 2020 Copyright Holder(s) (delete or replace)
-      exolve-width: 3
-      exolve-height: 3
-      exolve-grid:
-        000
-        0.0
-        000
-      exolve-across:
-        1 Running to the opposite end for single (3)
-        3 Oddly fluent and entertaining (3)
-      exolve-down:
-        1 Retreating thief forgot to hide bananas (3)
-        2 One suffering for a long time (3)
-    exolve-end
-
-    ======REPLACE WITH YOUR PUZZLE ABOVE======
-    `,
-    "https://viresh-ratnakar.github.io/exolve-widget.html");
-  </script>
-
+  Version: Exolve v0.80 July 20 2020
 -->
 
 <!--
@@ -91,7 +51,7 @@ https://github.com/viresh-ratnakar/exolve
       return;
     }
     puzzleText = event.data;
-    createPuzzle();
+    createPuzzle(true);
     window.removeEventListener("message", receivePuzzle);
   }
   function prepareToReceivePuzzle() {
