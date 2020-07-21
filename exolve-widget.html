@@ -15,9 +15,13 @@
   your blog/website, and edit the puzzle specs between the "exolve-begin"
   and the "exolve-end" lines to specify your grid and clues.
 
-  <div id="exolve-placeholder-div"></div>
+  <script
+    src="https://viresh-ratnakar.github.io/exolve-widget-creator.js?v0.80">
+  </script>
+  <div id="exolve-widget-placeholder"></div>
   <script>
-    exolvePuzzleText = `
+    exolveWidget = new ExolveWidgetCreator(
+    `
     ======REPLACE WITH YOUR PUZZLE BELOW======
 
     exolve-begin
@@ -40,39 +44,8 @@
     exolve-end
 
     ======REPLACE WITH YOUR PUZZLE ABOVE======
-    `;
-    function ExolvePuzzle(id) {
-      this.frameId = id;
-      this.puzzleText = exolvePuzzleText;
-      this.sendPuzzleToExolveWidget = () => {
-        document.getElementById(
-            "exolve-iframe-" + this.frameId).contentWindow.postMessage(
-                this.puzzleText,
-                "https://viresh-ratnakar.github.io/exolve-widget.html");
-      };
-      this.receiveExolveReady = (event) => {
-        if (event.data == "EXOLVE-READY") {
-          this.sendPuzzleToExolveWidget();
-          window.removeEventListener("message", this.receiveExolveReady);
-        }
-      };
-    }
-    if (typeof exolvePuzzles === 'undefined') {
-      exolvePuzzles = {};
-    }
-    exolveFrameId = Math.random().toString(36).substring(2, 15);
-    exolvePuzzles[exolveFrameId] = new ExolvePuzzle(exolveFrameId);
-    window.addEventListener(
-        "message", exolvePuzzles[exolveFrameId].receiveExolveReady, false);
-    exolvePlaceholderDiv = document.getElementById("exolve-placeholder-div");
-    exolvePlaceholderDiv.id = "exolve-div-" + exolveFrameId;
-    exolvePlaceholderDiv.insertAdjacentHTML('beforeend', `
-      <iframe
-        src="https://viresh-ratnakar.github.io/exolve-widget.html"
-        width="100%" height="1500" allow="fullscreen"
-        id="exolve-iframe-${exolveFrameId}" frameborder="0"
-        style="display:block; border:none; margin-left:auto; margin-right:auto">
-      </iframe>`);
+    `,
+    "https://viresh-ratnakar.github.io/exolve-widget.html");
   </script>
 
 -->
