@@ -53,10 +53,15 @@ function ExolveWidgetCreator(puzzleText, url, height=1500) {
   }
   exolveWidgets[this.id] = this;
   window.addEventListener("message", this.receiveExolveReady, false);
-  let placeholder = document.getElementById("exolve-widget-placeholder");
+  let placeholder = document.getElementById("exolve");
   if (!placeholder) {
-    console.log('Did not find expected DIV with id: exolve-widget-placeholder');
-    return;
+    // Try legacy name.
+    placeholder = document.getElementById("exolve-widget-placeholder");
+    if (!placeholder) {
+      console.log('Did not find expected DIV with id: ' +
+                  'exolve/exolve-widget-placeholder');
+      return;
+    }
   }
   placeholder.id = "exolve-widget-" + this.id;
   placeholder.insertAdjacentHTML('beforeend', `
