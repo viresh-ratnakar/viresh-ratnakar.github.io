@@ -36,6 +36,7 @@ The --col-* color and --sz-* size variables in :root{} are set by JavaScript.
     border-radius: 8px;
   }
 }
+
 @media (min-width: 801px) {
   .wide-box {
     width: 480px;
@@ -133,7 +134,7 @@ td:first-child:not(.filler) {
 }
 #small-print {
   font-family: monospace;
-  font-size: small;
+  font-size: 10px;
   margin: 0 0 4px 0;
 }
 #small-print > a {
