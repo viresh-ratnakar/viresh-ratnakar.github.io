@@ -132,6 +132,7 @@ td:first-child:not(.filler) {
   padding: 0;
 }
 #small-print {
+  font-family: monospace;
   font-size: small;
   margin: 0 0 4px 0;
 }
