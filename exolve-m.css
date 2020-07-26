@@ -134,7 +134,7 @@ td:first-child:not(.filler) {
 }
 #small-print {
   font-family: monospace;
-  font-size: 10px;
+  font-size: 12px;
   margin: 0 0 4px 0;
 }
 #small-print > a {
