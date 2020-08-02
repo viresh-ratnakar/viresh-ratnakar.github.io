@@ -2680,7 +2680,7 @@ function restoreState() {
     state = decodeURIComponent(location.hash.substr(1))
     index = parseState(state)
   } catch(e) { 
-    state = ''
+    index = 0
   }
   if (index <= 0) {
     let name = puzzleId + '=';
