@@ -2694,6 +2694,7 @@ function restoreState() {
       if (c.indexOf(name) == 0) {
         state = c.substring(name.length, c.length).trim();
         index = parseState(state)
+        break
       }
     }
   }
