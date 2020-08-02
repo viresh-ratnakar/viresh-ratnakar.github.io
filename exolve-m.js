@@ -2676,7 +2676,7 @@ function restoreState() {
            gridCell.currentLetter = '1'
         } else {
            if (!isValidStateChar(letter)) {
-             console.log('Unexpected letter/digit ' + letter + ' in state');
+             console.log('Unexpected letter/digit ' + letter + ' in state:' + state);
              error = true
              break
            }
