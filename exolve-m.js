@@ -2657,7 +2657,7 @@ function parseState(state) {
         } else {
            if (!isValidStateChar(letter)) {
              console.log('Unexpected letter/digit ' + letter + ' in state:' + state);
-             return false
+             return 0
            }
            gridCell.currentLetter = letter
         }
