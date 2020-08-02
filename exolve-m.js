@@ -2618,8 +2618,8 @@ function updateAndSaveState() {
   }
 }
 
+// Returns the size of the state (0 if state could not be parsed).
 function parseState(state) {
-  state = state.trim()
   if (state == '') { 
     console.log('No saved state available')
     return 0
@@ -2677,7 +2677,7 @@ function restoreState() {
   let state = ''
   let index = 0
   try {
-    state = decodeURIComponent(location.hash.substr(1))
+    state = decodeURIComponent(location.hash.substr(1)).trim()
     index = parseState(state)
   } catch(e) { 
     index = 0
@@ -2692,7 +2692,7 @@ function restoreState() {
         c = c.substring(1);
       }
       if (c.indexOf(name) == 0) {
-        state = c.substring(name.length, c.length);
+        state = c.substring(name.length, c.length).trim();
         index = parseState(state)
       }
     }
