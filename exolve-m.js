@@ -2606,7 +2606,6 @@ function parseState(state) {
   let parsedState = []
   state = state.trim()
   if (!state) { 
-    console.log('No saved state available')
     return false
   }
   let index = 0
@@ -2688,10 +2687,12 @@ function restoreState() {
   let foundState = false
   try {
     foundState = parseState(decodeURIComponent(location.hash.substr(1)))
-  } catch(e) { 
+  } catch (e) { 
     foundState = false
   }
-  if (!foundState) {
+  if (foundState) {
+    console.log('Found saved state in url')
+  } else {
     let name = puzzleId + '=';
     let decodedCookie = decodeURIComponent(document.cookie);
     let ca = decodedCookie.split(';');
@@ -2702,9 +2703,15 @@ function restoreState() {
       }
       if (c.indexOf(name) == 0) {
         foundState = parseState(c.substring(name.length, c.length));
+        if (foundState) {
+          console.log('Found saved state in cookie')
+        }
         break
       }
     }
+  }
+  if (!foundState) {
+    console.log('No saved state available')
   }
   for (let ci of allClueIndices) {
     // When restoring state, we reveal annos for fully prefilled entries.
