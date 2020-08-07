@@ -3,7 +3,6 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-
 <!--
 MIT License
 
@@ -11,18 +10,19 @@ Copyright (c) 2019 Viresh Ratnakar
 
 See the full license notice in exolve-m.js.
 
-Version: Exolve v0.81 July 30 2020
+Version: Exolve v0.84 August 7 2020
 -->
-
-<link rel="stylesheet" type="text/css" href="exolve-m.css?v0.81"/>
-<script src="exolve-m.js?v0.81"></script>
+<link rel="stylesheet" type="text/css" href="exolve-m.css?v0.84"/>
+<script src="exolve-m.js?v0.84"></script>
 
 <title>Last Solo</title>
 
+</head>
+<body>
 <script>
-
-const puzzleText = `
+createExolve(`
 ======REPLACE WITH YOUR PUZZLE BELOW======
+
 exolve-begin
   exolve-id: gussalufz-21
   exolve-title: Last Solo
@@ -125,14 +125,9 @@ exolve-begin
      Wife: <b>W</b>, Small: <b>S</b>, One: <b>I</b> (from the Roman numeral), Democrat: <b>D</b>, Right: <b>R</b>, New: <b>N</b>.
     </p>
 exolve-end
+
 ======REPLACE WITH YOUR PUZZLE ABOVE======
-`;
-
+`);
 </script>
-
-</head>
-
-<body onload="createPuzzle()">
 </body>
-
 </html>

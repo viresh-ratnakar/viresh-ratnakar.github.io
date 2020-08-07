@@ -5,9 +5,7 @@ Copyright (c) 2019 Viresh Ratnakar
 
 See the full license notice in exolve-m.js.
 
-Version: Exolve v0.83 August 3 2020
-
-The --col-* color and --sz-* size variables in :root{} are set by JavaScript.
+Version: Exolve v0.84 August 5 2020
 */
 
 @media (max-width: 500px) {
@@ -17,20 +15,20 @@ The --col-* color and --sz-* size variables in :root{} are set by JavaScript.
 }
 
 @media (max-width: 800px) {
-  .wide-box {
+  .xlv-wide-box {
     width: 100%;
     max-width: 480px;
   }
-  #current-clue {
+  .xlv-curr-clue {
     width: 100%;
     max-width: 480px;
   }
-  .clues-box {
+  .xlv-clues-box {
     width: 100%;
     max-width: 480px;
     margin: 0;
   }
-  .button {
+  .xlv-button {
     font-size: 11px;
     padding: 5px;
     border-radius: 8px;
@@ -38,119 +36,102 @@ The --col-* color and --sz-* size variables in :root{} are set by JavaScript.
 }
 
 @media (min-width: 801px) {
-  .wide-box {
+  .xlv-wide-box {
     width: 480px;
   }
-  #current-clue {
+  .xlv-curr-clue {
     width: 480px;
   }
-  .clues-box {
+  .xlv-clues-box {
     width: 480px;
     margin: 0 0 0 12px;
   }
-  .button {
+  .xlv-button {
     font-size: 14px;
     padding: 8px;
     border-radius: 12px;
   }
 }
 
-.background {
-  fill: var(--col-background);
-}
-.cell {
-  fill: var(--col-cell);
+.xlv-cell {
   cursor: pointer;
 }
-.cell-num {
-  font-size: var(--sz-number);
+.xlv-cell-num {
   font-family: sans-serif;
-  fill: var(--col-light-label);
 }
-.cell-text {
-  font-size: var(--sz-letter);
+.xlv-cell-text {
   font-family: sans-serif;
   cursor: text;
-  fill: var(--col-light-text);
 }
-.cell-circle {
+.xlv-cell-circle {
   fill: rgba(0,0,0,0.0);
-  stroke: var(--col-circle);
 }
-.prefill {
-  fill: var(--col-prefill);
-}
-.wordend {
-  fill: var(--col-separator);
-}
-span.solved, .solved td:first-child {
-  color: var(--col-solved);
-}
-table {
+.xlv-frame table {
   border-collapse: collapse;
   border-spacing: 0;
 }
-td {
+.xlv-frame td {
   padding: 4px 6px 0 0;
   vertical-align: top;
 }
-td:first-child:not(.filler) {
+.xlv-frame td:first-child:not(.xlv-filler) {
   max-width: 2ch;
   white-space: nowrap;
   overflow: visible;
   font-weight: bold;
   text-align:right;
 }
-.clickable:hover {
+.xlv-clickable:hover {
   cursor: pointer;
 }
-.anno-text {
+.xlv-anno-text {
   font-family: monospace;
-  color: var(--col-anno);
 }
-.flex-row {
+.xlv-flex-row {
   display: flex;
   flex-flow: row wrap;
   align-items: flex-start;
   justify-content: center;
 }
-.flex-col {
+.xlv-flex-col {
   display: flex;
   flex-flow: column wrap;
   align-items: center;
 }
-#title {
+.xlv-title {
   text-align: center;
   font-weight: bold;
 }
-#setter {
+.xlv-setter {
   text-align: center;
-  color: var(--col-imp-text);
   margin: 0 0 8px 0;
 }
-#prelude {
+.xlv-preamble {
   margin: 8px 0;
   padding: 0;
 }
-#small-print {
+.xlv-small-print {
   font-family: monospace;
   font-size: 12px;
   margin: 0 0 4px 0;
 }
-#small-print > a {
-  padding: 0 4px 0 0;
+.xlv-small-print > * {
+  padding: 4px 4px 0 0;
 }
-#errors {
+.xlv-errors {
   font-weight: bold;
   color: red;
 }
-#current-clue-parent {
+.xlv-curr-clue-parent {
   width: 100%;
   height: 40px;
   position:relative;
   margin: 8px 0;
 }
-#current-clue {
+.xlv-curr-clue-label {
+  margin: 0 0 0 4px;
+}
+.xlv-curr-clue {
   position: absolute;
   z-index: 2;
   word-wrap: break-word;
@@ -158,43 +139,38 @@ td:first-child:not(.filler) {
   margin: 0;
   padding: 2px 0;
 }
-#curr-orphan,
-#current-clue-label {
+.xlv-curr-orphan,
+.xlv-curr-clue-label {
   display: inline;
   padding: 0;
-  margin: 0;
   line-height: 0.8;
 }
-.nobr {
+.xlv-nobr {
   white-space: nowrap;
 }
-#grid-parent-centerer {
+.xlv-grid-parent-centerer {
   text-align: center;
 }
-#grid-parent {
+.xlv-grid-parent {
   position: relative;
   display: inline-block;
 }
-#grid-input-wrapper {
+.xlv-grid-input-wrapper {
   position: absolute;
   border: none;
   border-width: 0;
 }
-#grid-input-rarr {
+.xlv-grid-input-rarr {
   position: relative;
   right: -40%;
   top: -85%;
-  color: var(--col-arrow);
-  font-size: var(--sz-arrow);
 }
-#grid-input-darr {
+.xlv-grid-input-darr {
   position: relative;
   right: 0;
   top: -40%;
-  color: var(--col-arrow);
-  font-size: var(--sz-arrow);
 }
-#grid-input {
+.xlv-grid-input {
   text-align: center;
   text-anchor: middle;
   border: none;
@@ -202,49 +178,42 @@ td:first-child:not(.filler) {
   height: 100%;
   padding: 2px 0 0 0;
   color: rgba(0,0,0,0.0);
-  caret-color: var(--col-caret);
   background: rgba(0,0,0,0.0);
   outline: none;
 }
-#controls-etc {
+.xlv-controls-etc {
   padding: 8px 0 6px 0;
 }
-.controls-row {
+.xlv-controls-row {
   margin: 6px 0 6px 0;
 }
-#clues {
+.xlv-clues {
   max-width: 984px;
 }
-.clues-box {
+.xlv-clues-box {
   overflow-y: auto;
 }
-#explanations {
+.xlv-explanations {
   margin: 10px 0 0 0;
 }
-hr {
+.xlv-frame hr {
   margin: 0 0 4px 0;
-  background-color: var(--col-imp-text);
 }
-.button {
-  background-color: var(--col-button);
+.xlv-button {
   border: none;
   outline: none;
-  color: var(--col-button-text);
   text-align: center;
   text-decoration: none;
   display: inline-block;
   font-family: monospace;
 }
-.button:hover {
-  background-color: var(--col-button-hover);
+.xlv-button:hover {
   cursor: pointer;
 }
-.button:disabled {
-  background-color: gray;
+.xlv-button:disabled {
   cursor: not-allowed;
 }
-.small-button {
-  background-color: var(--col-small-button);
+.xlv-small-button {
   border: 1px solid gray;
   outline: none;
   padding: 0 4px 2px 4px;
@@ -253,55 +222,51 @@ hr {
   display: inline-block;
   font-family: monospace;
   font-weight: bold;
-  color: var(--col-small-button-text);
 }
-.small-button:hover {
-  background-color: var(--col-small-button-hover);
+.xlv-small-button:hover {
   cursor: pointer;
 }
-#nina-group {
+.xlv-nina-group {
   position: absolute;
   border: none;
   border-width: 0;
   outline: none;
 }
-.nina {
+.xlv-nina {
   position: absolute;
   border: none;
   border-width: 0;
   outline: none;
   cursor: pointer;
 }
-#status {
+.xlv-status {
   font-family: monospace;
   font-size: 12px;
   margin: 6px 0 6px 0;
-  color: var(--col-imp-text);
 }
-#saving {
+.xlv-saving {
   font-size: x-small;
   font-family: monospace;
   color: gray;
   margin: 0px 0 6px 0;
 }
-.solution {
+.xlv-solution {
   font-family: monospace;
   font-weight: bold;
 }
-.question {
+.xlv-question {
   margin: 20px 0 20px 0;
 }
-.answer {
+.xlv-answer {
   border: none;
   padding: 0 0 6px 0;
   outline: none;
   font-family: monospace;
   font-size: 12px;
-  color: var(--col-imp-text);
   background-image:
     repeating-linear-gradient(to bottom, white, white 13px, black 14px);
 }
-.incluefill {
+.xlv-incluefill {
   border: none;
   padding: 0 0 2px 0px;
   margin: 0 0 0 4px;
@@ -309,24 +274,22 @@ hr {
   font-family: monospace;
   font-weight: bold;
   font-size: 12px;
-  color: var(--col-imp-text);
   border-bottom: solid 2px #c9c9c9;
   background-color: inherit;
 }
-#scratchpad {
-  border: 1px solid var(--col-imp-text);
+.xlv-scratchpad {
+  border: 1px solid black;
   padding: 8px;
   outline: none;
   font-family: monospace;
   font-size: 12px;
-  color: var(--col-imp-text);
 }
-#shuffle {
+.xlv-shuffle {
   font-family: monospace;
   font-size: 12px;
   cursor: pointer;
 }
-#postscript {
+.xlv-postscript {
   width: 100%;
 }
 @media print {
@@ -336,10 +299,10 @@ hr {
   body {
     zoom: 100%;
   }
-  #controls-etc {
+  .xlv-controls-etc {
     display: none;
   }
-  .clues-box {
+  .xlv-clues-box {
     overflow-y: visible;
   }
 }

@@ -1,8 +1,10 @@
+let alPuz = null
+
 function setupChA() {
-  const elt = document.getElementsByClassName('answer')[0]
+  const elt = document.getElementsByClassName('xlv-answer')[0]
   elt.addEventListener('input', chA);
-  clearAllButton.addEventListener('click', chA)
-  revealAllButton.addEventListener('click', chA)
+  alPuz.clearAllButton.addEventListener('click', chA)
+  alPuz.revealAllButton.addEventListener('click', chA)
 }
 
 function hashCode(str) {
@@ -11,14 +13,14 @@ function hashCode(str) {
 }
 
 function chA() {
-  const elt = document.getElementsByClassName('answer')[0]
+  const elt = document.getElementsByClassName('xlv-answer')[0]
   let eltAltr = document.getElementById('altr')
   let hc = hashCode(elt.value)
   if (hc == 34710129 || hc == 2079330534 || hc == 34697636) {
     if (!eltAltr) {
       eltAltrPar = document.createElement('span');
-      eltAltrPar.innerHTML = '&nbsp; <button class="button" style="font-size:10px;padding:4px 8px" onclick="shA()" id="altr">Show Al’s ' + elt.value + ' Trick!</button>'
-      const q = document.getElementsByClassName('question')[0]
+      eltAltrPar.innerHTML = '&nbsp; <button class="xlv-button" style="font-size:10px;padding:4px 8px" onclick="shA()" id="altr">Show Al’s ' + elt.value + ' Trick!</button>'
+      const q = document.getElementsByClassName('xlv-question')[0]
       q.appendChild(eltAltrPar)
       eltAltr = document.getElementById('altr')
     }
@@ -31,7 +33,7 @@ function chA() {
 }
 
 function doA(movers) {
-  let midX = (GRIDLINE + (GRIDLINE + SQUARE_DIM)*15)*0.5
+  let midX = (alPuz.GRIDLINE + (alPuz.GRIDLINE + alPuz.squareDim)*15)*0.5
   let delta = 1
   let did = false
   for (let row = 0; row < 15; row++) {
@@ -220,7 +222,7 @@ async function shA() {
     alq = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     alq.setAttributeNS(null, 'id', 'alq')
 
-    let gs = (SQUARE_DIM + GRIDLINE) * gridWidth + GRIDLINE
+    let gs = (alPuz.squareDim + alPuz.GRIDLINE) * alPuz.gridWidth + alPuz.GRIDLINE
 
     alq1 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     alq1.setAttributeNS(null, 'x', Math.floor(340 * gs / 481))
@@ -249,14 +251,14 @@ async function shA() {
     alq3.appendChild(text3);
     alq.appendChild(alq3)
 
-    svg.appendChild(alq)
+    alPuz.svg.appendChild(alq)
   }
   alq.style.display = ''
   let eltAltr = document.getElementById('altr')
-  deactivateCurrentCell()
+  alPuz.deactivateCurrCell()
   eltAltr.disabled = true
-  gridInput.style.display = 'none'
-  let wasShowingNinas = showingNinas
+  alPuz.gridInput.style.display = 'none'
+  let wasShowingNinas = alPuz.showingNinas
 
   const texts = document.getElementsByTagName('text')
   const rects = document.getElementsByTagName('rect')
@@ -275,24 +277,17 @@ async function shA() {
       })
     }
   }
-  const elts = []
-  for (let i = 0; i < texts.length; i++) {
-    elts.push(texts[i])
-  }
-  for (let i = 0; i < rects.length; i++) {
-    elts.push(rects[i])
-  }
   let alElts = []
 
-  for (let elt of elts) {
-    const x = Number(elt.getAttribute('x'))
-    const y = Number(elt.getAttribute('y'))
-    const c = elt.getAttribute('class')
-    let col = -1
-    let row = -1
-    if (c == 'cell') {
-      col = Math.round((x - GRIDLINE) / (SQUARE_DIM + GRIDLINE))
-      row = Math.round((y - GRIDLINE) / (SQUARE_DIM + GRIDLINE))
+  for (let row = 0; row < 15; row++) {
+    for (let col = 0; col < 15; col++) {
+      const gridCell = alPuz.grid[row][col]
+      const elt = gridCell.cellRect
+      if (!elt) {
+        continue
+      }
+      const x = Number(elt.getAttribute('x'))
+      const y = Number(elt.getAttribute('y'))
       movers[row][col].cell = elt
       movers[row][col].cellX = x
       movers[row][col].cellW = Number(elt.getAttribute('width'))
@@ -302,42 +297,34 @@ async function shA() {
           alElts.push(elt)
         }
       }
-    } else if (c == 'cell-text') {
-      col = Math.round((x - LIGHT_START_X) / (SQUARE_DIM + GRIDLINE))
-      row = Math.round((y - LIGHT_START_Y) / (SQUARE_DIM + GRIDLINE))
-      movers[row][col].others.push(elt)
-      movers[row][col].othersX.push(x)
-    } else if (c == 'cell-num') {
-      col = Math.round((x - NUMBER_START_X) / (SQUARE_DIM + GRIDLINE))
-      row = Math.round((y - NUMBER_START_Y) / (SQUARE_DIM + GRIDLINE))
-      movers[row][col].others.push(elt)
-      movers[row][col].othersX.push(x)
-    } else if (c == 'background') {
-      const w = Number(elt.getAttribute('width'))
-      if (w == BAR_WIDTH) {
-        col = Math.round(((x - GRIDLINE + BAR_WIDTH_BY2) / (SQUARE_DIM + GRIDLINE)) - 1)
-        if (col == 11) {
-          col = 12
-        }
-        row = Math.round((y - GRIDLINE) / (SQUARE_DIM + GRIDLINE))
+      if (gridCell.cellText) {
+        const elt = gridCell.cellText
+        const x = Number(elt.getAttribute('x'))
         movers[row][col].others.push(elt)
         movers[row][col].othersX.push(x)
-      } else if (w == SQUARE_DIM) {
-        col = Math.round((x - GRIDLINE) / (SQUARE_DIM + GRIDLINE))
-        if (col == 11) {
-          col = 12
-        }
-        row = Math.round(((y - GRIDLINE + BAR_WIDTH_BY2) / (SQUARE_DIM + GRIDLINE)) - 1)
+      }
+      if (gridCell.cellNum) {
+        const elt = gridCell.cellNum
+        const x = Number(elt.getAttribute('x'))
         movers[row][col].others.push(elt)
         movers[row][col].othersX.push(x)
+      }
+      if (gridCell.miscGroup) {
+        let misc = gridCell.miscGroup.children
+        for (let i = 0; i < misc.length; i++) {
+          const elt = misc[i]
+          const x = Number(elt.getAttribute('x'))
+          movers[row][col].others.push(elt)
+          movers[row][col].othersX.push(x)
+        }
       }
     }
   }
 
-  if (showingNinas) {
-    hideNinas()
+  if (alPuz.showingNinas) {
+    alPuz.hideNinas()
   }
-  let steps = SQUARE_DIM + 2
+  let steps = alPuz.squareDim + 2
   for (let s = 0; s < steps; s++) {
     doA(movers)
     await sleep(50)
@@ -360,7 +347,7 @@ async function shA() {
     eltAltr.innerText = (aActv < 10 ? '0' : '') + aActv + 's, click for more time'
   }
   eltAltr.style.background = ''
-  let av = document.getElementsByClassName('answer')[0].value
+  let av = document.getElementsByClassName('xlv-answer')[0].value
   eltAltr.innerText = 'Show Al’s ' + av + ' Trick!'
 
   alq.style.display = 'none'
@@ -383,13 +370,14 @@ async function shA() {
       }
     }
   }
-  gridInput.style.display = ''
+  alPuz.gridInput.style.display = ''
   if (wasShowingNinas) {
-    showNinas()
+    alPuz.showNinas()
   }
 }
 
-function customizePuzzle() {
+function customizeExolve(puz) {
+  alPuz = puz
   setupChA()
   chA()
 }

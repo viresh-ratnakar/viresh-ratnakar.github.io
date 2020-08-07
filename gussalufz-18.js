@@ -1,3 +1,5 @@
+let puz = null;
+
 function hashCode(str) {
   return str.split('').reduce((prevHash, currVal) =>
     (((prevHash << 5) - prevHash) + currVal.charCodeAt(0))|0, 0);
@@ -94,11 +96,8 @@ function setupShuffle() {
   }
 }
 
-// Override revealAll() to also order the clues.
-revealAll = (function() {
-  var cached_function = revealAll;
-  return function() {
-    cached_function.apply(this);
+function addButtonHandlers() {
+  puz.revealAllButton.addEventListener('click', function() {
     let y = '' + (hashCode('424242') - 1534060131)
     for (let i = 0; i < 7; i++) {
       let currShuf = getCurrShuf()
@@ -113,26 +112,20 @@ revealAll = (function() {
         }
       }
     }
-  };
-})();
+  });
 
-// Override revealCurrent()/clearAll() to still highlight if sorted
-revealCurrent = (function() {
-  var cached_function = revealCurrent;
-  return function() {
-    cached_function.apply(this);
+  puz.revealButton.addEventListener('click', function() {
     doShuf(0, 0)
-  };
-})();
-clearAll = (function() {
-  var cached_function = clearAll;
-  return function() {
-    cached_function.apply(this);
-    doShuf(0, 0)
-  };
-})();
+  })
 
-function customizePuzzle() {
+  puz.clearAllButton.addEventListener('click', function() {
+    doShuf(0, 0)
+  })
+}
+
+function customizeExolve(p) {
+  puz = p
+  addButtonHandlers()
   setupShuffle()
 }
 
