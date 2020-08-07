@@ -231,7 +231,7 @@ function customizeExolve(p) {
   lim.setAttributeNS(null, 'height', 80)
   lim.style.position = 'absolute'
   lim.style.left = '315px'
-  lim.style.top = '10px'
+  lim.style.top = '15px'
   lim.style.display = 'none'
   puz.questions.style.position = 'relative'
   puz.questions.appendChild(lim)
