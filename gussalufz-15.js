@@ -377,6 +377,9 @@ async function shA() {
 }
 
 function customizeExolve(puz) {
+  if (puz.id != 'gussalufz-15') {
+    return;
+  }
   alPuz = puz
   setupChA()
   chA()
