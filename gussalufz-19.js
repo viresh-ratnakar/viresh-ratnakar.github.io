@@ -227,11 +227,11 @@ function customizeExolve(p) {
 
   lim = document.createElement('img');
   lim.setAttributeNS(null, 'src', 'gussalufz-19.svg')
-  lim.setAttributeNS(null, 'width', 150)
-  lim.setAttributeNS(null, 'height', 100)
+  lim.setAttributeNS(null, 'width', 120)
+  lim.setAttributeNS(null, 'height', 80)
   lim.style.position = 'absolute'
-  lim.style.left = '350px'
-  lim.style.top = '-15px'
+  lim.style.left = '300px'
+  lim.style.top = '0'
   lim.style.display = 'none'
   puz.questions.style.position = 'relative'
   puz.questions.appendChild(lim)
