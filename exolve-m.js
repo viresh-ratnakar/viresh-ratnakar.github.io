@@ -3920,14 +3920,17 @@ Exolve.prototype.displayGrid = function() {
         cellText.setAttributeNS(null, 'text-anchor', 'middle');
         cellText.setAttributeNS(null, 'editable', 'simple');
         let letter = '0'
+        let cellClass = 'xlv-cell-text'
         if (gridCell.prefill) {
           letter = gridCell.solution
           cellText.style.fill = this.colorScheme['prefill']
+          cellClass = 'xlv-cell-text xlv-prefill'
         } else {
           cellText.style.fill = this.colorScheme['light-text']
         }
         cellText.style.fontSize = this.letterSize + 'px'
-        cellText.setAttributeNS(null, 'class', 'xlv-cell-text');
+        cellText.setAttributeNS(null, 'class', cellClass)
+
         const text = document.createTextNode(letter);
         cellText.appendChild(text);
         cellGroup.appendChild(cellText)
