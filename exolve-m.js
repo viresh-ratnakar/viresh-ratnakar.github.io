@@ -70,7 +70,7 @@ function Exolve(puzzleText,
                 containerId="",
                 customizer=null,
                 addStateToUrl=true) {
-  this.VERSION = 'Exolve v0.86 August 15 2020'
+  this.VERSION = 'Exolve v0.87 August 16 2020'
 
   this.puzzleText = puzzleText
   this.containerId = containerId
@@ -2452,6 +2452,9 @@ Exolve.prototype.applyStyles = function() {
     .xlv-frame {
       font-size: ${this.letterSize}px;
       font-family: serif;
+      font-weight: 400;
+      line-height: normal;
+      box-sizing: border-box;
     }
     #${this.prefix}-frame span.xlv-solved,
     #${this.prefix}-frame .xlv-solved td:first-child {
