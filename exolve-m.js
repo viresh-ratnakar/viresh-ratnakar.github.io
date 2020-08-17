@@ -3011,19 +3011,11 @@ Exolve.prototype.makeCurrClueVisible = function() {
 
   let normalTop = 0;
   const clearance = 4;
-  if (gpPos.top - clueParentPos.top < cluePos.height + clearance) {
-    normalTop = (gpPos.top - clueParentPos.top) - (cluePos.height + clearance);
-  }
-
-  if (inputPos.bottom >= windowH) {
-    this.currClue.style.top = normalTop + 'px';
-    return
-  }
-  // gridInput is visible
-  const top = cluePos.top
   const parentTop = clueParentPos.top
-  if (parentTop >= this.frameTop) {
-    // Parent is below viewport top: use normal positioning.
+  if (gpPos.top - parentTop < cluePos.height + clearance) {
+    normalTop = (gpPos.top - parentTop) - (cluePos.height + clearance);
+  }
+  if (normalTop + parentTop >= this.frameTop || inputPos.bottom >= windowH) {
     this.currClue.style.top = normalTop + 'px';
     return
   }
