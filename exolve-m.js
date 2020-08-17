@@ -2995,7 +2995,7 @@ Exolve.prototype.deactivateCurrClue = function() {
 Exolve.prototype.makeCurrClueVisible = function() {
   // Check if grid input is visible.
   const inputPos = this.gridInput.getBoundingClientRect();
-  if (inputPos.top < this.frameTop) {
+  if (inputPos.top < 0) {
     return
   }
   let windowH = this.getViewportHeight()
