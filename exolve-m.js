@@ -3990,8 +3990,8 @@ Exolve.prototype.createListeners = function() {
     'click', boundDeactivator);
   
   if (this.index == 1) {
-    document.body.scrollIntoView()
-    this.frameTop = Math.max(this.frame.getBoundingClientRect().top, 0)
+    this.frameTop = Math.max(this.frame.getBoundingClientRect().top -
+                             document.body.getBoundingClientRect().top, 0)
   } else {
     for (let pid in exolvePuzzles) {
       let p = exolvePuzzles[pid]
