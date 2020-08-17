@@ -65,11 +65,14 @@ var exolvePuzzles;
  *     the puzzle state in the URL (the puzzle state is also saved in a
  *     cookie, but that does not work for local files). Unless you are
  *     embedding the puzzle in an iframe for some reason, set this to true.
+ * visTop should be set to the height of any sticky/fixed position elements
+ *     at the top of the page (normally just 0).
  */
 function Exolve(puzzleText,
                 containerId="",
                 customizer=null,
-                addStateToUrl=true) {
+                addStateToUrl=true,
+                visTop=0) {
   this.VERSION = 'Exolve v0.87 August 16 2020'
 
   this.puzzleText = puzzleText
@@ -110,7 +113,7 @@ function Exolve(puzzleText,
   this.cellsToOrphan = {}
   this.szCellsToOrphan = 0
 
-  this.frameTop = 0
+  this.visTop = visTop
 
   this.MAX_GRID_SIZE = 100
   this.GRIDLINE = 1
@@ -2990,12 +2993,10 @@ Exolve.prototype.deactivateCurrClue = function() {
   this.revealButton.disabled = true
 }
 
-// this.frameTop is where the top of xlv-frame was at start-up. We do not
-// move the curr clue above that as it may be occluded by other content.
 Exolve.prototype.makeCurrClueVisible = function() {
   // Check if grid input is visible.
   const inputPos = this.gridInput.getBoundingClientRect();
-  if (inputPos.top < 0) {
+  if (inputPos.top < this.visTop) {
     return
   }
   let windowH = this.getViewportHeight()
@@ -3015,16 +3016,16 @@ Exolve.prototype.makeCurrClueVisible = function() {
   if (gpPos.top - parentTop < cluePos.height + clearance) {
     normalTop = (gpPos.top - parentTop) - (cluePos.height + clearance);
   }
-  if (normalTop + parentTop >= this.frameTop || inputPos.bottom >= windowH) {
+  if (normalTop + parentTop >= this.visTop || inputPos.bottom >= windowH) {
     this.currClue.style.top = normalTop + 'px';
     return
   }
   // Reposition
-  let adjustment = cluePos.height + clearance - inputPos.top + this.frameTop
+  let adjustment = cluePos.height + clearance - inputPos.top + this.visTop
   if (adjustment < 0) {
     adjustment = 0;
   }
-  this.currClue.style.top = (this.frameTop - parentTop - adjustment) + 'px';
+  this.currClue.style.top = (this.visTop - parentTop - adjustment) + 'px';
 }
 
 Exolve.prototype.gnavToInner = function(cell, dir) {
@@ -3981,18 +3982,6 @@ Exolve.prototype.createListeners = function() {
   document.getElementById(this.prefix + '-title').addEventListener(
     'click', boundDeactivator);
   
-  if (this.index == 1) {
-    this.frameTop = Math.max(this.frame.getBoundingClientRect().top -
-                             document.body.getBoundingClientRect().top, 0)
-  } else {
-    for (let pid in exolvePuzzles) {
-      let p = exolvePuzzles[pid]
-      if (p.index == 1) {
-        this.frameTop = p.frameTop
-        break
-      }
-    }
-  }
   let boundClueVisiblizer = this.makeCurrClueVisible.bind(this)
   window.addEventListener('scroll', boundClueVisiblizer)
   window.addEventListener('resize', boundClueVisiblizer)
@@ -4872,10 +4861,12 @@ Exolve.prototype.createPuzzle = function() {
  *     the customizeExolve() function.
  * See documentation of parameters above the Exolve constructor definition.
  */
-function createExolve(puzzleText, containerId="", addStateToUrl=true) {
+function createExolve(puzzleText, containerId="",
+                      addStateToUrl=true, visTop=0) {
   const customizer = (typeof customizeExolve === 'function') ?
       customizeExolve : null;
-  let p = new Exolve(puzzleText, containerId, customizer, addStateToUrl);
+  let p = new Exolve(puzzleText, containerId, customizer,
+                     addStateToUrl, visTop);
 }
 
 /*
