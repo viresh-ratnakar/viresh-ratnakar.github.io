@@ -4,10 +4,13 @@
 <base target="_parent">
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="stylesheet" type="text/css" href="exolve-m.css?v0.87"/>
+<script src="exolve-m.js?v0.87"></script>
 
 <title>Links to crossword puzzles By Gussalufz (and doppelgängers)</title>
 
 <style>
+
 body {
   font-family: monospace;
 }
@@ -45,6 +48,43 @@ function shadeTable() {
 </head>
 
 <body onload="shadeTable()">
+
+<div id="exolve"></div>
+<style>
+.xlv-prefill {
+  font-weight: bold;
+}
+</style>
+<script>
+function customizeExolve(puz) {
+  if (puz.id != 'gussalufz-logo') {
+    return;
+  }
+  document.getElementById('xlv1-title').style.display = 'none';
+  document.getElementById('xlv1-controls-etc').style.display = 'none';
+  puz.currClueParent.style.display = 'none'
+}
+createExolve(`
+exolve-begin
+  exolve-id: gussalufz-logo
+  exolve-title: Gussalufz
+  exolve-width: 18
+  exolve-height: 5
+  exolve-grid:
+    . 0 . 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 G!U!S!S!A!L!U!F!Z!0 . . . 0 0 0 0 
+    . 0 . 0 0 0 0 0 0 0 0 0 0 0 0 . 0 . 
+    0 0 0 0 . . . 0 0 0 0 0 0 0 0 0 0 0
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 . 0 .
+  exolve-colour: lightgray a4 a2 c2 d2 d3 d5 k3 k4 k5 h1 h2 h3
+  exolve-colour: lightgray i1 j1 k1 l1 m1 n1 o1 l3 m3 n3 o3 r2 o4 p4 r4
+  exolve-colour: lightgray e3 e5 f3 f5 g3 g5 h3 h5 i3 i5 j3 j5
+  exolve-option: colour-prefill:black
+exolve-end
+`, '', false);
+</script>
+
+<center>
 
 <h3>Links to crossword puzzles By Gussalufz (and doppelgängers)</h3>
 
@@ -600,11 +640,99 @@ In the 1ACross Facebook group
 
 </table>
 
-<br/>
-Interactively solvable puzzles set up using
-the <a href="https://github.com/viresh-ratnakar/exolve">Exolve</a>
-open source software.
+<table style="width:50%">
+
+        <!-- ------------------------- -->
+<tr>
+<td colspan=2>
+<h3>Links to crossword resources</h3>
+</td>
+</tr>
+        <!-- ------------------------- -->
+<tr>
+<td>
+<a href="https://github.com/viresh-ratnakar/exolve">Exolve</a>
+</td>
+<td>
+Free open source software (MIT License) for creating interactively
+solvable crosswords. All my puzzles above are powered by it. I have
+developed this software and maintain it actively.
+</td>
+</tr>
+
+        <!-- ------------------------- -->
+<tr>
+<td>
+<a href="https://www.crosswordunclued.com">Crossword Unclued</a>
+</td>
+<td>
+@ShuchiU's blog with excellent articles on various aspects of cryptic
+crosswords, including nice compilations of lists of indicator words.
+</td>
+</tr>
+
+        <!-- ------------------------- -->
+<tr>
+<td>
+<a href="http://bigdave44.com/">Big Dave's Crossword Blog</a>
+</td>
+<td>
+Blog articles on Daily and Sunday Telegraph cryptic crosswords.
+Many other interesting sections (such as an annotated list of mythological
+characters).
+</td>
+</tr>
+
+        <!-- ------------------------- -->
+<tr>
+<td>
+<a href="http://www.fifteensquared.net/">Fifteensquared</a>
+</td>
+<td>
+Daily analysis of most British newspaper cryptic crosswords. If I come up with
+an indicator that I'm not sure of, I search in this site to see if someone
+else has pulled off the same trick previously, without inviting ridicule.
+</td>
+</tr>
+
+</table>
+
+<table style="width:40%">
+
+        <!-- ------------------------- -->
+<tr>
+<td colspan=2>
+<h3>About</h3>
+</td>
+</tr>
+
+        <!-- ------------------------- -->
+<tr>
+<td>
+Me
+</td>
+<td>
+I'm Viresh Ratnakar. Cryptic crossword enthusiast.
+Setter for The Hindu Cryptic.
+And since you're still reading, apart from crosswords my interests are:
+Books. Cricket. Running. Cooking. Writing. Coding. Red wine. Beer. Scotch. Dogs.
+I get along best with dogs.
+</td>
+</tr>
+
+        <!-- ------------------------- -->
+<tr>
+<td>
+Contact
+</td>
+<td>
+<a href="https://twitter.com/vireshratnakar/">@vireshratnakar</a> on Twitter. viresh at gmail d0t com.
+</td>
+</tr>
+
+</table>
+
+</center>
 
 </body>
-
 </html>
