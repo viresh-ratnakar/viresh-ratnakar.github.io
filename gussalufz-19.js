@@ -227,8 +227,8 @@ function customizeExolve(p) {
 
   lim = document.createElement('img');
   lim.setAttributeNS(null, 'src', 'gussalufz-19.svg')
-  lim.setAttributeNS(null, 'width', 120)
-  lim.setAttributeNS(null, 'height', 80)
+  lim.setAttributeNS(null, 'width', 90)
+  lim.setAttributeNS(null, 'height', 60)
   lim.style.position = 'absolute'
   lim.style.left = '315px'
   lim.style.top = '15px'
