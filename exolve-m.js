@@ -501,7 +501,7 @@ Exolve.prototype.init = function() {
   this.checkButton = document.getElementById(this.prefix + '-check')
   this.checkButton.addEventListener('mousedown', this.cellLightToggler.bind(
     this, this.checkButton, this.textLabels['checkcell']));
-  this.checkButton.addEventListener('click', this.checkCurr.bind(this));
+  this.checkButton.addEventListener('mouseup', this.checkCurr.bind(this));
 
   this.checkAllButton = document.getElementById(this.prefix + '-check-all')
   this.checkAllButton.addEventListener('click', this.checkAll.bind(this));
@@ -512,7 +512,7 @@ Exolve.prototype.init = function() {
   this.revealButton = document.getElementById(this.prefix + '-reveal')
   this.revealButton.addEventListener('mousedown', this.cellLightToggler.bind(
     this, this.revealButton, this.textLabels['revealcell']));
-  this.revealButton.addEventListener('click', this.revealCurr.bind(this));
+  this.revealButton.addEventListener('mouseup', this.revealCurr.bind(this));
 
   this.revealAllButton = document.getElementById(this.prefix + '-reveal-all')
   this.revealAllButton.addEventListener('click', this.revealAll.bind(this));
