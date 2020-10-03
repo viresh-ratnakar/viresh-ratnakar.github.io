@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<link rel="stylesheet" type="text/css" href="https://viresh-ratnakar.github.io/exolve-m.css?v0.91"/>
+<script src="https://viresh-ratnakar.github.io/exolve-m.js?v0.91"></script>
+
+<title>Chain Letters</title>
+
+<script>
+
+function toggleChainLetter(puz, e) {
+  if (e && e.key && e.key != '#') {
+    return
+  }
+  e.stopPropagation()
+  let gridCell = puz.currCell()
+  if (!gridCell || !gridCell.isLight) {
+    puz.refocus()
+    return
+  }
+  let row = puz.currRow
+  let col = puz.currCol
+  if (!gridCell.chainRect) {
+    gridCell.chainRect = gridCell.cellRect.cloneNode()
+    gridCell.chainRect.addEventListener('click', puz.cellActivator.bind(puz, row, col));
+    gridCell.chainRect.style.fill = 'transparent'
+    puz.svg.appendChild(gridCell.chainRect)
+  }
+  if (gridCell.chainRect.style.fill == 'transparent') {
+    gridCell.chainRect.style.fill = 'rgba(0,0,255,0.2)'
+  } else {
+    gridCell.chainRect.style.fill = 'transparent'
+  }
+  puz.refocus()
+}
+
+function customizeExolve(puz) {
+  let customStyles = document.createElement('style')
+  customStyles.innerHTML = `
+    #${puz.prefix}-frame #toggle-chain-letter {
+      background-color: transparent;
+      box-shadow: inset 0px 0px 0px 4px #4caf50;
+      box-sizing: border-box;
+    }
+    #${puz.prefix}-frame #toggle-chain-letter:hover {
+      background-color: palegreen;
+    }
+  `;
+  document.body.appendChild(customStyles);
+
+  puz.gridInput.addEventListener('keydown', toggleChainLetter.bind(null, puz));
+  let b = document.createElement('button')
+  b.className = 'xlv-button'
+  b.style.float = 'right'
+  b.id = 'toggle-chain-letter'
+  b.innerHTML = '&#128279;'
+  b.title = 'Click to mark/unmark chain letter. Keyboard shortcut: type # in a cell.'
+  b.addEventListener('click', toggleChainLetter.bind(null, puz));
+  document.getElementById(`${puz.prefix}-button-row-1`).appendChild(b)
+}
+
+const puzzleText = `
+======REPLACE WITH YOUR PUZZLE BELOW======
+  exolve-begin
+  exolve-width: 15
+  exolve-height: 15
+  exolve-nina: i1 k1 m1 c1 e1 g1 i15 k15 m15 g15 e15 c15 b2 c3 d4 i9 j10 k11 l12 m13 n14 e5 f6 g7 h8
+  exolve-preamble:
+    <p>
+    Upon receiving and solving this puzzle, you must read the chain letters.
+    The only chains that count are the substantial ones—ignore any chains
+    that are shorter than length three. You must then proceed to join all the
+    chain letters to compose your own final letter! If you fail to do this, then
+    the &#9673;&#9673;&#9673;&#9673;* god M will be endlessly unfulfilled.
+    </p>
+    <p>
+    You may want to keep track of your chain letters by marking/unmarking them
+    using the &#128279; button (or by using the keyboard shortcut, [#]). This
+    will help you when you compose your final letter.
+    </p>
+    <p style="color:darkgreen">
+    You can click on the "Check all" button to check your solutions. You can
+    click on the "Reveal all" button to see the solutions, detailed annotations,
+    notes, as well as the results of the online contest that we ran for this
+    puzzle in September/October 2020.
+    </p>
+  exolve-explanations:
+    <p><b>Notes</b></p>
+    <p>
+    This puzzle is a pangram with a twist. All the letters in the set A-Y can
+    be found as ninas, in groups of three or more successive letters
+    ("chain letters"). These chain letters are laid along the top row, the
+    bottom row, and the diagonal that goes from bottom-left to top-right.
+    Taken together, these chain letters form the shape, "Z," thereby
+    completing the pangram.
+    </p>
+    <p>
+    The cryptic reading of the preamble instructs the solver to form the
+    missing "Z" by joining the chain letters (<i>"join all the chain letters to
+    compose your own final letter"</i>).
+    </p>
+    <p>
+    The "&#9673;&#9673;&#9673;&#9673;* god M" stands for PANGRAM: you get
+    the PANG from an anagram (indicated by the *) of the circled letters,
+    and RA is the usual cryptic god. The cryptic reading of the relevant
+    preamble sentence is that you need to join the chain letters to compose the
+    Z needed to complete the pangram (otherwise the pangram will be
+    "endlessly unfulfilled").
+    </p>
+    <p><b>Results</b></p>
+    <p>We ran this puzzle as a fun contest on a few groups, in September/October
+    2020. Here are the solvers, named in order. The ordering is based on the
+    grid score (151 points) + scores on the two questions (each up to 10
+    points), and then by time of submission. The first block of names lists the
+    solvers who scored the maximum possible score (171 points).
+    <blockquote style="line-height:1.3;color:darkgreen">
+    SSS,&nbsp;
+    Samit Kallianpur,&nbsp;
+    NM,&nbsp;
+    Koh Ting Sween Kenny,&nbsp;
+    CRYPTOMANIA,&nbsp;
+    Saki,&nbsp;
+    Arthomatik,&nbsp;
+    Ganesh Nayak,&nbsp;
+    martin demello,&nbsp;
+    Mona Sogal,&nbsp;
+    spiffytrix,&nbsp;
+    Lakshmi Prakash,&nbsp;
+    Dr SRINIVAS Venkatesh,&nbsp;
+    Himanshu,&nbsp;
+    Ramki,&nbsp;
+    Suresh Dorbala,&nbsp;
+    Anicha,&nbsp;
+    Narayanan R,
+    </blockquote>
+    <blockquote style="line-height:1.3;color:darkgreen">
+    DUMPY NOSE,&nbsp;
+    nick,&nbsp;
+    Bhala,&nbsp;
+    Deepak Gopinath,&nbsp;
+    KRITTIBAS DASGUPTA,&nbsp;
+    Sabitha Satchi,&nbsp;
+    Chris Lissman,&nbsp;
+    Anthony Hope,&nbsp;
+    Manjunath Gawade,&nbsp;
+    Ashit Hegde,&nbsp;
+    Lata Muthanna, &nbsp;
+    sandhya paruchuri,&nbsp;
+    Harish Kamath,&nbsp;
+    Veera Raghavan, &nbsp;
+    Almost there,&nbsp;
+    Supriya Mithal,&nbsp;
+    Dr S Venkatesh,&nbsp;
+    N. RENGASWAMY,&nbsp;
+    R Nagendra Prasad,&nbsp;
+    ARS.
+    </blockquote>
+    Many thanks to everyone for participating, and congratulations to
+    <b>SSS</b> (first place), <b>Samit Kallianpur</b> (second place), and <b>NM</b> (third place)!
+    </p>
+    <p>Finally, here's a list of the comments and feedback that we received
+    (with a few responses from us). Many thanks to everyone who had a go!
+<style>
+#feedback li:not(:last-child) {
+    margin-bottom: 5px;
+}
+</style>
+    <ul id="feedback">
+
+  <li><b>Samit Kallianpur:</b> Awesome grid! Thoroughly enjoyed it!</li>
+  <li><b>Koh Ting Sween Kenny:</b> That was a really mind-blowing puzzle! I honestly didn't expect the "chain letters" part at all till the very end. Awesome clues too! Keep it up, Ribelle and Gussalufz!</li>
+  <li><b>R Nagendra Prasad:</b> I could not make out about the chain letters concept </li>
+  <li><b>Harish Kamath:</b> No idea for God M. Wiki tells me it's a Mayan deity but the letters I have are P, A, N, G. Grid was nice. Took the longest time to solve 21d. Didn't know 'Castle in Spain' was a term. Went looking for the names of castles in Spain :) Congratulations to you both!</li>
+  <li><b>Saki:</b> Lovely puzzle.</li>
+  <li><b>Arthomatik:</b> The quick brown fox jumps over the lazy dog. Then the dazy log jumps over brow of the quick fox. The gazy doll then quickly jumps over and frowns at the box.
+    <p style="margin-left:2em;font-style:italic">
+      Setters' response:
+  <pre style="font-size:12px">
+      And pack my box
+                  w
+               i
+            t
+         h
+      five liquor jugs.
+  </pre>
+    </p>
+  </li>
+  <li><b>Ganesh Nayak:</b> Great grid, and fun puzzle with lovely a-ha moments - thanks!</li>
+  <li><b>Almost there:</b> didn't understand the chain letter thing</li>
+  <li><b>Mona Sogal:</b> Delightful grid..fun and breezy... favourite clues Ethic and Canoe trip... I could not really get the Spoonerism though!</li>
+  <li><b>spiffytrix:</b> excellent xword specially the linking letters aspect. would have loved if the device to arrive at "pangram" also involved some sleuthing without giving the 4 circled letters for gratis. Not a criticism by any means just being greedy so that the fun could have lasted a little longer. allround technically sound clues with some nice storytelling surfaces specially loved 11A & 21D.
+    <p style="margin-left:2em;font-style:italic">
+      Setters' response:
+      We like the way you think. Care to collaborate on a new crossword? :-)
+    </p>
+  </li>
+  <li><b>Lakshmi Prakash:</b> Very nice entertaining grid. Loved the bonus questions. My fav clues were Nephew Ocarina and Earlier</li>
+  <li><b>Sabitha Satchi:</b> Fun grid. The chain letters seem to be in three sets - though connected: MNO, VWXY, PQRSTU. Not sure I quite understood the two questions 1) Last letter composed or chain composed?  2) I am getting the letters to make up BANG in the circled letters. Anything else then? Fun puzzle nevertheless! Thank you Viresh and Faten!</li>
+  <li><b>Dr S Venkatesh:</b> Nice.</li>
+  <li><b>Anthony Hope:</b> I don't understand anything about the "chain letters" part of this crossword. I saw your hint on Facebook. I found a long diagonal "chain" of consecutive letter groupings that stretches from bottom-left to top-right. But now what do I do?! This is a very unclear and confusing puzzle! Btw, is 17D correct?</li>
+  <li><b>Bhala:</b> Nice creative work in both concept and grid.  A good balance between difficulty and entertainment. Particularly liked clues for OCARINA, BROADSIDE, VENT, REVERIE (a lovely find).  Not sure how SHORTCUT is meant to be parsed. CANOE TRIP is probably ok for a fun puzzle, but non-dictionary entries are generally avoidable. 12a as a CD has many possible answers, needs crossing to fix.  Enjoyable puzzle
+    <p style="margin-left:2em;font-style:italic">
+      Setters' response:
+      The CANOE TRIP was ultimately a choice forced by the special elements of this grid (fairly caught by you!).
+    </p>
+  </li>
+  <li><b>N. Rengaswamy:</b> An enjoyable grid to solve, especially after IXL Round 5 where we found it difficult to annotate a few clues. Nice new concept of letter chain. Could not understand PANG* god M stuff.</li>
+  <li><b>Supriya Mithal:</b> I enjoyed the grid , clever and fun ,and of course this software is excellent. I did not get the anno for ALUMNUS. Favourites: ETHIC, BROADSIDE, CANOE TRIP, UNPINNED, REVERIE, PROVERB</li>
+  <li><b>Anthony Hope:</b> I still don't fully understand this puzzle! What does "....* god M" mean?!</li>
+  <li><b>Krittibas Dasgupta:</b> Found the grid very entertaining, nice smooth cluing. Was a bit confused about what is meant by "chain letters", so Ribelle's timely comment on FB helped a lot. Although, I am not yet sure if I have managed to get all the letters, there's one missing in the chain...</li>
+  <li><b>Ashit Hegde:</b> Even without the chain letters, this was a very good puzzle. The chain was the icing on the cake. Takes genius to create a puzzle of this kind</li>
+  <li><b>Dr. Srinivas Venkatesh:</b> Nice.</li>
+  <li><b>Dumpy Nose:</b> Very Nice!</li>
+  <li><b>Himanshu:</b> Very creative, loved solving it</li>
+  <li><b>Sabitha Satchi:</b> Fun grid. Found all the chain letters except Z. God M was not clear.</li>
+  <li><b>Ramki:</b> Fun puzzle, many nice clues. NEPHEW, REVERIE, OVERALL were favourites.</li>
+  <li><b>Narayanan R:</b> excellent, creative and entertaining</li>
+  <li><b>Suresh Dorbala:</b> Most enjhoyable puzzle</li>
+  <li><b>Veera Raghavan:</b> Nice grid with some challenging clues. Am submitting only the grid. Assuming ABC, DEF etc as chain letters but unable to proceed further.</li>
+  <li><b>Anicha:</b> Fun grid and interesting concept. Enjoyed solving it!</li>
+
+    </ul>
+    </p>
+  exolve-question: What's the final letter that you composed? (30)* Z
+  exolve-question: &#9673;&#9673;&#9673;&#9673;* god M: (30)* PANGRAM
+
+  exolve-id: ribelle-gussalufz-1
+  exolve-title: Chain Letters
+  exolve-setter: Ribelle & Gussalufz
+  exolve-copyright: 2020 Faten Ismail, Viresh Ratnakar
+  exolve-grid: 
+    .   .   L   .   K   .   J   .   G@  .   H   .   I   .   .   
+    O   C   A   R   I   N   A   .   A   L   U   M   N   U   S   
+    V   .   S   .   T   .   M   .   B   .   M   .   T   .   E   
+    E   T   H   I   C   .   B   R   O   A   D   S   I   D   E   
+    R   .   E   .   H   .   .   .   N   .   R   .   M   .   D   
+    A@  U   D   I   E   N   C   E   .   Q   U   E   A   S   Y   
+    L   .   .   .   N   .   O   .   P   .   M   .   T   .   .   
+    L   O   U   T   .   K   A   Y   A   K   .   V   E   N   T   
+    .   .   N   .   R   .   X   .   T   .   P@  .   .   .   I   
+    N@  E   P   H   E   W   .   S   H   O   R   T   C   U   T   
+    I   .   I   .   V   .   B   .   .   .   O   .   Y   .   U   
+    C   A   N   O   E   T   R   I   P   .   V   O   C   A   L   
+    H   .   N   .   R   .   I   .   L   .   E   .   L   .   A   
+    E   M   E   T   I   N   E   .   E   A   R   L   I   E   R   
+    .   .   D   .   E   .   F   .   A   .   B   .   C   .   .   
+  exolve-across: 
+  7 Love African dancing while striking loud musical instrument (7) [OCARINA] Def: musical instrument. O {love} AFRICAN* {... dancing} -f {while striking loud}.
+  8 Scoring 0/1, a bright former student (7) [ALUMNUS] Def: former student. A LUM(-i)N(-o)US {Scoring 0/1 (indicating deletion of o and i), a bright}.
+  10 Quote from the East about husband's code of conduct (5) [ETHIC] Def: code of conduct. CITE<< {quote from the east} around {about} H {husband}.
+  11 Criticism of wife-to-be over imperfect dosa (9) [BROADSIDE] Def: criticism. BRIDE {wife-to-be} around {over} DOSA* {imperfect ...}.
+  12 What artists draw? (8) [AUDIENCE] Cryptic definition.
+  14 Sick queen gets comfortable (6) [QUEASY] Def: sick. QU {queen} + {gets} EASY {comfortable}.
+  16 Aggressive man left, not at home (4) [LOUT] Def: aggressive man. L {left} OUT {not at home}.
+  18 A small boat, regularly used? OK, easy task (5) [KAYAK] Def: a small boat. Alternate letter from {regularly used ...}: (-o)K (-e)A(-s)Y (-t)A(-s)K.
+  19 Doctor has new way to release anger (4) [VENT] Def: way to release anger. VET {doctor} around {has} N {new}.
+  23 Relative peace seen finally returning; I am relieved! (6) [NEPHEW] Def: relative. ((-peac)E (see)N {... finally})<< {... returning} PHEW {I am relieved}.
+  24 Spooner says: follow close for a quicker route (8) [SHORTCUT] Def: a quicker route. Spoonerism {Spooner says} of: COURT {follow} SHUT {close}.
+  27 Not a price that is abnormal for an activity one might enjoy after approaching 18 (5,4) [CANOE TRIP] Def: an activity one might enjoy after approaching kayak {18}. NOTAPRICE* {... that is abnormal}.
+  29 Loud volcano eruption releasing nitric oxide gas (5) [VOCAL] Def: loud. VOLCANO* {... eruption} -no {... releasing nitric oxide gas}.
+  30 A bitter alkaloid concoction of neem—it packs energy (7) [EMETINE] Def: a bitter alkaloid. NEEMIT* {concoction of ...} around {... packs ...} E {energy}.
+  31 Ex nobleman, that is right (7) [EARLIER] Def: Ex. EARL {nobleman} IE {that is} R {right}.
+  exolve-down: 
+  1 Struck deal upon return to hold silence (6) [LASHED] Def: struck. DEAL<< {... upon return} around {... to hold ...} SH {silence}.
+  2 Know about desire to be where the food is (7) [KITCHEN] Def: where the food is. KEN {know} about ITCH {about}.
+  3 Post box at the entrance to boulevard (4) [JAMB] Def: post. JAM {box} + {at} B(-oulevard} {the entrance to ...}.
+  4 No container returned to this country (5) [GABON] Def: country. (NO BAG {container})<< {... returned}.
+  5 Hospital suitable for children, with mother going over doctor's routine (7) [HUMDRUM] Def: routine. H {hospital} U {suitable for children} + {with} MUM {mother} around {... going over ...} DR {doctor}.
+  6 It ain't me playing around, dear (8) [INTIMATE] Def: dear. ITAINTME* {... playing around}.
+  7 On average, cycling partner covers one length (7) [OVERALL] Def: on average. LOVER->OVERL {cycling partner} around {... covers ...} (A {one} L {length}).
+  9 Look at display discontentedly:  "poorly maintained" (5) [SEEDY] Def: poorly maintained. SEE {look at} D(-ispla)Y {... discontentedly}.
+  13 Reportedly uses cocaine to entice (4) [COAX] Def: to entice. Homophone of {reportedly ...} COKES {uses cocaine}.
+  15 Way essential to stop a thief (4) [PATH] Def: way. Hidden answer {essential to ...}: (-sto)P A TH(-ief).
+  17 "No pun intended!" Stormy noted, "This got rid of some weight that was bearing down." (8) [UNPINNED] Def: got rid of some weight that was bearing down. Composite anagram {stormy ...}: NO PUN INTENDED = (NOTED UNPINNED)*. The surface alludes to Stormy Daniels.
+  20 Ceremonial ritual changed to save time (7) [TITULAR] Def: ceremonial. RITUAL* {... changed} around {... to save ...} T {time}.
+  21 Setter overwhelmed by prize: castle in Spain! (7) [REVERIE] Def: castle in Spain. I {setter} in {... overwhelmed by ...} REVERE {prize}.
+  22 Show king and bishop saw (7) [PROVERB] Def: saw. PROVE {show} R {king} B {bishop}.
+  23 Fun left out of otherwise fine lunch recess (5) [NICHE] Def: recess. {fun left out of ...} {otherwise ...} FINELUNCH* -fun -l.
+  25 Some fancy clickbait recurring periodically (6) [CYCLIC] Def: recurring periodically. Hidden answer {some ...}: (-fan)CY CLIC(-kbait).
+  26 A cheese strong and crisp (5) [BRIEF] Def: crisp. BRIE {a cheese} F {strong}.
+  28 Request to gather shortly (4) [PLEA] Def: request. PLEA(-t) {to gather} {... shortly}.
+  exolve-end
+  
+======REPLACE WITH YOUR PUZZLE ABOVE======
+`;
+
+</script>
+
+</head>
+
+<body onload="createPuzzle()">
+</body>
+
+</html>
