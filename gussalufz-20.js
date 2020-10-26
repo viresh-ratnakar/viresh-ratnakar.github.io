@@ -44,8 +44,9 @@ function revealer(circle) {
 }
 
 function setBugFunVisibility(bugVisible) {
-  bugFunButton.disabled = !bugVisible || (currentRow < 0) ||
-    activeCells.length == 0 || gridInputWrapper.style.display == 'none'
+  bugFunButton.disabled = !bugVisible || (bug.puz.currRow < 0) ||
+      bug.puz.activeCells.length == 0 ||
+      bug.puz.gridInputWrapper.style.display == 'none'
 }
 
 function buttonVisibilitySetter() {
@@ -59,14 +60,14 @@ function buttonVisibilitySetter() {
 function getToShowAndBugVisibility() {
   let unshown = {}
   let keyArray = ['0','0','0','0']
-  for (let row = 0; row < gridHeight; row++) {
-    for (let col = 0; col < gridWidth; col++) {
-      let gridCell = grid[row][col]
+  for (let row = 0; row < bug.puz.gridHeight; row++) {
+    for (let col = 0; col < bug.puz.gridWidth; col++) {
+      let gridCell = bug.puz.grid[row][col]
       let rc = JSON.stringify([row,col])
       let rcHash = hashCode(rc)
       let keyIndex = keyLocs.indexOf(rcHash)
       if (keyIndex >= 0) {
-        keyArray[keyIndex] = gridCell.currentLetter
+        keyArray[keyIndex] = gridCell.currLetter
       }
       let circle = circlesLU[rcHash]
       if (!circle) {
@@ -75,14 +76,14 @@ function getToShowAndBugVisibility() {
       if (!circle.cellCircle) {
         continue
       }
-      let found = gridCell.currentLetter &&
-        hashCode(rc + gridCell.currentLetter) == circle['hash'];
+      let found = gridCell.currLetter &&
+        hashCode(rc + gridCell.currLetter) == circle['hash'];
       if (!found) {
         circle.cellCircle.style.stroke = 'transparent'
         circle.currStroke = 'transparent'
         circle.shown = false
       } else {
-        circle.currStroke = (row == currentRow && col == currentCol) ?
+        circle.currStroke = (row == bug.puz.currRow && col == bug.puz.currCol) ?
           'white' : circle.color
         if (!circle.shown) {
           unshown[circle.index] = [row, col, circle]
@@ -95,49 +96,53 @@ function getToShowAndBugVisibility() {
   return [unshown, hashCode(keyArray.join('')) == 2656935]
 }
 
-deactivateCurrentCell = (function() {
-  var cached_function = deactivateCurrentCell
-  return function() {
-    cached_function.apply(this);
-    buttonVisibilitySetter()
-  };
-})();
+function replaceHandlers() {
 
-updateAndSaveState = (function() {
-  var cached_function = updateAndSaveState;
-  return function() {
-    cached_function.apply(this);
-    if (!bug) {
-      return
-    }
-    let toShowAndBugVisibility = getToShowAndBugVisibility()
-    let visible = toShowAndBugVisibility[1]
-    setBugFunVisibility(visible)
-    bugShow1Button.disabled = true
-    bugShow2Button.disabled = true
-    if (!visible) {
-      bug.hide()
-    } else {
-      bug.show()
-      let toReveal = toShowAndBugVisibility[0]
-      let gridPath = []
-      for (let index in toReveal) {
-        let reveal = toReveal[index]
-        gridPath.push([reveal[0], reveal[1], revealer(reveal[2])])
+  bug.puz.deactivateCurrCell = (function() {
+    var cached_function = bug.puz.deactivateCurrCell
+    return function() {
+      cached_function.apply(this);
+      buttonVisibilitySetter()
+    };
+  })();
+
+  bug.puz.updateDisplayAndGetState = (function() {
+    var cached_function = bug.puz.updateDisplayAndGetState;
+    return function() {
+      let ret = cached_function.apply(this);
+      if (!bug) {
+        return ret
       }
-      if (gridPath.length > 0) {
-        if (visible) {
-          let last = gridPath[gridPath.length - 1]
-          gridPath.push([last[0], last[1], buttonVisibilitySetter])
-        }
-        bug.gridMoves(gridPath, true)
+      let toShowAndBugVisibility = getToShowAndBugVisibility()
+      let visible = toShowAndBugVisibility[1]
+      setBugFunVisibility(visible)
+      bugShow1Button.disabled = true
+      bugShow2Button.disabled = true
+      if (!visible) {
+        bug.hide()
       } else {
-        bugShow1Button.disabled = !visible
-        bugShow2Button.disabled = !visible
+        bug.show()
+        let toReveal = toShowAndBugVisibility[0]
+        let gridPath = []
+        for (let index in toReveal) {
+          let reveal = toReveal[index]
+          gridPath.push([reveal[0], reveal[1], revealer(reveal[2])])
+        }
+        if (gridPath.length > 0) {
+          if (visible) {
+            let last = gridPath[gridPath.length - 1]
+            gridPath.push([last[0], last[1], buttonVisibilitySetter])
+          }
+          bug.gridMoves(gridPath, true)
+        } else {
+          bugShow1Button.disabled = !visible
+          bugShow2Button.disabled = !visible
+        }
       }
-    }
-  };
-})();
+      return ret
+    };
+  })();
+}
 
 function setUpCircles() {
   let index = 0
@@ -145,8 +150,8 @@ function setUpCircles() {
     circle.index = index++
     circlesLU[circle.key] = circle
   }
-  for (let row = 0; row < gridHeight; row++) {
-    for (let col = 0; col < gridWidth; col++) {
+  for (let row = 0; row < bug.puz.gridHeight; row++) {
+    for (let col = 0; col < bug.puz.gridWidth; col++) {
       let circle = circlesLU[hashCode(JSON.stringify([row,col]))]
       if (!circle) {
         continue
@@ -155,30 +160,30 @@ function setUpCircles() {
         document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       cellCircle.setAttributeNS(
           null, 'cx',
-          offsetLeft + CIRCLE_RADIUS + GRIDLINE + col *(SQUARE_DIM + GRIDLINE));
+          bug.puz.cellLeftPos(col, bug.puz.circleR + bug.puz.GRIDLINE));
       cellCircle.setAttributeNS(
           null, 'cy', 
-          offsetTop + CIRCLE_RADIUS + GRIDLINE + row * (SQUARE_DIM + GRIDLINE));
-      cellCircle.setAttributeNS(null, 'class', 'cell-circle');
-      cellCircle.setAttributeNS(null, 'r', CIRCLE_RADIUS);
+          bug.puz.cellTopPos(row, bug.puz.circleR + bug.puz.GRIDLINE));
+      cellCircle.setAttributeNS(null, 'class', 'xlv-cell-circle');
+      cellCircle.setAttributeNS(null, 'r', bug.puz.circleR);
       cellCircle.style.stroke = 'transparent'
       circle.currStroke = 'transparent'
-      svg.appendChild(cellCircle)
-      cellCircle.addEventListener('click', getRowColActivator(row, col));
+      bug.puz.svg.appendChild(cellCircle)
+      cellCircle.addEventListener('click',
+        bug.puz.cellActivator.bind(bug.puz, row, col));
       circle.cellCircle = cellCircle
     }
   }
 }
 
-function bugFun() {
+function bugFun(puz) {
   if (!bug) {
     return
   }
-  if (currentRow < 0 || currentCol < 0 ||
-      currentRow >= gridHeight || currentCol >= gridWidth) {
+  if (!bug.puz.currCellIsValid()) {
     return
   }
-  bug.gridMoveTo(currentRow, currentCol, buttonVisibilitySetter)
+  bug.gridMoveTo(bug.puz.currRow, bug.puz.currCol, buttonVisibilitySetter)
 }
 
 function showRange(index1, index2) {
@@ -214,35 +219,40 @@ function bugShow2() {
   showRange(6, 15)
 }
 
-function customizePuzzle() {
+function customizeExolve(puz) {
+  bug = new Bug(14, 14, 'gussalufz-20-bug.svg', puz)
+
   setUpCircles()
   let buttonRow = document.createElement('div')
   buttonRow.setAttributeNS(null, 'class', 'button-row')
-  document.getElementById('controls').appendChild(buttonRow)
+  document.getElementById(puz.prefix + '-controls').appendChild(buttonRow)
+
+  replaceHandlers()
 
   buttonRow.innerHTML =
-    '<span style="color:midnightblue;font-weight:bold">' +
+    '<span style="color:midnightblue;font-weight:bold;margin-right:1em">' +
        'Bug-related actions:</span> ' +
     '<button id="unlocker-1">Unlocker 1</button> ' +
     '<button id="unlocker-2">Unlocker 2</button> ' +
     '<button id="bug-fun">Timepass</button>';
 
   bugShow1Button = document.getElementById('unlocker-1')
-  bugShow1Button.setAttributeNS(null, 'class', 'button')
+  bugShow1Button.setAttributeNS(null, 'class', 'xlv-button')
   bugShow1Button.title = 'Help find the first unlocker'
+  bugShow1Button.style.fontSize = '11px'
   bugShow1Button.addEventListener('click', bugShow1)
 
   bugShow2Button = document.getElementById('unlocker-2')
-  bugShow2Button.setAttributeNS(null, 'class', 'button')
+  bugShow2Button.setAttributeNS(null, 'class', 'xlv-button')
   bugShow2Button.title = 'Help find the second unlocker'
+  bugShow2Button.style.fontSize = '11px'
   bugShow2Button.addEventListener('click', bugShow2)
 
   bugFunButton = document.getElementById('bug-fun')
-  bugFunButton.setAttributeNS(null, 'class', 'button')
+  bugFunButton.setAttributeNS(null, 'class', 'xlv-button')
   bugFunButton.title = 'Just some fun after clicking on a light'
+  bugFunButton.style.fontSize = '11px'
   bugFunButton.addEventListener('click', bugFun)
 
-  bug = new Bug(14, 14, 'gussalufz-20-bug.svg')
-
-  updateAndSaveState()
+  puz.updateDisplayAndGetState()
 }
