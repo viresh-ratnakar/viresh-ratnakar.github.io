@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<!--
+MIT License
+
+Copyright (c) 2019 Viresh Ratnakar
+
+See the full license notice in exolve-m.js.
+
+Version: Exolve v0.96 October 18 2020
+-->
+
+<link rel="stylesheet" type="text/css" href="exolve-m.css?v0.96"/>
+<script src="exolve-m.js?v0.96"></script>
+<script src="bug.js"></script>
+<script src="gussalufz-20.js"></script>
+
+<title>Unlock and find a bug</title>
+
+<script>
+
+const puzzleText = `
+======REPLACE WITH YOUR PUZZLE BELOW======
+exolve-begin
+  exolve-id: gussalufz-20
+  exolve-title: Unlock and find a bug
+  exolve-setter: Gussalufz
+  exolve-copyright: 2020 Viresh Ratnakar
+  exolve-width: 15
+  exolve-height: 15
+  exolve-option: color-background:#2f4f4f
+  exolve-option: color-imp-text:midnightblue
+  exolve-option: color-button:dodgerblue
+  exolve-option: color-button-hover:midnightblue
+  exolve-option: color-small-button-hover:lightblue
+  exolve-option: color-small-button-text:midnightblue
+  exolve-option: color-solved:#60affe
+  exolve-option: color-active:#C3F5FF color-caret:lightgray
+  exolve-option: color-arrow:aliceblue
+  exolve-option: color-input:#60affe
+  exolve-option: color-light-text-input:white
+  exolve-option: color-light-label-input:white
+  exolve-option: color-orphan:#EEEEFF
+  exolve-grid:
+        ATOM.GHOST.CASE
+        M.N.G.I.P.O.M.R
+        NOSTALGIA.PAPER
+        E.E.R.H.S.A.L.A
+        SATIN.COMPLAINT
+        T...I.H.....F.I
+        YUGOSLAVIA.DISC
+        ..R.H.I.M.M.E..
+        DIET.CRYPTOGRAM
+        I.E.....A.D...I
+        NONEVENTS.EMAIL
+        E.R.I.A.S.S.R.K
+        OBOES.POINTLESS
+        U.O.A.P.V.Y.N.O
+        TOMB.TYPED.WASP
+  exolve-prelude:
+    <p>
+    In this puzzle, you have to do some unlocking. The solutions to all the
+    "key" clues should help you unlock all the "lock" clues.
+    <p>
+    <p>
+    The solutions to the ten un-numbered "lock" and "key" clues need to be
+    placed in the ten numbered lights that do not have clues provided, like in a
+    jigsaw puzzle.
+    </p>
+    <p>
+    While solving, you should also look out for a bug. Once you find the bug, it
+    will eventually help you find two additional unlockers. But beware—if your
+    grid entries have errors then the unlockers may not be found correctly.
+    <p>
+  exolve-question: Unlocker 1? (6) TURING
+  exolve-question: Unlocker 2? (10) CARACRISTI
+  exolve-explanations:
+  <p>
+     <b>Notes</b>
+  </p>
+  <p>
+  The solutions to the "key" clues reveal the following substitution cipher:
+  <ul style="font-size:12px;font-family:monospace">
+    <li>V &rarr; A: "V is A" (VISA)</li>
+    <li>C &rarr; E: "C as E" (CASE)</li>
+    <li>W &rarr; P: "W as P" (WASP)</li>
+    <li>A &rarr; M: "A to M" (ATOM)</li>
+    <li>E &rarr; D: "D in E out" (DINE OUT)</li>
+    <li>D &rarr; C: "D is C" (DISC)</li>
+  </ul>
+  When the above substitutions are applied to the "lock" clues, they get
+  decrypted. A few solvers thought that the decryption would happen
+  automatically once they had placed all the "key" clue solutions in the right
+  slots. Sorry, the descryption was intended to be a manual task, albeit one
+  made easier by the "key" clue solutions spelling out the needed
+  substitutions.
+  </p>
+  <p>
+  The phrase, "dancing men," in the decrypted surface of the clue that
+  turns out to be 1D is a nod to the cryptogrammatically themed Sherlock
+  Holmes story, "The Adventure of the Dancing Men."
+  </p>
+  <p>
+  I began working on this puzzle with only the above "key" clues and
+  "lock" clues idea in my mind. At some point while working on the puzzle, I
+  chanced upon <a href="https://t.co/CsOsQ39hwS">this tweet</a>:
+  </p>
+
+  <blockquote>
+  <p>we can model a lightning strike by finding the shortest path in a random
+  maze, from a point at the top to the ground. To find the path, we send out a
+  frontier through the maze, and trace it back once it reaches the ground
+  </p>
+  &mdash; Matt Henderson (@matthen2)
+  </blockquote>
+
+  <p>
+  Given that crossword grids have connectivity between any two light cells, I
+  was drawn to the idea of implementing the "lightning frontier" algorithm for
+  fun and incorporating it in a crossword puzzle. The idea of a bug finding its
+  way from any light cell to any other light cell suggested itself. Then, I
+  realized happily, that there was a very convenient bug in a very nice corner
+  location, in this puzzle that I was already working on!
+  </p>
+  <p>
+  To connect the bug to the theme of unlocking, I decided to make it spell out
+  the names of famous cryptographers. Luckily, I could find Turing and
+  Caracristi already lurking in the grid, and that too in a satisfying
+  column-major order.
+  </p>
+  <p>
+  A few people got 19d wrong. I think four unchecked cells in a seven-letter
+  word contributed to this, and will try harder to avoid that in the future.
+  </p>
+
+  <p><b>Results</b></p>
+  <p>I ran this puzzle as a fun contest on a few groups, towards the end of
+  October 2020. Here are the solvers, named in order. Thanks to the helpful
+  little wasp, nearly <i>every solver</i> got the answers to the two extra
+  questions ("Unlocker 1" and "Unlocker 2") right! The following is the
+  ordered list of solvers who got everything right, in order of submission
+  time.
+  <blockquote style="line-height:1.3;color:darkgreen">
+    Dumpy nose,&nbsp;
+    Samit Kallianpur,&nbsp;
+    spiffytrix ,&nbsp;
+    Trigon,&nbsp;
+    Debasmita,&nbsp;
+    Saki,&nbsp;
+    Himanshu,&nbsp;
+    Lakshmi Prakash,&nbsp;
+    sss,&nbsp;
+    With help from a friend,&nbsp;
+    K K Rao,&nbsp;
+    Suresh Dorbala,&nbsp;
+    Neha Bhandari,&nbsp;
+    Mona Sogal,&nbsp;
+    N. Rengaswamy,&nbsp;
+    Chris Lissman,&nbsp;
+    Ramki Krishnan,&nbsp;
+    JASR,&nbsp;
+    B,&nbsp;
+    Supriya Mithal,&nbsp;
+    R Nagendra Prasad,&nbsp;
+    Satyen Nabar,&nbsp;
+    Deepak Gopinath,&nbsp; and
+    Ramani.
+  </blockquote>
+  And here is the list of the rest of the solvers, sorted by
+  points (158 points for the grid and 10 each for the two unlockers) and then by
+  submission time.
+  <blockquote style="line-height:1.3;color:darkgreen">
+    Nilesh Parmar,&nbsp;
+    Tejas Siddharth,&nbsp;
+    nm,&nbsp;
+    HMS Cryptic,&nbsp;
+    Sandhya Paruchuri,&nbsp;
+    Dr Know,&nbsp;
+    LV,&nbsp;
+    Narayanan R,&nbsp;
+    Aashwina,&nbsp;
+    ?,&nbsp;
+    The Void,&nbsp;
+    Dr S Venkatesh,&nbsp;
+    Seshadri Rangarajan,&nbsp;
+    beingaunicorn,&nbsp;
+    R Nagendra Prasad,&nbsp; and
+    Chameleon.
+  </blockquote>
+  Many thanks to everyone for participating, and congratulations to
+  <b>Dumpy nose</b> (first place), <b>Samit Kallianpur</b> (second place),
+  and <b>spiffytrix</b> (third place)!
+  </p>
+  <p>Finally, here's a list of the comments and feedback that I received
+  (with a few responses from me). Many thanks to everyone who had a go!
+  <style>
+  #feedback li:not(:last-child) {
+    margin-bottom: 5px;
+  }
+  </style>
+  <ul id="feedback">
+
+  <li><b>Dumpy nose:</b> Absolutely  brilliant!</li>
+  <li><b>Samit kallianpur:</b> Awesome grid! thoroughly entertaining!</li>
+  <li><b>nm:</b> Nice one. The key and lock idea is interesting.</li>
+  <li><b>spiffytrix :</b> congrats on an excellent theme and mindblowing user interface...wish the clues were a bit more challenging though with more variety...enjoyed solving neverthless.</li>
+  <li><b>Trigon:</b> Good fun, especially the 'bug'!  Many thanks.</li>
+  <li><b>DEBASMITA:</b> Extremely intelligent! Enjoyed thoroughly. Timepass was cool, too. Played with it for some time :).</li>
+  <li><b>Saki:</b> Superb grid. And what a pleasure using Exolve.</li>
+  <li><b>Himanshu:</b> So creative, thoroughly enjoyed solving this.</li>
+  <li><b>HMS Cryptic:</b> Great clues and concept. Thoroughly enjoyed it. </li>
+  <li><b>Lakshmi Prakash:</b> Brilliant as usual. Deciphering the cryptogram was great fun.Looking forward to many more challenging grids in the future! </li>
+  <li><b>With help from a friend:</b> Absolutely brilliant. Loved every bit of this puzzle. </li>
+  <li><b>K K RAO:</b> Lovely grid. Experienced the same pleasure when I read Da Vinci code. </li>
+  <li><b>SURESH DORBALA:</b> Most enjoyable puzzle.</li>
+  <li><b>Neha Bhandari:</b> Wonderful grid. It was just the right level of difficulty for me - not too simple and adequately challenging. The "lock" and "key" clues added an additional element of fun!</li>
+  <li><b>Mona Sogal:</b> so many levels to this puzzle..and so satisfying. brilliantly conceptualised... and execution is sublime.<br>Loved Mr. Timepass :).</li>
+  <li><b>The Void:</b> Was a bit lost by the preamble. I worked out that lock clues had simple letter substitutions, &amp; I was able to work out what they all were. Only after solving the final key clue did I realise what they meant. CARACRISTI=CHARACTERISTIC minus HTEC? Can't parse DIET/POVERTY. Wrong? New=N, "quiet" &amp; "regularly" twice each. "used" x3. No big deal, but it's nice to avoid if possible. Ciao!
+    <p style="margin-left:2em;font-style:italic">
+      Setter's response:
+      I had been oblivious to my tendency to repeat words/phrases and to repeat words/phrases. Thanks for catching that! I'll try to look out for this in the future.
+    </p>
+  </li>
+  <li><b>sandhya paruchuri:</b> Mind-boggling puzzle!</li>
+  <li><b>N. Rengaswamy:</b> Lovely puzzle. Once you get the hang of it, it is easy to solve. I didn't look down the keys and locks  below the clues as I did not scroll below the SUBMIT button and I was breaking my head on how to proceed after solving the available clues. Wasted a day. </li>
+  <li><b>DR KNOW:</b> Absolutely brilliant, stayed awake till 2 am to solve it, didn't realise how time flew.</li>
+  <li><b>LV:</b> Lovely enjoyable puzzle. Thanks!</li>
+  <li><b>Narayanan R:</b> Very entertaining.</li>
+  <li><b>Nilesh Parmar:</b> Wonderful wonderful grid and lovely concept - trust Viresh to come up with such innovation as always.</li>
+  <li><b>Ramki Krishnan:</b> Very challenging puzzle, thanks. After solving and entering all the key clues I thought the lock clues would get revealed automatically but I still had to decrypt and solve them. Maybe I missed something?
+    <p style="margin-left:2em;font-style:italic">
+      Setter's response:
+      Unfortunately, you and a few other solvers got misled to this expectation (and some of you missed out on discovering how the letter substitutions are spelled out by the "key" clue solutions). Upon reading your comment, I made the following change in the puzzle preamble, hopefully setting expectations more realistically:<br><br>
+      Changed: Solving all the "key" clues should let you unlock all the "lock" clues.
+      <br><br>To: The solutions to all the "key" clues should help you unlock all the "lock" clues.
+    </p>
+  </li>
+  <li><b>JASR:</b> Amazing concept! I definitely think you have outdone youjself this time. Jeally fun puzzle and satisfying to solve. I'm still amazed at how you managed to incojpojate so many layejs into one puzzle.
+    <p style="margin-left:2em;font-style:italic">
+      Setter's response:
+      Thanks, I just went with the ____!<br><br>
+      With Flintoff in tow, get jun for JASR (4)
+    </p>
+  </li>
+  <li><b>Aashwina:</b> Superb grid ... layers within layers ...</li>
+  <li><b>B:</b> A very interesting puzzle and liked all the special effects.  Unlocking all the key clues however did not unscramble the locked clues, but being a simple substitution cipher, that wasn't a problem.  Many nice clues, faves being COMPLAINT, NON-EVENTS, MILKSOP. All clues technically sound and well constructed, though 15a seems to have a fodder issue with an N instead of S?</li>
+  <li><b>Supriya Mithal:</b> Another genius grid , with so many levels.Truly unique ,with wonderful clues and love the special effects.</li>
+  <li><b>R NAGENDRA PRASAD:</b> Nothing short of a magician's task... so near yet so far—for me.</li>
+  <li><b>R NAGENDRA PRASAD:</b> Magical illusive puzzle...I could decipher your coded lock clues ... Kudos to your acumen and perseverence.</li>
+  <li><b>Satyen Nabar:</b> Enjoyable. Loved the bugs. Thanks :).</li>
+  <li><b>RAMANI:</b> You have a super computer inside your head, Viresh.
+    <p style="margin-left:2em;font-style:italic">
+      Setter's response:
+      HELP ME!
+    </p>
+  </li>
+  <li><b>Dr S Venkatesh:</b> Excellent. Engages mind.</li>
+  <li><b>Seshadri Rangarajan:</b> Superb.</li>
+  <li><b>Tejas Siddharth:</b> A fun solve (: Nice ah-ha moments (:.</li>
+  <li><b>Chameleon:</b> I've made a start on this. There are some lovely clues including YUGOSLAVIA, GREEN ROOM and IMPASSIVE. I need to wrap my head around the instructions with the lock and key so will have to return for another look in the morning!</li>
+
+  </ul>
+  </p>
+
+  exolve-across:
+    3 Good army spirit (5) [GHOST] Def: spirit. G {good} HOST {army}.
+    11 No-frills Italian song about longing (9) [NOSTALGIA] Def: longing. ((-i)TALIA(-n) {no-frills} SONG)* {about}.
+    12 Unwrap a perverted, revealing publication (5) [PAPER] Def: publication. Hidden answer {... revealing}: (-unwra)P A PER(-verted).
+    13 It's an engineered material (5) [SATIN] Def: material. ITSAN* [engineered}.
+    14 Disorder of male evident in bed (9) [COMPLAINT] Def: Disorder. (M {male} PLAIN {evident}) in COT {bed}.
+    15 Yoga—valued in U.S.—is ill-used in this old country (10) [YUGOSLAVIA] Def: this old country. Composite anagram: (YOGA VALUED IN US IS) = (USED IN YOGOSLAVIA)* {ill ...}.
+    20 Swap timepass food? (4) [DIET] Def: food. T {time} after {swap ...} DIE {pass}.
+    23 Zero openings for failures (3-6) [NON-EVENTS] Def: failures. NONE {zero} VENTS {openings}.
+    26 Send message: "Well, I am effectively retiring, to some extent" (5) [EMAIL] Def: send message. Reversed {... retiring} hidden answer {... to some extent}: (-wel)L I AM E(-ffectively)<<.
+    28 Instruments regularly used in our blood tests (5) [OBOES] Def: instruments. Regular letters from {regularly used in ...} O(-u)(r) B(-l)(o)O(-d) (-t)E(-s)(-t)S.
+    29 When drunk, post lines without rhyme or reason (9) [POINTLESS] Def: without rhyme or reason. POSTLINES* {when drunk, ...}.
+    30 Grave reversal of club motto exposed (4) [TOMB] Def: Grave. Reversed {reversal of} hidden answer {... exposed}: (-clu)B MOT(-to)<<.
+  exolve-down:
+    2 Start running group (5) [ONSET] Def: Start. ON {running} SET {group}.
+    4 Stoned? A rich, spoiled brat's place to eat munchies is here! (9) [HIGHCHAIR] Def: brat's place to eat munchies is here. HIGH {stoned} ARICH* {... spoled}.
+    5 While cycling, to push ahead of leading man gives cramp (5) [SPASM] Def: cramp. SPAS {while cycling, PASS {to push ahead of}} M {leading man}.
+    7 This may enhance the impact of a recording of a politician, if caught by deception, right? (9) [AMPLIFIER] Def: this may enhance the impact of a recording. A MP {politician} + IF in {caught by} LIE {deception} + R {right}.
+    8 Defect in preparation of rice (lacking consistency) (7) [ERRATIC] Def: lacking consistency. RAT {defect, as verb} in RICE* {preparation of ...}.
+    9 Witch's in ragged clothing—revolting dress! (7) [GARNISH] Def: dress. Reversed {revolting} hidden answer {clothesing: (-witc)H S IN RAG(-ged)<<.
+    10 Toy pearl regularly displayed as a gemstone (4) [OPAL] Def: a gemstone. Regular letters from {... regularly displayed} (-t)O(-y) P(-e)A(-r)L.
+    16 Roger Moore, randomly rejecting or accepting new behind-the-scenes spot (9) [GREENROOM] Def: behind-the-scenes spot. (ROGERMO(-or {rejecting or})E)* {... randomly} around {accepting} N {new}.
+    17 No end to stalemate: Gussalufz's unmoved (9) [IMPASSIVE] Def: unmoved. IMPASS(-e {no end to ...}) {stalemate} IVE {Gussalufz's}.
+    19 Plainness of style extremely sexy when worn by model (7) [MODESTY] Def: Plainness. MODE {style} + S(-ex)Y {extremely ...} around {... when worn by ...} T {model}.
+    22 Man at the top—kind and very quiet—is one lacking courage (7) [MILKSOP] Def: one lacking courage. M {Man at the top} ILK {kind} SO {very} P {quiet}.
+    27 Happen to be new, for starters, at theatre (5) [ARENA] Def: theatre. ARE {happen to be} N {new} A(-t) {for startes, ...}.
+  exolve-nodir:
+    <span style="color:gray">You can jot down your solutions to "lock" and "key" clues in the blank underlined placeholder slots, until you are ready to place them in the grid. Clicking the button next to a placeholder slot will copy its letters into the highlighted light in the grid (if there is one). Additionally, above each "lock" clue, you have a scratch pad where you can try to unlock the clue.</span>
+    &nbsp;<br>
+    <div style="margin-left:2ch;padding-left:4px"><span contenteditable class="xlv-incluefill" spellcheck="false" style="color:dodgerblue" title="You can use this scrach pad to unlock the locked clue" id="locked-clue-1">Eivwcr is cxtrcacly wuffy vftcr slccw</span> <button class="xlv-small-button" style="font-weight:normal" onclick="document.getElementById('locked-clue-1').innerText='Eivwcr is cxtrcacly wuffy vftcr slccw'">Reset</button></div>
+    [&#128274;] Eivwcr is cxtrcacly wuffy vftcr slccw (one word) [25d] [NAPPY] 25D. The clue decrypts to: "Diaper is extremely puffy after sleep." Def: Diaper. P(-uff)Y {extremely} after NAP {sleep}.
+    <hr style="background:khaki;height:1px">
+    <div style="margin-left:2ch;padding-top:6px;padding-left:4px"><span contenteditable class="xlv-incluefill" spellcheck="false" style="color:dodgerblue" title="You can use this scrach pad to unlock the locked clue" id="locked-clue-2">Orecrce usce kcybovre</span> <button class="xlv-small-button" style="font-weight:normal" onclick="document.getElementById('locked-clue-2').innerText='Orecrce usce kcybovre'">Reset</button></div>
+    [&#128274;] Orecrce usce kcybovre (one word) [31a] [TYPED] 31A. The clue decrypts to: "Ordered used keyboard." Double def: {ordered} {used keyboard}.
+    <hr style="background:khaki;height:1px">
+    <div style="margin-left:2ch;padding-top:6px;padding-left:4px"><span contenteditable class="xlv-incluefill" spellcheck="false" style="color:dodgerblue" title="You can use this scrach pad to unlock the locked clue" id="locked-clue-3">Evnding acn in v wcn? Acrdy!</span> <button class="xlv-small-button" style="font-weight:normal" onclick="document.getElementById('locked-clue-3').innerText='Evnding acn in v wcn? Acrdy!'">Reset</button></div>
+    [&#128274;] Evnding acn in v wcn? Acrdy! (one word) [1d] [AMNESTY] 1D. The clue decrypts to: "Dancing men in a pen? Mercy!" Def: Mercy. MEN* {dancing} in A STY {pen}.
+    <hr style="background:khaki;height:1px">
+    <div style="margin-left:2ch;padding-top:6px;padding-left:4px"><span contenteditable class="xlv-incluefill" spellcheck="false" style="color:dodgerblue" title="You can use this scrach pad to unlock the locked clue" id="locked-clue-4">Right, ay drvw got eistributce vs this dluc wcrhvws!</span> <button class="xlv-small-button" style="font-weight:normal" onclick="document.getElementById('locked-clue-4').innerText='Right, ay drvw got eistributce vs this dluc wcrhvws!'">Reset</button></div>
+    [&#128274;] Right, ay drvw got eistributce vs this dluc wcrhvws! (one word) [21a] [CRYPTOGRAM] 21A. The clue decrypts to: "Right, my crap got distributed as this clue, perhaps!" Def: this clue, perhaps. (R MY CRAP GOT)* {... distributed}.
+    ---
+    [&#128273;] Permit playing the role of one arch-villain, upon return (one word) [24d] [VISA] (V&rarr;A). 24D. Def: Permit. AS {playing the role of} I {one} V {arch-V(-illain)} << {upon return}. 
+    [&#128273;] Pack of foreign cigarettes? Get it right out! (one word) [6a] [CASE] (C&rarr;E). 6A. Def: Pack. CIGARETTES* {foreign} -get -it -r {out}.
+    [&#128273;] This privileged American class of people used to be quiet (one word) [32a] [WASP] (W&rarr;P). 32A. Def: This privileged American class of people. WAS {used to be} P {quiet}.
+    [&#128273;] Dad took me regularly to this spot (one word) [1a] [ATOM] (A&rarr;M). 1A. Def: this spot. (-d)A(-d) T(-o)O(-k) M(-e) {regularly}.
+    [&#128273;] Eat at a restaurant due to rebuilding going around at home (two words) [20d] [DINE OUT] (E&rarr;D). 20D. Def: Eat at a restaurant. DUETO* {rebuilding} around {going around} IN {at home}.
+    [&#128273;] Record held by Dravid is crossed (one word) [18a] [DISC] (D&rarr;C). 18A. Def: Record. Hidden answer {held by}: (-dravid)D IS C(-rossed).
+  exolve-postscript:
+    <br>
+    <iframe style="width:100%;height:400px;border:none" src="index.html" title="Links to all puzzles by Gussalufz (and doppelgängers)"><a href="index.html">All puzzles by Gussalufz (and doppelgängers)</a></iframe>
+exolve-end
+======REPLACE WITH YOUR PUZZLE ABOVE======
+`;
+
+</script>
+
+</head>
+
+<body onload="createPuzzle()">
+</body>
+
+</html>
