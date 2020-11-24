@@ -34,6 +34,15 @@ td {
 nav * {
   margin: 0 20px;
 }
+
+#gussalufz-wizard {
+  position: absolute;
+  top: 0;
+  left:0;
+  width: 15%;
+  z-index: 1;
+  max-width: 200px;
+}
 </style>
 
 <script>
@@ -53,7 +62,7 @@ function shadeTable() {
 
 <body onload="shadeTable()">
 
-<img alt="Old, cross-looking man holding a grid-wand" width="200" src="gussalufz-wizard.png" style="position:absolute;top:0;left:0">
+<img id="gussalufz-wizard" alt="Old, cross-looking man holding a grid-wand" src="gussalufz-wizard.png">
 
 <center>
 <nav>
