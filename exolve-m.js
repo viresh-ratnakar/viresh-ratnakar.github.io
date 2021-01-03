@@ -3267,17 +3267,18 @@ Exolve.prototype.restoreState = function() {
       foundState = false;
     }
   }
-
-  let name = this.id + '=';
-  let ca = decodeURIComponent(document.cookie).split(';');
-  for (let i = 0; i < ca.length; i++) {
-    let c = ca[i].trim();
-    if (c.indexOf(name) == 0) {
-      foundState = this.parseState(c.substring(name.length, c.length));
-      if (foundState) {
-        this.log('Found saved state in cookie')
+  if (!foundState) {
+    let name = this.id + '=';
+    let ca = decodeURIComponent(document.cookie).split(';');
+    for (let i = 0; i < ca.length; i++) {
+      let c = ca[i].trim();
+      if (c.indexOf(name) == 0) {
+        foundState = this.parseState(c.substring(name.length, c.length));
+        if (foundState) {
+          this.log('Found saved state in cookie')
+        }
+        break
       }
-      break
     }
   }
   if (!foundState) {
