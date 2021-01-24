@@ -1,4 +1,9 @@
-/*
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<!--
 MIT License
 
 Copyright (c) 2019 Viresh Ratnakar
@@ -23,7 +28,35 @@ SOFTWARE.
 
 The latest code and documentation for Exolve can be found at:
 https://github.com/viresh-ratnakar/exolve
-*/
+-->
+
+<title>Exolve: An Easily Configurable Interactive Crossword Solver</title>
+
+<script>
+const puzzleText = `
+======REPLACE WITH YOUR PUZZLE BELOW======
+
+exolve-begin
+  exolve-id: some-unique-identifier
+  exolve-title: Quick 3x3 (replace with puzzle title)
+  exolve-setter: Gussalufz (replace with setter's pseudonym)
+  exolve-copyright: 2020 Copyright Holder(s) (delete or replace)
+  exolve-width: 3
+  exolve-height: 3
+  exolve-grid:
+    000
+    0.0
+    000
+  exolve-across:
+    1 Running with placement, essentially, for single (3)
+    3 Oddly fluent and entertaining (3)
+  exolve-down:
+    1 Retreating thief forgot to hide bananas (3)
+    2 One suffering for a long time (3)
+exolve-end
+
+======REPLACE WITH YOUR PUZZLE ABOVE======
+`;
 
 /**
  * The Exolve code creates only the following names at global scope:
@@ -5547,3 +5580,385 @@ function createExolve(puzzleText, containerId="",
 function createPuzzle() {
   createExolve(puzzleText, "");
 }
+</script>
+
+<style>
+@media (max-width: 500px) {
+  body {
+    margin: 4px;
+  }
+}
+
+.xlv-anno-text,
+.xlv-small-print,
+.xlv-status,
+.xlv-saving,
+.xlv-solution,
+.xlv-answer,
+.xlv-incluefill,
+.xlv-scratchpad,
+.xlv-shuffle {
+  font-size: 12px;
+  font-family: monospace;
+}
+.xlv-saving {
+  font-size: 10px;
+  font-family: monospace;
+}
+
+@media (max-width: 325px) {
+  .xlv-wide-box {
+    width: 100%;
+    max-width: 325px;
+  }
+  .xlv-curr-clue {
+    width: 100%;
+    max-width: 325px;
+  }
+  .xlv-clues-box {
+    width: 100%;
+    max-width: 325px;
+    margin: 0;
+  }
+  .xlv-button {
+    font-size: 9px;
+    padding: 4px;
+    border-radius: 4px;
+  }
+  .xlv-anno-text,
+  .xlv-small-print,
+  .xlv-status,
+  .xlv-saving,
+  .xlv-solution,
+  .xlv-answer,
+  .xlv-incluefill,
+  .xlv-scratchpad,
+  .xlv-shuffle {
+    font-size: 8px;
+  }
+  .xlv-saving {
+    font-size: 6px;
+  }
+}
+
+@media (min-width: 326px) and (max-width: 800px) {
+  .xlv-wide-box {
+    width: 100%;
+    max-width: 480px;
+  }
+  .xlv-curr-clue {
+    width: 100%;
+    max-width: 480px;
+  }
+  .xlv-clues-box {
+    width: 100%;
+    max-width: 480px;
+    margin: 0 0 4px 0;
+  }
+  .xlv-button {
+    font-size: 11px;
+    padding: 5px;
+    border-radius: 8px;
+  }
+}
+
+@media (min-width: 801px) {
+  .xlv-wide-box {
+    width: 480px;
+  }
+  .xlv-curr-clue {
+    width: 480px;
+  }
+  .xlv-clues-box {
+    width: 480px;
+    margin: 0 0 4px 12px;
+  }
+  .xlv-button {
+    font-size: 14px;
+    padding: 8px;
+    border-radius: 12px;
+  }
+}
+
+.xlv-cell {
+  cursor: pointer;
+}
+.xlv-cell-num {
+  font-family: sans-serif;
+}
+.xlv-cell-text {
+  font-family: sans-serif;
+  cursor: text;
+}
+.xlv-cell-circle {
+  fill: rgba(0,0,0,0.0);
+}
+.xlv-frame .xlv-clues table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+.xlv-frame .xlv-clues td {
+  padding: 4px 6px 0 0;
+  vertical-align: top;
+}
+.xlv-frame .xlv-clues td:first-child:not(.xlv-filler) {
+  max-width: 2ch;
+  box-sizing: content-box;
+  white-space: nowrap;
+  overflow: visible;
+  font-weight: bold;
+  text-align: right;
+}
+.xlv-clickable:hover {
+  cursor: pointer;
+}
+.xlv-flex-row {
+  display: flex;
+  flex-flow: row wrap;
+  align-items: flex-start;
+  justify-content: center;
+}
+.xlv-flex-col {
+  display: flex;
+  flex-flow: column wrap;
+  align-items: center;
+}
+.xlv-title {
+  text-align: center;
+  font-weight: bold;
+}
+.xlv-setter {
+  text-align: center;
+  margin: 0 0 8px 0;
+}
+.xlv-preamble {
+  margin: 8px 0;
+  padding: 0;
+}
+.xlv-small-print {
+  margin: 0 0 4px 0;
+}
+.xlv-small-print > * {
+  padding: 4px 4px 0 0;
+}
+.xlv-errors {
+  font-weight: bold;
+  color: red;
+}
+.xlv-curr-clue-parent {
+  width: 100%;
+  height: 40px;
+  position:relative;
+  margin: 8px 0;
+}
+.xlv-curr-clue-label {
+  margin: 0 0 0 4px;
+}
+.xlv-curr-clue {
+  position: absolute;
+  z-index: 2;
+  word-wrap: break-word;
+  font-weight: bold;
+  margin: 0;
+  padding: 2px;
+}
+.xlv-curr-orphan,
+.xlv-curr-clue-label {
+  display: inline;
+  padding: 0;
+  line-height: 0.8;
+}
+.xlv-nobr {
+  white-space: nowrap;
+}
+.xlv-grid-parent-centerer {
+  text-align: center;
+}
+.xlv-grid-parent {
+  position: relative;
+  display: inline-block;
+}
+.xlv-grid-input-wrapper {
+  position: absolute;
+  border: none;
+  border-width: 0;
+}
+.xlv-grid-input-rarr {
+  position: relative;
+  right: -40%;
+  top: -85%;
+}
+.xlv-grid-input-darr {
+  position: relative;
+  right: 0;
+  top: -40%;
+}
+.xlv-grid-input {
+  text-align: center;
+  text-anchor: middle;
+  border: none;
+  width: 100%;
+  height: 100%;
+  padding: 2px 0 0 0;
+  color: rgba(0,0,0,0.0);
+  background: rgba(0,0,0,0.0);
+  outline: none;
+}
+.xlv-controls-etc {
+  padding: 8px 0 6px 0;
+}
+.xlv-controls-row {
+  margin: 6px 0 6px 0;
+}
+.xlv-clues {
+  max-width: 984px;
+}
+.xlv-clues-box {
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+.xlv-clues-label {
+  font-weight: bold;
+  padding: 0 0 4px 0;
+}
+.xlv-explanations {
+  margin: 10px 0 0 0;
+}
+.xlv-frame hr {
+  margin: 0 0 4px 0;
+}
+.xlv-button {
+  border: none;
+  outline: none;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-family: monospace;
+}
+.xlv-button:hover {
+  cursor: pointer;
+}
+.xlv-button:disabled {
+  cursor: not-allowed;
+}
+.xlv-small-button {
+  border: 1px solid gray;
+  outline: none;
+  padding: 0 4px 2px 4px;
+  margin: 0 0 4px 0;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-family: monospace;
+  font-size: 13px;
+  font-weight: bold;
+}
+.xlv-small-button:hover {
+  cursor: pointer;
+}
+.xlv-nina-group {
+  position: absolute;
+  border: none;
+  border-width: 0;
+  outline: none;
+}
+.xlv-nina {
+  position: absolute;
+  border: none;
+  border-width: 0;
+  outline: none;
+  cursor: pointer;
+}
+.xlv-status {
+  margin: 6px 0 6px 0;
+}
+.xlv-saving {
+  color: gray;
+  margin: 0px 0 6px 0;
+}
+.xlv-solution {
+  font-weight: bold;
+}
+.xlv-question {
+  margin: 20px 0 20px 0;
+}
+.xlv-answer {
+  border: none;
+  padding: 0 0 6px 0;
+  outline: none;
+  background-image:
+    repeating-linear-gradient(to bottom, white, white 13px, black 14px);
+}
+.xlv-incluefill {
+  border: none;
+  padding: 0 0 2px 0px;
+  margin: 0 0 0 4px;
+  outline: none;
+  font-weight: bold;
+  border-bottom: solid 2px #c9c9c9;
+  background-color: inherit;
+}
+.xlv-storage-list {
+  outline: solid 1px gray;
+  margin: 6px 1px;
+  padding: 0;
+  max-height: 400px;
+  overflow: auto;
+}
+.xlv-storage-list table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%;
+}
+.xlv-storage-list tr {
+  border: solid 1px gray;
+}
+.xlv-scratchpad {
+  border: 1px solid black;
+  padding: 8px;
+  outline: none;
+}
+.xlv-shuffle {
+  cursor: pointer;
+}
+.xlv-postscript {
+  width: 100%;
+}
+.xlv-definition {
+  text-decoration: underline;
+  text-decoration-color: darkgreen;
+}
+.xlv-blue {
+  color: blue;
+}
+.xlv-red {
+  color: red;
+}
+.xlv-yellow-bg {
+  background-color: yellow;
+}
+.xlv-pink-bg {
+  background-color: pink;
+}
+@media print {
+  @page {
+    margin: 0.5in;
+  }
+  body {
+    zoom: 100%;
+  }
+  .xlv-controls-etc {
+    display: none;
+  }
+  .xlv-clues-box {
+    overflow-y: visible;
+  }
+}
+</style>
+</head>
+<body>
+<script>
+  createExolve(puzzleText);
+</script>
+</body>
+</html>
