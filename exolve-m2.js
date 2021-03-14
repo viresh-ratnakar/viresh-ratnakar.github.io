@@ -3143,6 +3143,8 @@ Exolve.prototype.computeGridSize = function(maxDim) {
   if (maxDim > 0 && maxDim < viewportDim) {
     viewportDim = maxDim
   }
+console.log('viewportDim: ' + viewportDim)
+console.log('gridWidth: ' + this.gridWidth)
   this.squareDim = 31
   if (this.gridWidth <= 30 &&  // For jumbo grids, give up.
       (this.squareDim + this.GRIDLINE) * this.gridWidth + this.GRIDLINE >
@@ -3150,6 +3152,7 @@ Exolve.prototype.computeGridSize = function(maxDim) {
     this.squareDim = Math.max(12,
       Math.floor((viewportDim - 8 - this.GRIDLINE) /
                  this.gridWidth) - this.GRIDLINE)
+console.log('lowered squaeDim: ' + this.squareDim)
   }
   this.squareDimBy2 = Math.floor((this.squareDim + 1) / 2)
   this.numberStartY = Math.floor(this.squareDim / 3)
@@ -3718,6 +3721,10 @@ Exolve.prototype.clueActivator = function(ci) {
 }
 
 Exolve.prototype.getViewportHeight = function() {
+  console.log('In iframe = ' + (window.location != window.parent.location))
+  console.log('window.innerHeight: ' + window.innerHeight)
+  console.log('document.documentElement.clientHeight: ' + document.documentElement.clientHeight)
+  console.log("document.getElementsByTagName('body')[0].clientHeight: " + document.getElementsByTagName('body')[0].clientHeight)
   return window.innerHeight && document.documentElement.clientHeight ?
       Math.min(window.innerHeight, document.documentElement.clientHeight) :
       window.innerHeight ||
