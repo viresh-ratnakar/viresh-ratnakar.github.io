@@ -3721,26 +3721,19 @@ Exolve.prototype.clueActivator = function(ci) {
 }
 
 Exolve.prototype.getViewportHeight = function() {
-  console.log('In iframe = ' + (window.location != window.parent.location))
-  console.log('window.innerHeight: ' + window.innerHeight)
-  console.log('document.documentElement.clientHeight: ' + document.documentElement.clientHeight)
-  console.log("document.getElementsByTagName('body')[0].clientHeight: " + document.getElementsByTagName('body')[0].clientHeight)
-  return window.innerHeight && document.documentElement.clientHeight ?
-      Math.min(window.innerHeight, document.documentElement.clientHeight) :
-      window.innerHeight ||
-      document.documentElement.clientHeight ||
+  // From an iframe do not rely on document.documentElement.clientHeight
+  const ch = (window.location != window.parent.location) ? 0 :
+      document.documentElement.clientHeight;
+  return window.innerHeight && ch ? Math.min(window.innerHeight, ch) :
+      window.innerHeight || ch ||
       document.getElementsByTagName('body')[0].clientHeight;
 }
 
 Exolve.prototype.getViewportWidth = function() {
-  console.log('In iframe = ' + (window.location != window.parent.location))
-  console.log('window.innerWidth: ' + window.innerWidth)
-  console.log('document.documentElement.clientWidth: ' + document.documentElement.clientWidth)
-  console.log("document.getElementsByTagName('body')[0].clientWidth: " + document.getElementsByTagName('body')[0].clientWidth)
-  return window.innerWidth && document.documentElement.clientWidth ?
-      Math.min(window.innerWidth, document.documentElement.clientWidth) :
-      window.innerWidth ||
-      document.documentElement.clientWidth ||
+  const cw = (window.location != window.parent.location) ? 0 :
+      document.documentElement.clientWidth;
+  return window.innerWidth && cw ? Math.min(window.innerWidth, cw) :
+      window.innerWidth || cw ||
       document.getElementsByTagName('body')[0].clientWidth;
 }
 
