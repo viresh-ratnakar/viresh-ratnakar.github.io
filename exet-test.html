@@ -150,6 +150,7 @@ Current version: v0.33 March 13 2021
   font-weight: normal;
   font-size: 14px;
   padding: 2px 2px 4px 2px;
+  border-top: 1px solid gray;
 }
 .xet-linking {
   position: absolute;
@@ -162,6 +163,32 @@ Current version: v0.33 March 13 2021
 }
 #xet-unlink {
   padding: 4px;
+}
+.xet-wysiwyg {
+  position: absolute;
+  z-index: 2;
+  top: -25px;
+  right: 0;
+  background-color: white;
+}
+.xet-wysiwyg:hover {
+  background-color: #F1F1F1;
+}
+#xet-xlv-frame .xet-wysiwyg .xet-wysiwyg-active {
+  background-color: lightgray;
+}
+.xet-wysiwyg .xlv-small-button {
+  padding: 2px 4px;
+  border: none;
+  font-weight: normal;
+}
+.xet-wysiwyg .xlv-small-button * {
+  color: gray;
+  text-decoration-thickness: 1px;
+}
+.xet-wysiwyg .xlv-small-button:hover * {
+  color: black;
+  text-decoration-thickness: 1.5px;
 }
 .xet-red {
   color: red;
@@ -1137,6 +1164,18 @@ function Exet() {
   this.DEFAULT_MINPOP = 85
   this.setMinPop(this.DEFAULT_MINPOP)
   this.DRAFT = '[DRAFT]'
+
+  // Element IDs in which we save cursor position
+  this.savedCursorPos = 0
+  this.savedCursorId = ''
+  this.savedCursorPath = []
+  this.saveCursorFor = {
+    'xet-clue': true,
+    'xet-anno': true,
+    'xet-title': true,
+    'xet-setter': true,
+    'xet-copyright': true,
+  }
 
   // Start in the Exet tab
   this.currTab = "exet"
@@ -3621,12 +3660,81 @@ Exet.prototype.setDraftToggler = function() {
   }
 }
 
+Exet.prototype.editWysiwyg = function(cmd) {
+  if (!cmd) return;
+  this.saveCursor()
+  const id = this.savedCursorId
+  if (id != 'xet-clue' && id != 'xet-anno') {
+    return
+  }
+  try {
+    document.execCommand('StyleWithCSS', false, false);
+    document.execCommand(cmd, false, null);
+    const e = document.getElementById(id)
+    if (e) e.focus()
+    this.setWysiwygActive()
+  } catch (err) {
+  }
+}
+
+Exet.prototype.setWysiwygActive = function() {
+  const bold = document.getElementById('xet-wysiwyg-bold')
+  bold.className = "xlv-small-button"
+  const italic = document.getElementById('xet-wysiwyg-italic')
+  italic.className = "xlv-small-button"
+  const underline = document.getElementById('xet-wysiwyg-underline')
+  underline.className = "xlv-small-button"
+  const strikethrough = document.getElementById('xet-wysiwyg-strikethrough')
+  strikethrough.className = "xlv-small-button"
+
+  let sel = window.getSelection();
+  if (!sel) {
+    return
+  }
+  let node = sel.focusNode
+  while (node && !node.id) {
+    node = node.parentNode
+  }
+  if (!node || (node.id != 'xet-clue' && node.id != 'xet-anno')) {
+    return
+  }
+  let activeWysiwygs = {}
+  const childElements = node.getElementsByTagName("*")
+  for (let x = 0; x < childElements.length; x++) {
+    if (!sel.containsNode(childElements[x], true)) {
+      continue
+    }
+    const name = childElements[x].nodeName.toLowerCase()
+    if (name == 'b' || name == 'strong') {
+      activeWysiwygs['bold'] = true
+    } else if (name == 'i' || name == 'em') {
+      activeWysiwygs['italic'] = true
+    } else if (name == 'u') {
+      activeWysiwygs['underline'] = true
+    } else if (name == 's' || name == 'strike') {
+      activeWysiwygs['strikethrough'] = true
+    }
+  }
+  if (activeWysiwygs['bold']) {
+    bold.className = "xlv-small-button xet-wysiwyg-active"
+  }
+  if (activeWysiwygs['italic']) {
+    italic.className = "xlv-small-button xet-wysiwyg-active"
+  }
+  if (activeWysiwygs['underline']) {
+    underline.className = "xlv-small-button xet-wysiwyg-active"
+  }
+  if (activeWysiwygs['strikethrough']) {
+    strikethrough.className = "xlv-small-button xet-wysiwyg-active"
+  }
+}
+
 Exet.prototype.makeClueEditable = function() {
   let theClue = this.currClue();
   if (!theClue) {
     return
   }
-  let currClueText = document.getElementById(
+  const currClueText = document.getElementById(
       `${exet.puz.prefix}-curr-clue-text`)
   currClueText.innerHTML = `<span class="xet-action">Edit clue: </span><span
     id="xet-clue-stat" class="xet-clue-stat"></span>
@@ -3635,8 +3743,9 @@ Exet.prototype.makeClueEditable = function() {
   // We make the raw clue text editable here, including any tags or
   // in-clue-anno markers (~{...}~).
   let xetClue = document.getElementById("xet-clue")
+  const clueHTML = this.cleanHTML(theClue.clue)
   xetClue.innerHTML = this.currClueIsDraft ?
-    theClue.clue.substr(this.DRAFT.length).trim() : theClue.clue
+    clueHTML.substr(this.DRAFT.length).trim() : clueHTML
   let handler = this.throttledClueChange.bind(this)
   xetClue.addEventListener('input', handler)
   this.setDraftToggler()
@@ -3646,23 +3755,27 @@ Exet.prototype.makeClueEditable = function() {
     exet.setDraftToggler()
     exet.handleClueChange()
   });
-  // Firefox does not support ctrl-B, ctrl-I, ctrl-U. Make
-  // alt-ctrl-{B,I,U} work across browsers.
-  const wysiwigger = e => {
-    if (!e.altKey || !e.ctrlKey) return;
-    cmd = '';
-    if (e.key == 'b' || e.key == 'B') cmd = 'bold';
-    else if (e.key == 'i' || e.key == 'I') cmd = 'italic';
-    else if (e.key == 'u' || e.key == 'U') cmd = 'underline';
-    else if (e.key == 's' || e.key == 'S') cmd = 'strikethrough';
-    if (!cmd) return;
-    try {
-      document.execCommand('StyleWithCSS', false, false);
-      document.execCommand(cmd, false, null);
-    } catch (err) {
-    }
-  };
-  xetClue.addEventListener('keyup', wysiwigger)
+
+  // Create the wysiwyg buttons
+  const currCluePanel = document.getElementById(
+      `${exet.puz.prefix}-curr-clue`)
+  const wysiwyg = document.createElement('div')
+  wysiwyg.className = 'xet-wysiwyg'
+  wysiwyg.innerHTML = `
+    <button class="xlv-small-button" id="xet-wysiwyg-bold"
+        title="Toggle bold format in currently selected clue/anno text"
+        onclick="exet.editWysiwyg('bold')"><b>B</b></button>
+    <button class="xlv-small-button" id="xet-wysiwyg-italic"
+        title="Toggle italic format in currently selected clue/anno text"
+        onclick="exet.editWysiwyg('italic')"><i>I</i></button>
+    <button class="xlv-small-button" id="xet-wysiwyg-underline"
+        title="Toggle underline in currently selected clue/anno text"
+        onclick="exet.editWysiwyg('underline')"><u>U</u></button>
+    <button class="xlv-small-button" id="xet-wysiwyg-strikethrough"
+        title="Toggle strikethrough in currently selected clue/anno text"
+        onclick="exet.editWysiwyg('strikethrough')"><s>S</s></button>
+  `
+  currCluePanel.insertAdjacentElement('beforeend', wysiwyg);
 
   let spacer = document.createElement('span')
   spacer.innerHTML = `<br><span class="xet-action">Edit
@@ -3673,10 +3786,9 @@ Exet.prototype.makeClueEditable = function() {
   inCurrAnno.className = 'xet-anno xet-editable'
   inCurrAnno.id = 'xet-anno'
   inCurrAnno.contentEditable = true
-  inCurrAnno.innerHTML = theClue.anno
+  inCurrAnno.innerHTML = this.cleanHTML(theClue.anno)
   this.puz.currClue.appendChild(inCurrAnno)
   inCurrAnno.addEventListener('input', handler)
-  inCurrAnno.addEventListener('keyup', wysiwigger)
 
   this.puz.currClue.insertAdjacentHTML('afterbegin', `
     <div id="xet-linking" class="xet-linking">
@@ -3707,6 +3819,14 @@ Exet.prototype.makeClueEditable = function() {
     e.stopPropagation()
   });
 
+  const wysiwygMarker = this.setWysiwygActive.bind(this)
+  xetClue.addEventListener('click', wysiwygMarker)
+  xetClue.addEventListener('keyup', wysiwygMarker)
+  xetClue.addEventListener('select', wysiwygMarker)
+  inCurrAnno.addEventListener('click', wysiwygMarker)
+  inCurrAnno.addEventListener('keyup', wysiwygMarker)
+  inCurrAnno.addEventListener('select', wysiwygMarker)
+
   this.puz.makeCurrClueVisible()
 }
 
@@ -3720,7 +3840,13 @@ Exet.prototype.throttledClueChange = function(e) {
   }, this.inputLagMS);
 }
 
+Exet.prototype.cleanHTML = function(html) {
+  html = html.replace(/&nbsp;/g, ' ');
+  return html.trim()
+}
+
 Exet.prototype.stripEnum = function(html) {
+  html = this.cleanHTML(html)
   const start = html.lastIndexOf('(');
   if (start < 0) return html;
   let ret = html.substr(0, start)
@@ -3732,7 +3858,8 @@ Exet.prototype.stripEnum = function(html) {
     if (c == ')') break;
     if (!enumRE.test(c)) retained += c
   }
-  return ret + retained + html.substr(end);
+  ret += retained + html.substr(end);
+  return this.cleanHTML(ret)
 }
 
 Exet.prototype.handleClueChange = function() {
@@ -3765,29 +3892,22 @@ Exet.prototype.handleClueChange = function() {
     return
   }
 
-  this.saveCursor()
-
   let expEnumLen = this.cellsOfClue(theClue).length
-  let clueHTML = currClueText.innerHTML.trim()
+  let clueHTML = currClueText.innerHTML
   let clueText = currClueText.innerText.trim()
   let oldEnum = ''
   let enumPos = theClue.clue.lastIndexOf('(')
   if (enumPos >= 0) {
     oldEnum = theClue.clue.substr(enumPos).trim()
   }
-  let clueHTMLSansEnum = clueHTML
+  let clueHTMLSansEnum = this.stripEnum(clueHTML)
   let newEnum = ''
   enumPos = clueText.lastIndexOf('(')
   if (enumPos >= 0) {
     let enumEnd = clueText.lastIndexOf(')')
     if (enumEnd < enumPos) enumEnd = enumPos
     newEnum = clueText.substring(enumPos, enumEnd + 1).trim()
-    clueHTMLSansEnum = this.stripEnum(clueHTML).trim()
-    const temp = clueHTMLSansEnum + ' ' + newEnum
-    if (temp != clueHTML) {
-      clueHTML = temp
-      currClueText.innerHTML = clueHTML
-    }
+    clueHTML = clueHTMLSansEnum + ' ' + newEnum
   }
   if (this.puz.parseEnum(newEnum).enumLen != expEnumLen) {
     if (expEnumLen > 0) {
@@ -3797,7 +3917,11 @@ Exet.prototype.handleClueChange = function() {
       newEnum = ''
       clueHTML = clueHTMLSansEnum
     }
+  }
+  if (currClueText.innerHTML != clueHTML) {
+    this.saveCursor()
     currClueText.innerHTML = clueHTML
+    this.restoreCursor()
   }
   if (this.currClueIsDraft) {
     clueHTML = this.DRAFT + ' ' + clueHTML
@@ -3807,13 +3931,16 @@ Exet.prototype.handleClueChange = function() {
   theClue.clue = clueHTML
   this.puz.parseInClueAnnos(theClue)
 
-  theClue.anno = currClueAnno.innerHTML
+  theClue.anno = this.cleanHTML(currClueAnno.innerHTML)
+  if (theClue.anno != currClueAnno.innerHTML) {
+    this.saveCursor()
+    currClueAnno.innerHTML = theClue.anno
+    this.restoreCursor()
+  }
   theClue.annoSpan.lastElementChild.innerHTML = theClue.anno
   this.renderClue(theClue)
 
   this.puz.makeCurrClueVisible()
-
-  this.restoreCursor()
 
   if (oldEnum != newEnum) {
     if (this.handleGridInput()) {
@@ -4980,34 +5107,60 @@ Exet.prototype.clearAll = function() {
 }
 
 Exet.prototype.saveCursor = function() {
-  this.savedCaretPos = 0
-  this.savedCaretPosId = ''
+  this.savedCursorPos = 0
+  this.savedCursorId = ''
+  this.savedCursorPath = []
   let sel = window.getSelection();
   if (!sel) {
     return
   }
   if (sel.rangeCount) {
     let range = sel.getRangeAt(0);
-    parentNode = range.commonAncestorContainer.parentNode
-    if (parentNode) {
-      this.savedCaretPosId = parentNode.id
-      this.savedCaretPos = range.endOffset
+    let thisNode = range.endContainer
+    while (thisNode && !thisNode.id && thisNode.parentNode) {
+      const idx = Array.from(thisNode.parentNode.childNodes).indexOf(thisNode)
+      this.savedCursorPath.push(idx)
+      thisNode = thisNode.parentNode
     }
+    if (!thisNode || !thisNode.id ||  !this.saveCursorFor[thisNode.id]) {
+      this.savedCursorPath = []
+      return
+    }
+    this.savedCursorId = thisNode.id
+    this.savedCursorPos = range.endOffset
   }
 }
 
 Exet.prototype.restoreCursor = function() {
-  if (this.savedCaretPosId) {
-    const elt = document.getElementById(this.savedCaretPosId)
-    if (elt && elt.firstChild) {
+  if (this.savedCursorId) {
+    const elt = document.getElementById(this.savedCursorId)
+    let node = elt
+    let pos = this.savedCursorPos
+    let x = this.savedCursorPath.length - 1
+    while (x >= 0 && node && node.childNodes.length > 0) {
+      idx = this.savedCursorPath[x]
+      if (idx >= node.childNodes.length) {
+        node = node.childNodes[node.childNodes.length - 1]
+        pos = node.length || 0
+        break
+      }
+      node = node.childNodes[idx]
+      x--
+    }
+    if (node) {
+      elt.focus()
+      const limit = node.length || 0
+      if (pos > limit) pos = limit
       try {
-        window.getSelection().collapse(elt.firstChild, this.savedCaretPos)
+        window.getSelection().collapse(node, pos)
+        this.setWysiwygActive()
       } catch (err) {
       }
     }
   }
-  this.savedCaretPos = 0
-  this.savedCaretPosId = ''
+  this.savedCursorPos = 0
+  this.savedCursorId = ''
+  this.savedCursorPath = []
 }
 
 Exet.prototype.updatePuzzle = function(revType=0) {
@@ -5029,7 +5182,6 @@ Exet.prototype.updatePuzzle = function(revType=0) {
   this.puz.currRow = row
   this.puz.currCol = col
   this.puz.scratchPad.value = scratch
-  this.restoreCursor()
   if (this.puz.currCellIsValid()) {
     if (this.puz.grid[row][col].isLight) {
       this.puz.activateCell(row, col)
@@ -5037,6 +5189,7 @@ Exet.prototype.updatePuzzle = function(revType=0) {
       this.navDarkness(row, col)
     }
   }
+  this.restoreCursor()
   if (revType > 0) {
     exetRevManager.throttledSaveRev(revType)
   }
