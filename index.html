@@ -14,16 +14,24 @@
 body {
   font-family: monospace;
 }
+.two-columns {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+}
 .puzlist {
   box-sizing: border-box;
   max-height: 400px;
   overflow-y: auto;
-  width: 100%;
 }
 table {
   border-collapse: collapse;
   border-spacing: 0;
   max-width: 1000px;
+}
+.table-heading {
+  color: white;
+  background-color: #888888;
 }
 td {
   padding: 10px;
@@ -35,7 +43,8 @@ td {
   font-weight: bold;
 }
 .puzdetails {
-  font-size: x-small;
+  font-weight: normal;
+  font-size: small;
 }
 nav * {
   margin: 0 20px;
@@ -50,7 +59,7 @@ nav * {
   left:0;
   width: 15%;
   z-index: 1;
-  max-width: 200px;
+  max-width: 180px;
 }
 </style>
 
@@ -59,6 +68,7 @@ function shadeTable() {
   let trs = document.getElementsByTagName('TR')
   let parity = 0
   for (tr of trs) {
+    if (tr.className == "table-heading") continue;
     if (parity == 0) {
       tr.style.background = 'gainsboro'
     }
@@ -127,338 +137,219 @@ exolve-end
 <br>
 
 <a name="thc-crosswords"></a>
+<div class="two-columns">
+
 <div class="puzlist">
+
 <table>
 
         <!-- ------------------------- -->
-<tr>
-<td colspan="4">
+<tr class="table-heading">
+<td>
 <h3>The Hindu Cryptic (THC) crosswords by Gussalufz</h3>
 </td>
 </tr>
 
         <!-- ------------------------- -->
 <tr>
-<td>
-THC-03-2021
-</td>
-<td>
-May 2021
-</td>
 <td class="puztitle">
-<a href="https://crossword.thehindu.com/crossword/hindu-cryptic">THC #13242 (subscription needed)</a>
+<a href="https://crossword.thehindu.com/crossword/hindu-cryptic">THC #13242: May 8, 2021 (subscription needed)</a>
 <br/>
 <br/>
-</td>
-<td class="puzdetails">
+<div class="puzdetails">
 "Visitor" in many clues...
-<br/>
-<br/>
-The Hindu Cryptic #13242, May 8, 2021. Ninas, theme.
+</div>
 </td>
 </tr>
         <!-- ------------------------- -->
 <tr>
-<td>
-THC-02-2021
-</td>
-<td>
-April 2021
-</td>
 <td class="puztitle">
-<a href="https://crossword.thehindu.com/crossword/hindu-cryptic">THC #13221 (subscription needed)</a>
+<a href="https://crossword.thehindu.com/crossword/hindu-cryptic">THC #13221: April 14, 2021 (subscription needed)</a>
 <br/>
 <br/>
-</td>
-<td class="puzdetails">
+<div class="puzdetails">
 A hidden drawer!
-<br/>
-<br/>
-The Hindu Cryptic #13221, April 14, 2021. Ninas, theme.
+</div>
 </td>
 </tr>
         <!-- ------------------------- -->
 <tr>
-<td>
-THC-12-2020
-</td>
-<td>
-March 2021
-</td>
 <td class="puztitle">
-<a href="https://crossword.thehindu.com/crossword/hindu-cryptic">THC #13199 (subscription needed)</a>
+<a href="https://crossword.thehindu.com/crossword/hindu-cryptic">THC #13199: March 19, 2021 (subscription needed)</a>
 <br/>
 <br/>
-</td>
-<td class="puzdetails">
+<div class="puzdetails">
 Is there a running theme?
-<br/>
-<br/>
-The Hindu Cryptic #13199, March 19, 2021. Ninas, theme.
+</div>
 </td>
 </tr>
         <!-- ------------------------- -->
 <tr>
-<td>
-THC-11-2020
-</td>
-<td>
-February 2021
-</td>
 <td class="puztitle">
-<a href="https://crossword.thehindu.com/crossword/hindu-cryptic">THC #13172 (subscription needed)</a>
+<a href="https://crossword.thehindu.com/crossword/hindu-cryptic">THC #13172: February 16, 2021 (subscription needed)</a>
 <br/>
 <br/>
-</td>
-<td class="puzdetails">
+<div class="puzdetails">
 Hacky...
-<br/>
-<br/>
-The Hindu Cryptic #13172, February 16, 2021. Ninas, theme(s).
+</div>
 </td>
 </tr>
         <!-- ------------------------- -->
 <tr>
-<td>
-THC-01-2021
-</td>
-<td>
-January 2021
-</td>
 <td class="puztitle">
-<a href="https://crossword.thehindu.com/crossword/hindu-cryptic">THC #13147 (subscription needed)</a>
+<a href="https://crossword.thehindu.com/crossword/hindu-cryptic">THC #13147: January 18, 2021 (subscription needed)</a>
 <br/>
 <br/>
-</td>
-<td class="puzdetails">
+<div class="puzdetails">
 भौतिक विज्ञान
-<br/>
-<br/>
-The Hindu Cryptic #13147, January 18, 2021. Ninas, theme(s).
+</div>
 </td>
 </tr>
         <!-- ------------------------- -->
 <tr>
-<td>
-THC-10-2020
-</td>
-<td>
-December 2020
-</td>
 <td class="puztitle">
-<a href="https://crossword.thehindu.com/crossword/hindu-cryptic">THC #13120 (subscription needed)</a>
+<a href="https://crossword.thehindu.com/crossword/hindu-cryptic">THC #13120: December 16, 2020 (subscription needed)</a>
 <br/>
 <br/>
-</td>
-<td class="puzdetails">
+<div class="puzdetails">
 Good for the constitution.
-<br/>
-<br/>
-The Hindu Cryptic #13120, December 16, 2020. Nina, pangram.
+</div>
 </td>
 </tr>
         <!-- ------------------------- -->
 <tr>
-<td>
-THC-09-2020
-</td>
-<td>
-November 2020
-</td>
 <td class="puztitle">
-<a href="https://crossword.thehindu.com/crossword/hindu-cryptic">THC #13094 (subscription needed)</a>
+<a href="https://crossword.thehindu.com/crossword/hindu-cryptic">THC #13094: November 16, 2020 (subscription needed)</a>
 <br/>
 <br/>
-</td>
-<td class="puzdetails">
+<div class="puzdetails">
 Guru aani guruche ...
-<br/>
-<br/>
-The Hindu Cryptic #13094, November 16, 2020. Theme, nina.
+</div>
 </td>
 </tr>
         <!-- ------------------------- -->
 <tr>
-<td>
-THC-08-2020
-</td>
-<td>
-October 2020
-</td>
 <td class="puztitle">
-<a href="https://crossword.thehindu.com/crossword/hindu-cryptic">THC #13072 (subscription needed)</a>
+<a href="https://crossword.thehindu.com/crossword/hindu-cryptic">THC #13072: October 21, 2020 (subscription needed)</a>
 <br/>
 <br/>
-</td>
-<td class="puzdetails">
+<div class="puzdetails">
 Garam!
-<br/>
-<br/>
-The Hindu Cryptic #13072, October 21, 2020. Theme, nina.
+</div>
 </td>
 </tr>
         <!-- ------------------------- -->
 <tr>
-<td>
-THC-07-2020
-</td>
-<td>
-September 2020
-</td>
 <td class="puztitle">
-<a href="https://crossword.thehindu.com/crossword/hindu-cryptic">THC #13044 (subscription needed)</a>
+<a href="https://crossword.thehindu.com/crossword/hindu-cryptic">THC #13044: September 18, 2020 (subscription needed)</a>
 <br/>
 <br/>
-</td>
-<td class="puzdetails">
+<div class="puzdetails">
 Dr. Who?
-<br/>
-<br/>
-The Hindu Cryptic #13044, September 18, 2020. Theme, nina.
+</div>
 </td>
 </tr>
         <!-- ------------------------- -->
 <tr>
-<td>
-THC-06-2020
-</td>
-<td>
-August 2020
-</td>
 <td class="puztitle">
-<a href="https://crossword.thehindu.com/crossword/hindu-cryptic">THC #13013 (subscription needed)</a>
+<a href="https://crossword.thehindu.com/crossword/hindu-cryptic">THC #13013: August 13, 2020 (subscription needed)</a>
 <br/>
 <br/>
-</td>
-<td class="puzdetails">
+<div class="puzdetails">
 #13013 on August 13: lots of 13s in there, Ghalib!
-<br/>
-<br/>
-The Hindu Cryptic #13013, August 13, 2020. Theme, nina, pangram.
-</td>
-</tr>
-        <!-- ------------------------- -->
-<tr>
-<td>
-THC-05-2020
-</td>
-<td>
-July 2020
-</td>
-<td class="puztitle">
-<a href="https://crossword.thehindu.com/crossword/hindu-cryptic">THC #12983 (subscription needed)</a>
-<br/>
-<br/>
-</td>
-<td class="puzdetails">
-quaquaquaqua
-<br/>
-<br/>
-The Hindu Cryptic #12983, July 9, 2020. Theme, nina.
-</td>
-</tr>
-        <!-- ------------------------- -->
-<tr>
-<td>
-THC-04-2020
-</td>
-<td>
-June 2020
-</td>
-<td class="puztitle">
-<a href="https://crossword.thehindu.com/crossword/hindu-cryptic">THC #12950 (subscription needed)</a>
-<br/>
-<br/>
-</td>
-<td class="puzdetails">
-What connects Bela and Diana?
-<br/>
-<br/>
-The Hindu Cryptic #12950, June 1, 2020. Theme, nina.
-</td>
-</tr>
-        <!-- ------------------------- -->
-<tr>
-<td>
-THC-03-2020
-</td>
-<td>
-April 2020
-</td>
-<td class="puztitle">
-<a href="https://crossword.thehindu.com/crossword/hindu-cryptic">THC #12917 (subscription needed)</a>
-<br/>
-<br/>
-</td>
-<td class="puzdetails">
-Who is Carwardine?
-<br/>
-<br/>
-The Hindu Cryptic #12917, April 23, 2020. Theme, nina.
-</td>
-</tr>
-        <!-- ------------------------- -->
-<tr>
-<td>
-THC-02-2020
-</td>
-<td>
-March 2020
-</td>
-<td class="puztitle">
-<a href="https://crossword.thehindu.com/crossword/hindu-cryptic">THC #12884 (subscription needed)</a>
-<br/>
-<br/>
-</td>
-<td class="puzdetails">
-I protest!
-<br/>
-<br/>
-The Hindu Cryptic #12884, March 16, 2020. Theme, nina.
-</td>
-</tr>
-        <!-- ------------------------- -->
-<tr>
-<td>
-THC-01-2020
-</td>
-<td>
-February 2020
-</td>
-<td class="puztitle">
-<a href="https://crossword.thehindu.com/crossword/hindu-cryptic">THC #12852 (subscription needed)</a>
-<br/>
-<br/>
-</td>
-<td class="puzdetails">
-Thoda khao, ...
-<br/>
-<br/>
-The Hindu Cryptic #12852, Feb 7, 2020. Theme, nina.
-</td>
-</tr>
-        <!-- ------------------------- -->
-<tr>
-<td>
-THC-12-2019
-</td>
-<td>
-December 2019
-</td>
-<td class="puztitle">
-<a href="https://crossword.thehindu.com/crossword/hindu-cryptic">THC #12820 (subscription needed)</a>
-<br/>
-<br/>
-</td>
-<td class="puzdetails">
-Ancient Greek's right...
-<br/>
-<br/>
-My debut as a setter for The Hindu Cryptic (#12820 on Dec 31, 2019).
+</div>
 </td>
 </tr>
 
 </table>
+</div>
+
+<div class="puzlist">
+<table>
+
+        <!-- ------------------------- -->
+<tr class="table-heading">
+<td>
+<h3>Archive: Interactive versions of older THC crosswords by Gussalufz</h3>
+Here, I release interactive versions of my THC puzzles that were
+published 4+ months back. Each puzzle includes revealable/checkable solutions
+and annotations. All puzzles include some notes by me, so be sure to
+click on "Reveal all!" after solving.
+</td>
+</tr>
+
+        <!-- ------------------------- -->
+<tr>
+<td class="puztitle">
+<a href="thc/gussalufz-thc-05-2020-grid-2-29-clues-solved.html">THC #12983: July 9, 2020</a>
+<br/>
+<br/>
+<div class="puzdetails">
+quaquaquaqua
+</div>
+</td>
+</tr>
+        <!-- ------------------------- -->
+<tr>
+<td class="puztitle">
+<a href="thc/gussalufz-thc-04-2020-grid-1-32-clues-solved.html">THC #12950: June 1, 2020</a>
+<br/>
+<br/>
+<div class="puzdetails">
+What connects Bela and Diana?
+</div>
+</td>
+</tr>
+        <!-- ------------------------- -->
+<tr>
+<td class="puztitle">
+<a href="thc/gussalufz-thc-03-2020-grid-4-32-clues-solved.html">THC #12917: April 23, 2020</a>
+<br/>
+<br/>
+<div class="puzdetails">
+Who is Carwardine?
+</div>
+</td>
+</tr>
+        <!-- ------------------------- -->
+<tr>
+<td class="puztitle">
+<a href="thc/gussalufz-thc-02-2020-grid-3-34-clues-solved.html">THC #12884: March 16, 2020</a>
+<br/>
+<br/>
+<div class="puzdetails">
+I protest!
+</div>
+</td>
+</tr>
+        <!-- ------------------------- -->
+<tr>
+<td class="puztitle">
+<a href="thc/gussalufz-thc-01-2020-grid-2-29-clues-solved.html">THC #12852: February 7, 2020</a>
+<br/>
+<br/>
+<div class="puzdetails">
+Thoda khao, ...
+</div>
+</td>
+</tr>
+        <!-- ------------------------- -->
+<tr>
+<td class="puztitle">
+<a href="thc/gussalufz-thc-12-2019-grid-1-32-clues-solved.html">THC #12820: December 31, 2020</a>
+<br/>
+<br/>
+<div class="puzdetails">
+Ancient Greek's right...
+<br/>
+My debut as a setter for The Hindu Cryptic, with their last crossword of the millennium.
+</div>
+</td>
+</tr>
+
+</table>
+</div>
+
 </div>
 
 <br>
@@ -469,9 +360,11 @@ My debut as a setter for The Hindu Cryptic (#12820 on Dec 31, 2019).
 <table>
 
         <!-- ------------------------- -->
-<tr>
-<td colspan="4">
+<tr class="table-heading">
+<td colspan="2">
 <h3>Other cryptic crosswords by Gussalufz (and doppelgängers, and friends!)</h3>
+Each puzzle is intereactively solvable. Several puzzles have special effects.
+Please click on "Reveal all!" after solving, to see my notes.
 </td>
 </tr>
 
@@ -479,470 +372,427 @@ My debut as a setter for The Hindu Cryptic (#12820 on Dec 31, 2019).
 <tr>
 <td>
 ixl-09-2020
-</td>
-<td>
+<br>
+<br/>
 November 2020
 </td>
 <td class="puztitle">
-<a href="gussalufz-ixl-09-2020-unsolved.html">IXL 2020 City Round</a>
+<a href="gussalufz-ixl-09-2020-solved.html">IXL 2020 City Round</a>
 <br/>
 <br/>
-<a href="gussalufz-ixl-09-2020-solved.html">IXL 2020 City Round (with solutions)</a>
-</td>
-<td class="puzdetails">
+<div class="puzdetails">
 Encouraging words...
 <br/>
 <br/>
 I was the anonymous setter for this IXL 2020 crossword.
+</div>
 </td>
 </tr>
         <!-- ------------------------- -->
 <tr>
 <td>
 20
-</td>
-<td>
+<br>
+<br/>
 October 2020
 </td>
 <td class="puztitle">
-<a href="gussalufz-20-unsolved.html">Unlock and find a bug</a>
+<a href="gussalufz-20-solved.html">Unlock and find a bug</a>
 <br/>
 <br/>
-<a href="gussalufz-20-solved.html">Unlock and find a bug (with solutions)</a>
-</td>
-<td class="puzdetails">
+<div class="puzdetails">
 Elementary, etc.
 <br/>
 <br/>
 I ran this as another fun competition across a few online groups. Solvers'
 comments can be seen after clicking on "Reveal All" in the solved version.
+</div>
 </td>
 </tr>
         <!-- ------------------------- -->
 <tr>
 <td>
 By Ribelle &amp; Gussalufz
-</td>
-<td>
+<br>
+<br/>
 September 2020
 </td>
 <td class="puztitle">
-<a href="ribelle-gussalufz-1-unsolved.html">Chain Letters</a>
+<a href="ribelle-gussalufz-1-solved.html">Chain Letters</a>
 <br/>
 <br/>
-<a href="ribelle-gussalufz-1-solved.html">Chain Letters (with solutions)</a>
-</td>
-<td class="puzdetails">
+<div class="puzdetails">
 A puzzle jointly created with <a href="https://twitter.com/FatenIsmail2">Faten Ismail</a>,
 a brilliant and natural setter.
 <br/>
 <br/>
 We ran this as a fun competition across a few online groups. Solvers' comments
 can be seen after clicking on "Reveal All" in the solved version.
+</div>
 </td>
 </tr>
         <!-- ------------------------- -->
 <tr>
 <td>
 21
-</td>
-<td>
+<br>
+<br/>
 July 2020
 </td>
 <td class="puztitle">
-<a href="gussalufz-21-unsolved.html">Last Solo</a>
+<a href="gussalufz-21-solved.html">Last Solo</a>
 <br/>
 <br/>
-<a href="gussalufz-21-solved.html">Last Solo (with solutions)</a>
-</td>
-<td class="puzdetails">
+<div class="puzdetails">
 Is shahar mein...
 <br/>
 <br/>
 <a href="https://www.losaltosonline.com/news/sections/community/177-features/62809-cryptic-crossword">In the <i>Los Altos Town Crier</i></a>
+</div>
 </td>
 </tr>
         <!-- ------------------------- -->
 <tr>
 <td>
 19
-</td>
-<td>
+<br>
+<br>
 May 2020
 </td>
 <td class="puztitle">
-<a href="gussalufz-19-unsolved.html">Wormholes</a>
+<a href="gussalufz-19-solved.html">Wormholes</a>
 <br/>
 <br/>
-<a href="gussalufz-19-solved.html">Wormholes (with solutions)</a>
-</td>
-<td class="puzdetails">
+<div class="puzdetails">
 Travellers...
 <br/>
 <br/>
 <a href="http://www.1across.org/2020/WH.html">
 In the 1ACross blog</a>
+</div>
 </td>
 </tr>
         <!-- ------------------------- -->
 <tr>
 <td>
 18
-</td>
-<td>
+<br>
+<br>
 February 2020
 </td>
 <td class="puztitle">
-<a href="gussalufz-18-unsolved.html">Bar Bar Dekko</a>
+<a href="gussalufz-18-solved.html">Bar Bar Dekko</a>
 <br/>
 <br/>
-<a href="gussalufz-18-solved.html">Bar Bar Dekko (with solutions)</a>
-</td>
-<td class="puzdetails">
+<div class="puzdetails">
 Reading between lines?
 <br/>
 <br/>
 <a href="http://www.1across.org/2020/02/02/bar-bar-dekko/">
 In the 1ACross blog</a>
+</div>
 </td>
 </tr>
         <!-- ------------------------- -->
 <tr>
 <td>
 15
-</td>
-<td>
+<br>
+<br>
 December 2019
 </td>
 <td class="puztitle">
-<a href="gussalufz-15-unsolved.html">Al's Trick</a>
+<a href="gussalufz-15-solved.html">Al's Trick</a>
 <br/>
 <br/>
-<a href="gussalufz-15-solved.html">Al's Trick (with solutions)</a>
-</td>
-<td class="puzdetails">
+<div class="puzdetails">
 Who is Al and what's his trick?
 <br/>
 <br/>
 <a href="http://www.1across.org/2019/11/03/als-trick/">
 In the 1ACross blog</a>
+</div>
 </td>
 </tr>
         <!-- ------------------------- -->
 <tr>
 <td>
 17
-</td>
-<td>
+<br>
+<br>
 July 2019
 </td>
 <td class="puztitle">
-<a href="gussalufz-17-unsolved.html">Puzzling Times</a>
+<a href="gussalufz-17-solved.html">Puzzling Times</a>
 <br/>
 <br/>
-<a href="gussalufz-17-solved.html">Puzzling Times (with solutions)</a>
-</td>
-<td class="puzdetails">
+<div class="puzdetails">
 Sometimes...!
 <br/>
 <br/>
 In the book
 <i><a href="http://www.1across.org/book/cc2/">Cryptic Crossroads Volume 2</a></i>
+</div>
 </td>
 </tr>
         <!-- ------------------------- -->
 <tr>
 <td>
 16
-</td>
-<td>
+<br>
+<br>
 July 2019
 </td>
 <td class="puztitle">
-<a href="gussalufz-16-unsolved.html">Untitled Crossword</a>
+<a href="gussalufz-16-solved.html">Untitled Crossword</a>
 <br/>
 <br/>
-<a href="gussalufz-16-solved.html">Untitled Crossword (with solutions)</a>
-</td>
-<td class="puzdetails">
+<div class="puzdetails">
 Ninas foreshadow Exolve!
 <br/>
 <br/>
-<a href="https://thehinducrosswordcorner.blogspot.com/2019/07/special-sunday-07-jul-2019-gussalufz.html">
-In THCC
-</a>
+<a href="https://thehinducrosswordcorner.blogspot.com/2019/07/special-sunday-07-jul-2019-gussalufz.html">In THCC</a>
+</div>
 </td>
 </tr>
         <!-- ------------------------- -->
 <tr>
 <td>
 14
-</td>
-<td>
+<br>
+<br>
 June 2019
 </td>
 <td class="puztitle">
-<a href="gussalufz-14-unsolved.html">Putting Two And Two Together</a>
+<a href="gussalufz-14-solved.html">Putting Two And Two Together</a>
 <br/>
 <br/>
-<a href="gussalufz-14-solved.html">Putting Two And Two Together (with solutions)</a>
-</td>
-<td class="puzdetails">
+<div class="puzdetails">
 Partly diagramless; metas probably my best.
 <br/>
 <br/>
-<a href="http://www.1across.org/2019/06/30/putting-two-and-two-together/">
-In the 1ACross blog
-</a>
+<a href="http://www.1across.org/2019/06/30/putting-two-and-two-together/">In the 1ACross blog</a>
+</div>
 </td>
 </tr>
         <!-- ------------------------- -->
 <tr>
 <td>
 13
-</td>
-<td>
+<br>
+<br>
 May 2019
 </td>
 <td class="puztitle">
-<a href="gussalufz-13-unsolved.html">Cursory Appearances</a>
+<a href="gussalufz-13-solved.html">Cursory Appearances</a>
 <br/>
 <br/>
-<a href="gussalufz-13-solved.html">Cursory Appearances (with solutions)</a>
-</td>
-<td class="puzdetails">
+<div class="puzdetails">
 Why is "squinting" part of the instructions?
 <br/>
 <br/>
-<a href="http://www.1across.org/2019/04/17/cursory-appearances/">
-In the 1ACross blog
-</a>
+<a href="http://www.1across.org/2019/04/17/cursory-appearances/">In the 1ACross blog</a>
+</div>
 </td>
 </tr>
         <!-- ------------------------- -->
 <tr>
 <td>
 12
-</td>
-<td>
+<br>
+<br>
 January 2019
 </td>
 <td class="puztitle">
-<a href="gussalufz-12-unsolved.html">Fifteen Puzzles</a>
+<a href="gussalufz-12-solved.html">Fifteen Puzzles</a>
 <br/>
 <br/>
-<a href="gussalufz-12-solved.html">Fifteen Puzzles (with solutions)</a>
-</td>
-<td class="puzdetails">
+<div class="puzdetails">
 What is a fifteen puzzle?
 <br/>
 <br/>
-<a href="http://www.1across.org/2019/01/20/fifteen-puzzles/">
-In the 1ACross blog
-</a>
+<a href="http://www.1across.org/2019/01/20/fifteen-puzzles/">In the 1ACross blog</a>
+</div>
 </td>
 </tr>
         <!-- ------------------------- -->
 <tr>
 <td>
 11
-</td>
-<td>
+<br>
+<br>
 December 2018
 </td>
 <td class="puztitle">
-<a href="gussalufz-11-unsolved.html">Missing Instructions</a>
+<a href="gussalufz-11-solved.html">Missing Instructions</a>
 <br/>
 <br/>
-<a href="gussalufz-11-solved.html">Missing Instructions (with solutions)</a>
-</td>
-<td class="puzdetails">
+<div class="puzdetails">
 Find the instructions!
 <br/>
 <br/>
-<a href="http://www.1across.org/2018/11/18/missing-instructions/">
-In the 1ACross blog
-</a>
+<a href="http://www.1across.org/2018/11/18/missing-instructions/">In the 1ACross blog</a>
+</div>
 </td>
 </tr>
         <!-- ------------------------- -->
 <tr>
 <td>
 10
-</td>
-<td>
+<br>
+<br>
 August 2018
 </td>
 <td class="puztitle">
-<a href="gussalufz-10-unsolved.html">King's Rule</a>
+<a href="gussalufz-10-solved.html">King's Rule</a>
 <br/>
 <br/>
-<a href="gussalufz-10-solved.html">King's Rule (with solutions)</a>
-</td>
-<td class="puzdetails">
+<div class="puzdetails">
 Hhgttg-themed clues, but is that it?
 <br/>
 <br/>
-<a href="http://www.1across.org/2018/08/01/kings-rule/">
-In the 1ACross blog
-</a>
+<a href="http://www.1across.org/2018/08/01/kings-rule/">In the 1ACross blog</a>
+</div>
 </td>
 </tr>
         <!-- ------------------------- -->
 <tr>
 <td>
 8
-</td>
-<td>
+<br>
+<br>
 April 2018
 </td>
 <td class="puztitle">
-<a href="gussalufz-8-unsolved.html">Do Squares Reveal?</a>
+<a href="gussalufz-8-solved.html">Do Squares Reveal?</a>
 <br/>
 <br/>
-<a href="gussalufz-8-solved.html">Do Squares Reveal? (with solutions)</a>
-</td>
-<td class="puzdetails">
+<div class="puzdetails">
 Does the title reveal?
 <br/>
 <br/>
-<a href="https://issuu.com/prestonpages/docs/pp-april18-lr/44">
-In Preston Pages
-</a>
+<a href="https://issuu.com/prestonpages/docs/pp-april18-lr/44">In Preston Pages</a>
+</div>
 </td>
 </tr>
         <!-- ------------------------- -->
 <tr>
 <td>
 5
-</td>
-<td>
+<br>
+<br>
 April 2018
 </td>
 <td class="puztitle">
-<a href="gussalufz-5-unsolved.html">French Toast</a>
+<a href="gussalufz-5-solved.html">French Toast</a>
 <br/>
 <br/>
-<a href="gussalufz-5-solved.html">French Toast (with solutions)</a>
-</td>
-<td class="puzdetails">
+<div class="puzdetails">
 Appropriately numbered puzzle.
 <br/>
 <br/>
-<a href="http://www.1across.org/2018/04/18/french-toast/">
-In the 1ACross blog
-</a>
+<a href="http://www.1across.org/2018/04/18/french-toast/">In the 1ACross blog</a>
+</div>
 </td>
 </tr>
         <!-- ------------------------- -->
 <tr>
 <td>
 4
-</td>
-<td>
+<br>
+<br>
 January 2018
 </td>
 <td class="puztitle">
-<a href="gussalufz-4-unsolved.html">Hidden Figure</a>
+<a href="gussalufz-4-solved.html">Hidden Figure</a>
 <br/>
 <br/>
-<a href="gussalufz-4-solved.html">Hidden Figure (with solutions)</a>
-</td>
-<td class="puzdetails">
+<div class="puzdetails">
 Rocket scientist needed.
 <br/>
 <br/>
-<a href="http://www.1across.org/2018/01/24/hidden-figure/">
-In the 1ACross blog
-</a>
+<a href="http://www.1across.org/2018/01/24/hidden-figure/">In the 1ACross blog</a>
+</div>
 </td>
 </tr>
         <!-- ------------------------- -->
 <tr>
 <td>
 3
-</td>
-<td>
+<br>
+<br>
 December 2017
 </td>
 <td class="puztitle">
-<a href="gussalufz-3-unsolved.html">Smashing Plates</a>
+<a href="gussalufz-3-solved.html">Smashing Plates</a>
 <br/>
 <br/>
-<a href="gussalufz-3-solved.html">Smashing Plates (with solutions)</a>
-</td>
-<td class="puzdetails">
+<div class="puzdetails">
 Moving puzzle.
 <br/>
 <br/>
-<a href="http://www.1across.org/2017/11/22/smashing-plates/">
-In the 1ACross blog
-</a>
+<a href="http://www.1across.org/2017/11/22/smashing-plates/">In the 1ACross blog</a>
+</div>
 </td>
 </tr>
         <!-- ------------------------- -->
 <tr>
 <td>
 -
-</td>
-<td>
+<br>
+<br>
 September 2017
 </td>
 <td class="puztitle">
-<a href="ragitvach-1-unsolved.html">22⅘ Across</a>
+<a href="ragitvach-1-solved.html">22⅘ Across</a>
 <br/>
 <br/>
-<a href="ragitvach-1-solved.html">22⅘ Across (with solutions)</a>
-</td>
-<td class="puzdetails">
+<div class="puzdetails">
 Fractionally crazy.
 <br/>
 <br/>
-<a href="http://www.1across.org/2017/09/23/1acgridfest-grid-9/">
-In the 1ACross blog
-</a>
+<a href="http://www.1across.org/2017/09/23/1acgridfest-grid-9/">In the 1ACross blog</a>
+</div>
 </td>
 </tr>
         <!-- ------------------------- -->
 <tr>
 <td>
 2
-</td>
-<td>
+<br>
+<br>
 July 2017
 </td>
 <td class="puztitle">
-<a href="gussalufz-2-unsolved.html">Many Rustams</a>
+<a href="gussalufz-2-solved.html">Many Rustams</a>
 <br/>
 <br/>
-<a href="gussalufz-2-solved.html">Many Rustams (with solutions)</a>
-</td>
-<td class="puzdetails">
+<div class="puzdetails">
 Lots hidden!
 <br/>
 <br/>
 In the book, <i><a href="https://books.google.com/books/about/Cryptic_Crossroads.html?id=kLUzDwAAQBAJ">Cryptic Crossroads</a></i>
+</div>
 </td>
 </tr>
         <!-- ------------------------- -->
 <tr>
 <td>
 1
-</td>
-<td>
+<br>
+<br>
 June 2016
 </td>
 <td class="puztitle">
-<a href="gussalufz-1-unsolved.html">Gussalufz</a>
+<a href="gussalufz-1-solved.html">Gussalufz</a>
 <br/>
 <br/>
-<a href="gussalufz-1-solved.html">Gussalufz (with solutions)</a>
-</td>
-<td class="puzdetails">
+<div class="puzdetails">
 My first grid after at least 10 years.
 <br/>
 <br/>
 In the 1ACross Facebook group
+</div>
 </td>
 </tr>
 
@@ -956,7 +806,7 @@ In the 1ACross Facebook group
 <table>
 
         <!-- ------------------------- -->
-<tr>
+<tr class="table-heading">
 <td colspan=2>
 <h3>Links to crossword resources</h3>
 </td>
@@ -1038,7 +888,7 @@ else has pulled off the same trick previously, without inviting ridicule.
 <table>
 
         <!-- ------------------------- -->
-<tr>
+<tr class="table-heading">
 <td colspan=2>
 <h3>About</h3>
 </td>
