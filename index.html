@@ -20,21 +20,29 @@ body {
   justify-content: space-around;
   flex-wrap: wrap;
 }
+.puzlist-box {
+  box-sizing: border-box;
+  margin: 0 0 24px 0;
+  max-width: 1000px;
+}
 .puzlist {
   box-sizing: border-box;
   max-height: 400px;
   overflow-y: auto;
-  margin: 0 0 24px 0;
 }
 table {
   border-collapse: collapse;
   border-spacing: 0;
-  max-width: 1000px;
   width: 100%;
+  box-sizing: border-box;
 }
 .table-heading {
   color: white;
   background-color: #888888;
+  padding: 10px;
+  box-sizing: border-box;
+  width: 100%;
+  border: 1px solid black;
 }
 td {
   padding: 10px;
@@ -71,7 +79,6 @@ function shadeTable() {
   let trs = document.getElementsByTagName('TR')
   let parity = 0
   for (tr of trs) {
-    if (tr.className == "table-heading") continue;
     if (parity == 0) {
       tr.style.background = 'gainsboro'
     }
@@ -142,16 +149,16 @@ exolve-end
 <a name="thc-crosswords"></a>
 <div class="thc-duo">
 
+<div class="puzlist-box">
+
+<div class="table-heading">
+<h3>The Hindu Cryptic (THC) crosswords by Gussalufz</h3>
+</div>
+
 <div class="puzlist">
 
 <table>
 
-        <!-- ------------------------- -->
-<tr class="table-heading">
-<td>
-<h3>The Hindu Cryptic (THC) crosswords by Gussalufz</h3>
-</td>
-</tr>
 
         <!-- ------------------------- -->
 <tr>
@@ -266,20 +273,20 @@ Dr. Who?
 
 </table>
 </div>
+</div>
 
-<div class="puzlist">
-<table>
+<div class="puzlist-box">
 
-        <!-- ------------------------- -->
-<tr class="table-heading">
-<td>
+<div class="table-heading">
 <h3>The Hindu Cryptic crosswords archive: older THC crosswords by Gussalufz</h3>
 Here, I release interactive versions of my THC puzzles that were
 published 4+ months back. Each puzzle includes revealable/checkable solutions
 and annotations. All puzzles include some notes by me, so be sure to
 click on "Reveal all!" after solving.
-</td>
-</tr>
+</div>
+
+<div class="puzlist">
+<table>
 
         <!-- ------------------------- -->
 <tr>
@@ -352,6 +359,7 @@ My debut as a setter for The Hindu Cryptic, with their last crossword of the mil
 
 </table>
 </div>
+</div>
 
 </div>
 
@@ -359,17 +367,17 @@ My debut as a setter for The Hindu Cryptic, with their last crossword of the mil
 <br>
 
 <a name="crosswords"></a>
-<div class="puzlist">
-<table>
 
-        <!-- ------------------------- -->
-<tr class="table-heading">
-<td colspan="2">
+<div class="puzlist-box">
+
+<div class="table-heading">
 <h3>Other cryptic crosswords by Gussalufz (and doppelgängers, and friends!)</h3>
 Each puzzle is intereactively solvable. Several puzzles have special effects.
 Please click on "Reveal all!" after solving, to see my notes.
-</td>
-</tr>
+</div>
+
+<div class="puzlist">
+<table>
 
         <!-- ------------------------- -->
 <tr>
@@ -802,18 +810,21 @@ In the 1ACross Facebook group
 </table>
 </div>
 
+</div>
+
 <br>
 <br>
 
 <a name="resources"></a>
+
+<div class="puzlist-box">
+
+<div class="table-heading">
+<h3>Links to crossword resources</h3>
+</div>
+
 <table>
 
-        <!-- ------------------------- -->
-<tr class="table-heading">
-<td colspan=2>
-<h3>Links to crossword resources</h3>
-</td>
-</tr>
         <!-- ------------------------- -->
 <tr>
 <td>
@@ -884,18 +895,19 @@ else has pulled off the same trick previously, without inviting ridicule.
 
 </table>
 
+</div>
+
 <br>
 <br>
 
 <a name="about"></a>
-<table>
+<div class="puzlist-box">
 
-        <!-- ------------------------- -->
-<tr class="table-heading">
-<td colspan=2>
+<div class="table-heading">
 <h3>About</h3>
-</td>
-</tr>
+</div>
+
+<table>
 
         <!-- ------------------------- -->
 <tr>
@@ -925,6 +937,7 @@ Contact
 </tr>
 
 </table>
+</div>
 
 </center>
 
