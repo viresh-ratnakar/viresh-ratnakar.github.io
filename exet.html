@@ -29,7 +29,7 @@ SOFTWARE.
 The latest code and documentation for Exet can be found at:
 https://github.com/viresh-ratnakar/exet
 
-Current version: v0.43 May 12 2021
+Current version: v0.44 May 14 2021
 -->
 
 <link rel="stylesheet" type="text/css" href="exolve-m.css?v1.00"/>
@@ -1241,7 +1241,7 @@ function ExetRev(id, title, revNum, revType, timestamp, details="") {
 };
 
 function Exet() {
-  this.version = 'v0.43 May 12 2021'
+  this.version = 'v0.44 May 14 2021'
   this.puz = null
   this.prefix = ''
   this.suffix = ''
@@ -2087,7 +2087,7 @@ Exet.prototype.makeExetTab = function() {
             </div>
           </div>
 
-          <div class="xet-dropdown-item" onclick="exet.clearAll()">
+          <div class="xet-dropdown-item" onclick="exet.puz.clearAll()">
              Clear all the lights! (Ctrl-Q)
           </div>
 
@@ -2138,7 +2138,7 @@ Exet.prototype.makeExetTab = function() {
             `errors and omissions.">Choose grid-fill</span>
         <button class="xlv-small-button" style="padding:5px 4px"
             title="Keyboard shortcut: Ctrl-q"
-            onclick="exet.clearCurr()">Clear light</button>
+            onclick="exet.puz.clearCurr()">Clear light</button>
       </div>
       <div class="xet-choices-box" id="xet-light-choices-box">
         <table id="xet-light-choices" class="xet-choices">
@@ -3989,6 +3989,38 @@ Exet.prototype.scrollCluesIfNeeded = function() {
 }
 
 Exet.prototype.replaceHandlers = function() {
+  this.puz.clearCurr = (function() {
+    exet.clearCurrSaved = exet.puz.clearCurr;
+    return function() {
+      exet.markNinasAsPrefilled();
+      exet.clearCurrSaved.apply(exet.puz, arguments);
+      exet.unmarkNinasAsPrefilled();
+      const theClue = exet.currClue()
+      theClue.clue = exet.draftClue(exet.currClueIndex());
+      theClue.solution = ''
+      exet.puz.setClueSolution(exet.currClueIndex());
+      theClue.anno = ''
+      exet.updatePuzzle(exetRevManager.REV_GRIDFILL_CHANGE)
+    };
+  })();
+  this.puz.clearAll = (function() {
+    exet.clearAllSaved = exet.puz.clearAll;
+    return function() {
+      exet.markNinasAsPrefilled();
+      if (exet.clearAllSaved.apply(exet.puz, arguments)) {
+        for (let ci in exet.puz.clues) {
+          exet.puz.clues[ci].clue = exet.draftClue(ci)
+          exet.puz.clues[ci].solution = ''
+          exet.puz.setClueSolution(ci);
+          exet.puz.clues[ci].anno = ''
+        }
+        exet.unmarkNinasAsPrefilled();
+        exet.updatePuzzle(exetRevManager.REV_GRIDFILL_CHANGE)
+      } else {
+        exet.unmarkNinasAsPrefilled();
+      }
+    };
+  })();
   this.puz.cnavToInner = (function() {
     exet.cnavToInnerSaved = exet.puz.cnavToInner;
     return function() {
@@ -6277,34 +6309,6 @@ Exet.prototype.unmarkNinasAsPrefilled = function() {
     if (!gridCell.isLight || !gridCell.prefill) continue;
     gridCell.prefill = false;
   }
-}
-
-Exet.prototype.clearCurr = function() {
-  if (!this.puz) return
-  this.markNinasAsPrefilled();
-  exet.puz.clearCurr()
-  this.unmarkNinasAsPrefilled();
-  theClue = this.currClue()
-  theClue.clue = this.draftClue(this.currClueIndex());
-  theClue.solution = ''
-  this.puz.setClueSolution(this.currClueIndex());
-  theClue.anno = ''
-  this.updatePuzzle(exetRevManager.REV_GRIDFILL_CHANGE)
-}
-
-Exet.prototype.clearAll = function() {
-  if (!this.puz) return
-  this.markNinasAsPrefilled();
-  if (exet.puz.clearAll()) {
-    for (let ci in this.puz.clues) {
-      this.puz.clues[ci].clue = this.draftClue(ci)
-      this.puz.clues[ci].solution = ''
-      this.puz.setClueSolution(ci);
-      this.puz.clues[ci].anno = ''
-    }
-    this.updatePuzzle(exetRevManager.REV_GRIDFILL_CHANGE)
-  }
-  this.unmarkNinasAsPrefilled();
 }
 
 Exet.prototype.clearAllMarkings = function() {
