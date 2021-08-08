@@ -4348,7 +4348,7 @@ Exet.prototype.handleTabClick = function(id) {
 
 Exet.prototype.restoreParam = function(id, section) {
   section.paramInput.value = section.param;
-  section.param = '';
+  section.param = section.param + '_';  // forced to be different.
   this.handleTabClick(id);
 }
 
