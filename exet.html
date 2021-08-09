@@ -3597,14 +3597,15 @@ Exet.prototype.updateSounds = function(fodder) {
   const homophones = this.getHomophonesInner(fodder, phones); 
   const hpSet = {};
   for (let hp of homophones) {
-    hpSet[hp] = true;
+    hpSet[this.makeCharadeParam(hp)] = true;
     html = html + `
       <tr title="Homophone of ${hp}"><td>&#x1F56A;
         <span class="xet-blue">~</span> ${hp}</td></tr>`
   }
   const spoonerisms = this.getSpoonerismsInner(fodder, phones);
+  hpSet[this.makeCharadeParam(fodder)] = true;
   for (let sp of spoonerisms) {
-    if (hpSet[sp[0] + ' ' + sp[1]]) {
+    if (hpSet[this.makeCharadeParam(sp[0] + sp[1])]) {
       // Not really a Spoonerism.
       continue;
     }
