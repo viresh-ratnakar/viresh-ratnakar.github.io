@@ -29,7 +29,7 @@ SOFTWARE.
 The latest code and documentation for Exet can be found at:
 https://github.com/viresh-ratnakar/exet
 
-Current version: v0.49 August 7 2021
+Current version: v0.50 August 9 2021
 -->
 
 <link rel="stylesheet" type="text/css" href="exolve-m.css?v1.00"/>
@@ -1244,7 +1244,7 @@ function ExetRev(id, title, revNum, revType, timestamp, details="") {
 };
 
 function Exet() {
-  this.version = 'v0.49 August 7 2021'
+  this.version = 'v0.50 August 9 2021'
   this.puz = null
   this.prefix = ''
   this.suffix = ''
@@ -3067,7 +3067,10 @@ Exet.prototype.getPhones = function(phrase) {
   }
   this.indexMinPop = savedMinPop;
   if (phones.length == 0) {
-    const space = phrase.indexOf(' ');
+    let space = phrase.indexOf(' ');
+    if (space < 0) {
+      space = phrase.indexOf('-');
+    }
     if (space > 0) {
       const part1 = phrase.substr(0, space);
       const part1_phones = this.getPhones(part1);
@@ -3590,14 +3593,21 @@ Exet.prototype.updateEdits = function(fodder) {
 
 Exet.prototype.updateSounds = function(fodder) {
   let html = '<table id="xet-sounds-choices">';
-  const homophones = this.getHomophones(fodder); 
+  const phones = this.getPhones(fodder);
+  const homophones = this.getHomophonesInner(fodder, phones); 
+  const hpSet = {};
   for (let hp of homophones) {
+    hpSet[hp] = true;
     html = html + `
       <tr title="Homophone of ${hp}"><td>&#x1F56A;
         <span class="xet-blue">~</span> ${hp}</td></tr>`
   }
-  const spoonerisms = this.getSpoonerisms(fodder); 
+  const spoonerisms = this.getSpoonerismsInner(fodder, phones);
   for (let sp of spoonerisms) {
+    if (hpSet[sp[0] + ' ' + sp[1]]) {
+      // Not really a Spoonerism.
+      continue;
+    }
     html = html + `
       <tr title="Spoonerism of ${sp[0]} + ${sp[1]}">
         <td>&#x1F50A; ${sp[0]} <span class="xet-blue">&lrhar;</span>
