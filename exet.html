@@ -2931,6 +2931,9 @@ Exet.prototype.updateOtherSections = function() {
     delete exolvePuzzles[tempId]
     if (specsOK) {
       this.updatePuzzle(exetRevManager.REV_METADATA_CHANGE)
+      if (this.postscript) {
+        this.postscript.style.display = '';
+      }
     } else {
       this.exolveOtherSec = saved;
     }
