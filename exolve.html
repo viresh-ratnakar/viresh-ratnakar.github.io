@@ -6075,10 +6075,14 @@ Exolve.prototype.handleAfterPrint = function() {
 }
 
 Exolve.prototype.getPrintSettings = function() {
-  const page = document.getElementById(
-      this.prefix + '-page-size').value || 'letter';
+  const pageSizeElt = document.getElementById(this.prefix + '-page-size');
+  const pageMarginElt = document.getElementById(this.prefix + '-page-margin');
+  const fontElt = document.getElementById(this.prefix + '-print-font');
+
+  const page = (pageSizeElt ? pageSizeElt.value : 'letter') || 'letter';
+
   let marginIn = 0.0;
-  const marginStr = document.getElementById( this.prefix + '-page-margin').value
+  const marginStr = pageMarginElt ? pageMarginElt.value : '';
   if (marginStr) {
     const val = parseFloat(marginStr);
     if (!isNaN(val) && val >= 0.0) marginIn = val;
@@ -6098,8 +6102,8 @@ Exolve.prototype.getPrintSettings = function() {
                    ((page == 'B4') ? 353.0/25.4 :
                    ((page == 'legal') ? 14.0 :
                    ((page == 'ledger') ? 17.0 : 11.0))))))));
-  const font = document.getElementById(
-      this.prefix + '-print-font').value || '18px';
+  const font = (fontElt ? fontElt.value : '18px') || '18px';
+
   const onlyCrossword = this.printOnlyCrossword || false;
   this.printOnlyCrossword = false;
   return {
