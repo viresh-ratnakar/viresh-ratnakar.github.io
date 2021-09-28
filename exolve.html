@@ -6081,7 +6081,7 @@ Exolve.prototype.getPrintSettings = function() {
 
   const page = (pageSizeElt ? pageSizeElt.value : 'letter') || 'letter';
 
-  let marginIn = 0.0;
+  let marginIn = 0.5;
   const marginStr = pageMarginElt ? pageMarginElt.value : '';
   if (marginStr) {
     const val = parseFloat(marginStr);
