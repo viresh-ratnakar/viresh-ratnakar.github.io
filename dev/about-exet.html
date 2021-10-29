@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<title>About Exet, a web app for setting crosswords</title>
+
+<style>
+body {
+  font-family: monospace;
+  max-width: 95ch;
+  line-height: 1.5;
+}
+a {
+  text-decoration: none;
+}
+</style>
+
+</head>
+<body>
+
+
+<center>
+<h1>Exet</h1>
+<h3>A web app for crossword construction</h3>
+<h4>Version: Exet v0.59 October 28 2021</h4>
+<h4>Software by Viresh Ratnakar</h4>
+<h3 title="Click to open Exet's README.md file in a new tab">
+<a target="_blank"
+ href="https://github.com/viresh-ratnakar/exet/blob/master/README.md">[Link
+ to full user manual]</a></h3>
+</center>
+
+<br>
+<br>
+
+<p>
+Exet is free, open source software for setting crosswords.
+You can use Exet from my site, <a target="_blank"
+  href="https://exet.app">exet.app</a> or you can download and use your own
+copy of the software from the
+<a target="_blank"
+  href="https://github.com/viresh-ratnakar/exet">Exet GitHub repository</a>.
+</p>
+
+<p>
+Exet comes with a permissive MIT license. The full license notice is provided
+at the bottom of this page.
+</p>
+
+<p>
+Exet has no library/package/software dependencies. You should be able to use
+it from any modern browser. The experience may not be great on smaller screens
+like phones, though.
+</p>
+
+<p>
+Exet saves all revisions of all crosswords that you work on, in the browser's
+local storage.  Exet never sends your crosswords to wherever it is getting
+served from.
+</p>
+
+<p>
+You can download the crosswords that you create with Exet in the
+<a target="_blank"
+  href="https://github.com/viresh-ratnakar/exolve">Exolve</a> format
+or in the .puz format.
+You can also grab embeddable HTML code for adding your crossword to any web
+site or blog, using Exolve (but see the
+<a target="_blank"
+  href="https://github.com/viresh-ratnakar/exolve#exolve-widget">known caveats
+in the Exolve documentation</a>).
+</p>
+
+<p>
+As of October 2021, Exet only suggests English grid-fills (I'll add
+support for other languages eventually).
+</p>
+
+<p>
+I welcome <a target="_blank"
+  href="https://github.com/viresh-ratnakar/exet/issues/new">bug
+  reports and feature requests</a>. You may contact me via email too, at
+viresh at gmail dot com.
+</p>
+
+<hr>
+
+<h3>UKACD18</h3>
+
+<p>
+The lexicon used by Exet for providing grid-fill suggestions is a modified
+version of the "UKACD" words list, which comes with its own copyight notice
+that is reproduced below. I made the following modifications to the UKACD words
+list:
+<ul>
+  <li>Removed a few swear words.</li>
+  <li>Replaced all accented characters with non-accented ones.</li>
+  <li>Deleted all punctuation characters other than spaces, hyphens,
+      and apostrophes.</li>
+  <li>Attached a popularity score to each word/phrase using a dump of all of
+      Wikipedia's English-language articles.</li>
+  <li>Created an index of the lexicon suitable for use by my JavaScript
+      code. Source code for the last two steps is available in my
+      <a target="_blank"
+        href="https://github.com/viresh-ratnakar/lufz">Lufz GitHub
+        repository</a>.</li>
+
+</ul>
+</p>
+
+<hr>
+
+<pre>
+UKACD18
+Copyright (c) 2009 J Ross Beresford
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+
+1. Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+3. The name of the author may not be used to endorse or promote products
+   derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+</pre>
+
+<hr>
+
+<h3>CMUdict</h3>
+
+<p>
+Pronunciations of words (used for finding homophones and Spoonerisms) are
+taken from the Carnegie Mellon Pronouncing Dinctionary. Its copyright notice
+is reproduced below.
+</p>
+
+<hr>
+
+<pre>
+CMUdict
+-------
+
+CMUdict (the Carnegie Mellon Pronouncing Dictionary) is a free
+pronouncing dictionary of English, suitable for uses in speech
+technology and is maintained by the Speech Group in the School of
+Computer Science at Carnegie Mellon University.
+
+The Carnegie Mellon Speech Group does not guarantee the accuracy of
+this dictionary, nor its suitability for any specific purpose. In
+fact, we expect a number of errors, omissions and inconsistencies to
+remain in the dictionary. We intend to continually update the
+dictionary by correction existing entries and by adding new ones. From
+time to time a new major version will be released.
+
+We welcome input from users: Please send email to Alex Rudnicky
+(air+cmudict@cs.cmu.edu).
+
+The Carnegie Mellon Pronouncing Dictionary, in its current and
+previous versions is Copyright (C) 1993-2014 by Carnegie Mellon
+University.  Use of this dictionary for any research or commercial
+purpose is completely unrestricted. If you make use of or
+redistribute this material we request that you acknowledge its
+origin in your descriptions, as per the license information included
+in the dictionary file (a Simplified BSD lincense).
+
+If you add words to or correct entries in your version of this
+dictionary, we would appreciate it if you could send these additions
+and corrections to us (air+cmudict@cs.cmu.edu) for consideration in a
+subsequent version. All submissions will be reviewed and approved by
+the current maintainer, Alex Rudnicky at Carnegie Mellon University.
+
+----------------------------------------------------------------------
+The current version of cmudict is now cmudict-0.7b
+[First released November 19, 2014]
+
+Note that the first '.' in the file name has changed to a '-' as it
+was observed that file systems occasionally get confused about the
+scope of the extension.
+
+Please note that the dictionary is modified incrementally, to correct
+errors are incorporate new words. If you require a unique version, be
+sure to specify a revision when you check it out.
+
+cmudict-0.7b includes various systematic fixes and additional words.
+As always please let us know if you see a problem or want to suggest a
+word.
+
+----------------------------------------------------------------------
+</pre>
+
+<hr>
+
+<h3>Exet MIT License</h3>
+
+<pre>
+Exet
+
+MIT License
+
+Copyright (c) 2020 Viresh Ratnakar
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+The latest code and documentation for Exet can be found at:
+https://github.com/viresh-ratnakar/exet
+</pre>
+
+</body>
+</html>
