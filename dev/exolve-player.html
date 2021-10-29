@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="stylesheet" type="text/css" href="exolve-m.css?v1.25"/>
+<script src="exolve-m.js?v1.25"></script>
+<script src="exolve-from-ipuz.js?v1.25"></script>
+<script src="exolve-from-puz.js?v1.25"></script>
+
+<style>
+#exolve-player {
+  border: 1px solid black;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 20px 10%;
+  margin: 20px 0;
+  font-size: 16px;
+  font-family: monospace;
+  background-image: linear-gradient(45deg, #F0F0F0 25%, transparent 25%), linear-gradient(-45deg, #F0F0F0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #F0F0F0 75%), linear-gradient(-45deg, transparent 75%, #F0F0F0 75%);
+  background-size: 40px 40px;
+  background-position: 0 0, 0 20px, 20px -20px, -20px 0px;
+}
+summary {
+  text-align: center;
+  background: gainsboro;
+  padding: 4px;
+  border: 1px solid gray;
+  cursor: pointer;
+  font-size: 70%;
+}
+pre {
+  border: 1px solid gray;
+  background: white;
+  padding: 4px;
+}
+</style>
+
+<title>Exolve Player</title>
+
+</head>
+<body>
+
+<div id="exolve-frame">
+</div>
+
+<div id="exolve-player" ondrop="xlvpDrop(event);" ondragover="xlvpDrag(event);">
+  <center>
+    <b>
+      <span style="font-size:140%">Exolve Player</span>
+      <br><br>
+      Interactively solve a crossword
+      <br><br>
+      Drag and drop a crossword file that uses any of these formats: Exolve, ipuz, puz.
+      <br><br>
+      Or: <input id="xlvp-file" onchange="xlvpOnOpenFile();" type="file"></input>
+    </b>
+  </center>
+  <br>
+  <div id="xlvp-links" style="font-size:80%">
+    <p><b>Links</b></p>
+    <p><a href="https://github.com/viresh-ratnakar/exolve">Exolve (free, open source crossword-solving software used here) on GitHub</a></p>
+    <p><a href="https://github.com/viresh-ratnakar/exet">Exet (free, open source crossword-setting software) on GitHub</a></p>
+    <p><a href="https://exet.app/">Exet web app: start setting a crossword right away!</a></p>
+    <p><a href="https://gussalufz.com/">Cryptic crosswords by Gussalufz</a></p>
+  </div>
+  <br>
+  <button id="xlvp-save" disabled onclick="xlvpSave()">
+     Save Exolve-converted crossword as exolve-player-output.html
+  </button>
+  <details id="xlvp-view">
+    <summary>
+      View Exolve-formatted specs for the current crossword
+    </summary>
+    <pre id="xlvp-src">
+      There isn't a current crossword. Perhaps open one?
+    </pre>
+  </details>
+</div>
+
+<script>
+xlvpFileName = '';
+xlvpData = '';
+function xlvpShowExolve(specs, converted=false) {
+  let start = specs.indexOf('exolve-begin')
+  let end = specs.indexOf('exolve-end')
+  if (start < 0 || end < 0 || start >= end) {
+    return false;
+  }
+  while (start > 0 && specs.charAt(start - 1) == ' ') {
+    start--;
+  }
+  xlvpData = specs.substring(start, end) + 'exolve-end';
+
+  document.getElementById('xlvp-src').innerText = xlvpData;
+  document.getElementById('exolve-frame').innerHTML = '';
+  for (id in exolvePuzzles) {
+    if (isNaN(exolvePuzzles[id])) {
+      delete exolvePuzzles[id];
+    }
+  }
+  createExolve(xlvpData, 'exolve-frame', false);
+  document.getElementById('xlvp-save').disabled = !converted;
+  return true;
+}
+
+function xlvpSave() {
+  const data = '' +
+    '<!DOCTYPE html>\n' +
+    '<html lang="en">\n' +
+    '<head>\n' +
+    '<meta charset="utf-8"/>\n' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1"/>\n' +
+    '<link rel="stylesheet" type="text/css" ' +
+    'href="https://viresh-ratnakar.github.io/exolve-m.css?v1.25"/>\n' +
+    '<script src="https://viresh-ratnakar.github.io/exolve-m.js?v1.25">' +
+    '<\/script>\n' +
+    '<\/head>\n' +
+    '<body>\n' +
+    '<script>\n' +
+    'createExolve(`' +
+    `\n${xlvpData}` +
+    '`);\n' +
+    '<\/script>\n' +
+    '<\/body>\n' +
+    '<\/html>\n';
+  const a = document.createElement("a");
+  a.style.display = "none";
+  document.body.appendChild(a);
+  a.href = window.URL.createObjectURL(
+    new Blob([data], {type: "text/html;charset=UTF-8"})
+  );
+  a.setAttribute("download", 'exolve-player-output.html');
+  a.click();
+  window.URL.revokeObjectURL(a.href);
+  document.body.removeChild(a);
+}
+
+function xlvpShowIpuz(specs, id, fname) {
+  let start = specs.indexOf('{')
+  let end = specs.lastIndexOf('}')
+  if (start < 0 || end < 0 || start >= end) {
+    return false;
+  }
+  const ipuzJSON = specs.substring(start, end) + '}';
+  try {
+    const ipuz = JSON.parse(ipuzJSON);
+    const exolve = exolveFromIpuz(ipuz, id, fname);
+    if (!exolve) {
+      return false;
+    }
+    return xlvpShowExolve(exolve, true);
+  } catch (err) {
+    console.log(err);
+  }
+  return false;
+}
+function xlvpShowPuz(buffer, id, fname) {
+  const exolve = exolveFromPuz(buffer, id, fname);
+  if (!exolve) {
+    return false;
+  }
+  return xlvpShowExolve(exolve, true);
+}
+function xlvpId(buffer) {
+  const dv = new DataView(buffer);
+  let hash = 0;
+  for (let i = 0; i < dv.byteLength; i++) {
+    let c = dv.getUint8(i);
+    hash = ((hash << 5) - hash) + c;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return `xlvp-${hash.toString(36)}`
+}
+function xlvpShow(buffer, fname) {
+  let utf8decoder = new TextDecoder();
+  specs = utf8decoder.decode(buffer);
+  if (xlvpShowExolve(specs)) {
+    return;
+  }
+  let id = xlvpId(buffer);
+  if (xlvpShowIpuz(specs, id, fname)) {
+    return;
+  }
+  if (xlvpShowPuz(buffer, id, fname)) {
+    return;
+  }
+  alert('Could not read the crossword file');
+}
+function xlvpOpenFile(f) {
+  let fr = new FileReader(); 
+  fr.onload = function(){ 
+    xlvpShow(fr.result, xlvpFileName);
+  }
+  xlvpFileName = f.name
+  fr.readAsArrayBuffer(f)
+}
+function xlvpOnOpenFile(ev) {
+  let f = document.getElementById('xlvp-file').files[0];
+  xlvpOpenFile(f);
+}
+function xlvpDrop(ev) {
+  ev.preventDefault();
+
+  let f = null;
+  if (ev.dataTransfer.items && ev.dataTransfer.items.length > 0) {
+    f = ev.dataTransfer.items[0].getAsFile();
+  } else if (ev.dataTransfer.files.length > 0) {
+    f = ev.dataTransfer.files[0];
+  }
+  if (!f) {
+    return;
+  }
+  xlvpOpenFile(f);
+}
+function xlvpDrag(ev) {
+  ev.preventDefault();
+}
+</script>
+</body>
+</html>
