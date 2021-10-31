@@ -327,9 +327,9 @@ function Exolve(puzzleSpec,
     'squares-filled': 'Squares filled',
     'across-label': 'Across',
     'down-label': 'Down',
-    '3d-a-label': 'Across & Back',
-    '3d-d-label': 'Away & Towards',
-    '3d-z-label': 'Down & Up',
+    '3d-ac-label': 'Across & Back',
+    '3d-aw-label': 'Away & Towards',
+    '3d-dn-label': 'Down & Up',
     'nodir-label': 'Other',
     'tools-link': 'Tools',
     'tools-link.hover': 'Show/hide tools: manage storage, see list of ' +
@@ -645,7 +645,7 @@ Exolve.prototype.init = function() {
             <div id="${this.prefix}-across-label"
                 class="xlv-clues-box xlv-clues-label">
               <hr/>
-              ${this.layers3d > 1 ? this.textLabels['3d-a-label'] :
+              ${this.layers3d > 1 ? this.textLabels['3d-ac-label'] :
                 this.textLabels['across-label']}
             </div>
             <div id="${this.prefix}-across-clues-panel" class="xlv-clues-box">
@@ -656,7 +656,7 @@ Exolve.prototype.init = function() {
             <div id="${this.prefix}-down-label"
                 class="xlv-clues-box xlv-clues-label">
               <hr/>
-              ${this.layers3d > 1 ? this.textLabels['3d-d-label'] :
+              ${this.layers3d > 1 ? this.textLabels['3d-aw-label'] :
                 this.textLabels['down-label']}
             </div>
             <div id="${this.prefix}-down-clues-panel" class="xlv-clues-box">
@@ -667,7 +667,7 @@ Exolve.prototype.init = function() {
             <div id="${this.prefix}-z3d-label"
                 class="xlv-clues-box xlv-clues-label">
               <hr/>
-              ${this.textLabels['3d-z-label']}
+              ${this.textLabels['3d-dn-label']}
             </div>
             <div id="${this.prefix}-z3d-clues-panel" class="xlv-clues-box">
               <table id="${this.prefix}-z3d"></table>
