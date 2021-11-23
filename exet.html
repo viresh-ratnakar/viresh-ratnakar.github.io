@@ -6688,9 +6688,9 @@ Exet.prototype.refreshAutofill = function() {
     let isPangram = 'Pangram!'
     if (!this.autofill.pangramAll &&
         candidate.numConstrLetters == exetLexicon.letters.length) {
-      isPangram = 'Pangram with constraints!';
+      isPangram = 'Pangram <i>with</i> constraints!';
     }
-    this.autofill.isPangram.innerText = isPangram;
+    this.autofill.isPangram.innerHTML = isPangram;
     this.autofill.isPangram.style.display = '';
   }
   this.autofill.scoreSpan.innerText = candidate.score.toFixed(2)
