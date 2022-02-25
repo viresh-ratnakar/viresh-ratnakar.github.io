@@ -79,7 +79,7 @@ function Exolve(puzzleSpec,
                 visTop=0,
                 maxDim=0,
                 saveState=true) {
-  this.VERSION = 'Exolve v1.27 November 7 2021';
+  this.VERSION = 'Exolve v1.30 February 12, 2022';
 
   this.puzzleText = puzzleSpec;
   this.containerId = containerId;
@@ -192,7 +192,7 @@ function Exolve(puzzleSpec,
   this.knownIncorrect = false;
 
   this.allClueIndices = [];
-  this.DEFAULT_ORPHAN_LEN = 15;
+  this.PLACEHOLDER_BLANK_LEN = 15;
 
   this.BLOCK_CHAR = '⬛';
   // If someone wants to use 0/1/./? using allow-chars, we cannot use them in
@@ -227,7 +227,7 @@ function Exolve(puzzleSpec,
     'circle': 'gray',
     'circle-input': 'gray',
     'caret': 'gray',
-    'arrow': 'mistyrose',
+    'arrow': 'white',
     'prefill': 'blue',
     'anno': 'darkgreen',
     'solved': 'dodgerblue',
@@ -397,6 +397,7 @@ function Exolve(puzzleSpec,
   this.showCellLevelButtons = false;
   this.printCompleted3Cols = false;
   this.printIncomplete2Cols = false;
+  this.noNinaButton = false;
 
   this.createPuzzle();
 }
@@ -821,7 +822,7 @@ Exolve.prototype.init = function() {
       'https://github.com/viresh-ratnakar/exolve/issues/new?body=' +
       encodeURIComponent(info);
 
-  this.CURR_ORPHAN_ID = this.prefix + '-curr-orphan';
+  this.CURR_PLACEHOLDER_BLANK_ID = this.prefix + '-curr-blank';
 
   this.followDirOrder();
 
@@ -1258,6 +1259,10 @@ Exolve.prototype.parseOption = function(s) {
     }
     if (spart == "ignore-enum-mismatch") {
       this.ignoreEnumMismatch = true
+      continue
+    }
+    if (spart == "no-nina-button" || spart == "no-ninas-button") {
+      this.noNinaButton = true
       continue
     }
     if (spart == "allow-digits") {
@@ -2279,17 +2284,21 @@ Exolve.prototype.parseDir = function(s) {
 // dir = A/D/Z/X
 // dirStr
 // dirIsPrefix
-// reversed (for d/u and ba/aw/up).
-// hasChildren
+// reversed (for b/d and ba/to/up).
+// hasChildren, linkSep
 // skip
-Exolve.prototype.parseClueLabel = function(clueLine) {
+// leadSpace
+Exolve.prototype.parseClueLabel = function(clueLine, consumeTrailing=true) {
   let parse = {dir: '', label: '', notLabel: true};
   parse.hasChilden = false;
+  parse.linkSep = '';
   parse.skip = 0;
+  parse.leadSpace = '';
   const space = clueLine.match(/^\s*/);
   if (space && space.length == 1) {
     parse.skip += space[0].length;
     clueLine = clueLine.substr(space[0].length);
+    parse.leadSpace = space[0];
   }
 
   const prefDir = this.parseDir(clueLine);
@@ -2337,21 +2346,25 @@ Exolve.prototype.parseClueLabel = function(clueLine) {
       clueLine = clueLine.substr(suffDir.skip);
     }
   }
-  commaParts = clueLine.match(/^\s*,/)
-  if (commaParts && commaParts.length == 1) {
-    parse.hasChildren = true
-    parse.skip += commaParts[0].length
-    clueLine = clueLine.substr(commaParts[0].length)
-  }
-  // Consume trailing period if it is there (but not if it's followed
-  // immediately by another period (i.e., don't skip "...")
-  periodParts = clueLine.match(/^\s*\./)
-  if (periodParts && periodParts.length == 1 && !clueLine.match(/^\s*\.\./)) {
-    parse.hasChildren = false
-    parse.skip += periodParts[0].length
-    clueLine = clueLine.substr(periodParts[0].length)
-  }
   parse.notLabel = false;
+  if (consumeTrailing) {
+    commaParts = clueLine.match(/^\s*[,&]/)
+    if (commaParts && commaParts.length == 1) {
+      parse.hasChildren = true;
+      // Store the separator char in linkSep
+      parse.linkSep = commaParts[0][commaParts[0].length - 1]
+      parse.skip += commaParts[0].length
+      clueLine = clueLine.substr(commaParts[0].length)
+    }
+    // Consume trailing period if it is there (but not if it's followed
+    // immediately by another period (i.e., don't skip "...")
+    periodParts = clueLine.match(/^\s*\./)
+    if (periodParts && periodParts.length == 1 && !clueLine.match(/^\s*\.\./)) {
+      parse.hasChildren = false
+      parse.skip += periodParts[0].length
+      clueLine = clueLine.substr(periodParts[0].length)
+    }
+  }
   return parse
 }
 
@@ -2592,6 +2605,7 @@ Exolve.prototype.parseClue = function(dir, clueLine) {
   clue.index = clueIndex
 
   clueLine = clueLine.substr(clueLabelParse.skip)
+  clue.linkSep = clueLabelParse.linkSep || '';
   clue.children = []
   while (clueLabelParse.hasChildren) {
     clueLabelParse = this.parseClueLabel(clueLine)
@@ -2804,6 +2818,14 @@ Exolve.prototype.parseAnno = function(anno, clueIndex) {
     }
     anno = anno.substr(indexOfBrac + 1).trim();
     this.hasReveals = true
+  }
+  let numBlanks = 0;
+  while (anno && anno.substr(0, 1) == '_') {
+    numBlanks++;
+    anno = anno.substr(1).trim();
+  }
+  if (numBlanks > 0) {
+    theClue.showBlanks = numBlanks;
   }
   theClue.anno = anno;
 }
@@ -3032,6 +3054,7 @@ Exolve.prototype.processClueChildren = function() {
     let lastRowColDir = clue.dir
     dupes = {}
     const allDirections = ['A', 'D', 'Z', 'X']
+    let linkSep = (clue.linkSep != ',') ? (' ' + clue.linkSep + ' ') : ', ';
     for (let chi = 0; chi < clue.children.length; chi++) {
       const child = clue.children[chi];
       // Direction could be the same as the direction of the parent. Or,
@@ -3076,13 +3099,13 @@ Exolve.prototype.processClueChildren = function() {
         if (!childClue.fullDisplayLabel) {
           childClue.fullDisplayLabel = this.clueLabelDisp(childClue);
         }
-        clue.displayLabel = clue.displayLabel + ', ' +
-          ((childClue.dir == clue.dir) &&
-            (childClue.reversed == clue.reversed) ?
-              childClue.label : childClue.fullDisplayLabel);
-        clue.fullDisplayLabel = clue.fullDisplayLabel + ', ' +
+        clue.displayLabel = clue.displayLabel + linkSep +
+            ((childClue.dir == clue.dir) && !childClue.reversed ?
+             childClue.label : childClue.fullDisplayLabel);
+        clue.fullDisplayLabel = clue.fullDisplayLabel + linkSep +
                                 childClue.fullDisplayLabel;
       }
+      linkSep = (child.linkSep != ',') ?  (' ' + child.linkSep + ' ') : ', ';
       clue.childrenClueIndices.push(childIndex)
       childClue.parentClueIndex = clueIndex
 
@@ -3182,14 +3205,15 @@ Exolve.prototype.finalClueTweaks = function() {
     this.setClueSolution(clueIndex)
     theClue.dispSol = ''
     if (this.addSolutionToAnno && theClue.solution &&
-        !this.isOrphan(clueIndex) &&
+        !this.isOrphan(clueIndex) && !theClue.showBlanks &&
         (theClue.explicitSol ||
          !this.roughlyStartsWith(theClue.anno, theClue.solution))) {
-      // For orphans, we reveal in their placeholder blanks.
+      // For clues with placeholder blanks, we reveal in those.
       theClue.dispSol = '<span class="xlv-solution">' + theClue.solution +
                         '. </span>';
     }
-    if (theClue.anno || theClue.dispSol) {
+    if (theClue.anno || theClue.dispSol ||
+        (theClue.solution && theClue.showBlanks)) {
       this.hasReveals = true
     }
     if (!theClue.fullDisplayLabel) {
@@ -3577,6 +3601,7 @@ Exolve.prototype.displayClues = function() {
   let table = null
   let dir = ''
   let extraPanels = []
+  let revSuff = '';
   for (let clueIndex of this.allClueIndices) {
     let theClue = this.clues[clueIndex]
     if (!theClue.clue && !theClue.parentClueIndex) {
@@ -3588,15 +3613,21 @@ Exolve.prototype.displayClues = function() {
       if (clueDir == 'A') {
         table = this.acrossClues
         this.hasAcrossClues = true
+        revSuff = (this.layers3d > 1) ? this.textLabels['3d-ba'] :
+            this.textLabels['back-letter'];
       } else if (clueDir == 'D') {
         table = this.downClues
         this.hasDownClues = true
+        revSuff = (this.layers3d > 1) ? this.textLabels['3d-to'] :
+            this.textLabels['up-letter'];
       } else if (clueDir == 'Z') {
         table = this.z3dClues
         this.hasZ3dClues = true
+        revSuff = this.textLabels['3d-up'];
       } else if (clueDir == 'X') {
         table = this.nodirClues
         this.hasNodirClues = true
+        revSuff = '';
       } else {
         this.throwErr('Unexpected clue direction ' + clueDir + ' in ' +
                       clueIndex)
@@ -3641,8 +3672,12 @@ Exolve.prototype.displayClues = function() {
 
     let col1Chars = theClue.displayLabel.replace(/&[^;]*;/g, '#')
     let col1NumChars = [...col1Chars].length
-    if (col1Chars.substr(1, 1) == ',') {
-      // Linked clue that begins with a single-letter/digit clue number. Indent!
+    const linkSep = col1Chars.substr(1, 2);
+    if (linkSep == ', ' || linkSep == ' &' ||
+        (revSuff && col1Chars.substr(1, revSuff.length) == revSuff)) {
+      // Linked clue that begins with a single-letter/digit clue number.
+      // Or, reversed single-letter/digit clue.
+      // Indent!
       col1.style.textIndent =
         this.caseCheck(col1Chars.substr(0, 1)) ? '0.55ch' : '1ch'
       col1Chars = '0' + col1Chars
@@ -3662,16 +3697,16 @@ Exolve.prototype.displayClues = function() {
     if (col1NumChars > 2) {
       // More than two unicode chars in col1. Need to indent col2.
       col1Chars = col1Chars.substr(2)
-      // spaces and equal number of commas use 0.6
-      let col1Spaces = col1Chars.split(' ').length - 1
-      let indent = col1Spaces * 2 * 0.6
+      // spaces and commas use 0.6
+      const col1Spammas = col1Chars.replace(/[^, ]*/g, '').length
+      let indent = col1Spammas * 0.6
       // digits, lowercase letters use 1
-      let col1Digits = col1Chars.replace(/[^0-9a-z]*/g, '').length
+      const col1Digits = col1Chars.replace(/[^0-9a-z]*/g, '').length
       indent = indent + (col1Digits * 1)
-      // uppercase letters use 1.1
-      let col1Letters = col1Chars.replace(/[^A-Z]*/g, '').length
-      indent = indent + (col1Letters * 1.1)
-      let rem = col1Chars.length - col1Letters - col1Digits - (2 * col1Spaces);
+      // uppercase letters and & use 1.3
+      const col1Letters = col1Chars.replace(/[^A-Z&]*/g, '').length
+      indent = indent + (col1Letters * 1.3)
+      const rem = col1Chars.length - col1Letters - col1Digits - col1Spammas;
       if (rem > 0) {
         indent = indent + (rem * 2.8)
       }
@@ -3681,18 +3716,21 @@ Exolve.prototype.displayClues = function() {
       col2.style.textIndent = '' + indent + 'ch'
     }
 
-    if (this.isOrphan(clueIndex) && !theClue.parentClueIndex) {
+    if ((theClue.showBlanks || this.isOrphan(clueIndex)) &&
+        !theClue.parentClueIndex) {
       let placeholder = ''
-      let len = this.DEFAULT_ORPHAN_LEN
+      let len = this.PLACEHOLDER_BLANK_LEN
       if (theClue.placeholder) {
         placeholder = theClue.placeholder
         len = placeholder.length
       }
-      this.addOrphanUI(col2, false, len, placeholder, clueIndex)
-      theClue.orphanPlaceholder =
-        col2.lastElementChild.firstElementChild;
+      if (theClue.showBlanks && theClue.showBlanks > 1) {
+        len = theClue.showBlanks;
+      }
+      theClue.placeholderBlank =
+          this.addPlaceholderBlank(col2, false, len, placeholder, clueIndex);
       this.answersList.push({
-        input: theClue.orphanPlaceholder,
+        input: theClue.placeholderBlank,
         isq: false,
       });
     }
@@ -4371,12 +4409,21 @@ Exolve.prototype.gnavToInner = function(cell, dir) {
   } else if (activeClueIndex && this.clues[activeClueIndex]) {
     let clueIndices = this.getLinkedClues(activeClueIndex)
     let parentIndex = clueIndices[0]
+    let last = null;
     for (let clueIndex of clueIndices) {
       for (let rowcol of this.clues[clueIndex].cells) {
         this.grid[rowcol[0]][rowcol[1]].cellRect.style.fill =
             this.colorScheme['active']
-        this.activeCells.push(rowcol)
+        if (!last || last[0] != rowcol[0] || last[1] != rowcol[1]) {
+          this.activeCells.push(rowcol)
+          last = rowcol;
+        }
       }
+    }
+    if (last && last[0] == this.activeCells[0][0] &&
+        last[1] == this.activeCells[0][1]) {
+      // Snake!
+      this.activeCells.pop();
     }
   } else {
     // Isolated cell, hopefully a part of some nodir clue
@@ -4500,11 +4547,13 @@ Exolve.prototype.getLinkedClues = function(clueIndex) {
 // Get HTML for back/forth buttons in current clue.
 Exolve.prototype.getCurrClueButtons = function() {
   return `<span>
-      <button id="${this.prefix}-curr-clue-prev" class="xlv-small-button"
-      title="${this.textLabels['curr-clue-prev.hover']}"
+      <button id="${this.prefix}-curr-clue-prev"
+        class="xlv-small-button xlv-nextprev"
+        title="${this.textLabels['curr-clue-prev.hover']}"
           >${this.textLabels['curr-clue-prev']}</button>
-      <button id="${this.prefix}-curr-clue-next" class="xlv-small-button"
-      title="${this.textLabels['curr-clue-next.hover']}"
+      <button id="${this.prefix}-curr-clue-next"
+        class="xlv-small-button xlv-nextprev"
+        title="${this.textLabels['curr-clue-next.hover']}"
           >${this.textLabels['curr-clue-next']}</button></span>`;
 }
 
@@ -4598,20 +4647,17 @@ Exolve.prototype.cnavToInner = function(activeClueIndex, grabFocus = false) {
     currLab.addEventListener(
         'click', this.toggleClueSolvedState.bind(this, this.currClueIndex))
   }
-  if (orphan) {
+  if (this.clues[parentIndex].placeholderBlank) {
     let placeholder = ''
-    let len = this.DEFAULT_ORPHAN_LEN
+    let len = this.clues[parentIndex].placeholderBlank.size ||
+              this.PLACEHOLDER_BLANK_LEN;
     if (this.clues[parentIndex].placeholder) {
       placeholder = this.clues[parentIndex].placeholder
-      len = placeholder.length
     }
-    this.addOrphanUI(this.currClue, true, len, placeholder, parentIndex)
-    this.copyOrphanEntryToCurr(parentIndex)
-    if (grabFocus && !this.usingGnav && this.clues[parentIndex].clueTR) {
-      let plIns = this.clues[parentIndex].clueTR.getElementsByTagName('input')
-      if (plIns && plIns.length > 0) {
-        plIns[0].focus()
-      }
+    this.addPlaceholderBlank(this.currClue, true, len, placeholder, parentIndex);
+    this.copyPlaceholderBlankToCurr(parentIndex)
+    if (grabFocus && !this.usingGnav && parentIndex == activeClueIndex) {
+      this.clues[parentIndex].placeholderBlank.focus();
     }
   }
   this.currClue.style.background = orphan ?
@@ -4653,6 +4699,7 @@ Exolve.prototype.gnavIsClueless = function() {
 
 Exolve.prototype.cnavTo = function(activeClueIndex, grabFocus=true) {
   if (activeClueIndex == this.currClueIndex) {
+    this.refocus();
     return;
   }
   this.deactivateCurrClue();
@@ -4669,16 +4716,16 @@ Exolve.prototype.cnavTo = function(activeClueIndex, grabFocus=true) {
   this.updateDisplayAndGetState()
 }
 
-Exolve.prototype.copyOrphanEntry = function(clueIndex) {
+Exolve.prototype.copyPlaceholderBlank = function(clueIndex) {
   if (this.hideCopyPlaceholders || this.activeCells.length < 1 ||
       !clueIndex || !this.clues[clueIndex] || !this.clues[clueIndex].clueTR) {
     return
   }
-  let ips = this.clues[clueIndex].clueTR.getElementsByTagName('input')
-  if (ips.length != 1) {
+  const inp = this.clues[clueIndex].placeholderBlank;
+  if (!inp) {
     return
   }
-  let entry = ips[0].value
+  let entry = inp.value
   let letters = ''
   for (let i = 0; i < entry.length; i++) {
     let letter = entry[i]
@@ -4740,24 +4787,21 @@ Exolve.prototype.copyOrphanEntry = function(clueIndex) {
 
 // inCurr is set to true when this is called oninput in the currClue strip
 // and false when called oninput in the clues table.
-Exolve.prototype.updateOrphanEntry = function(clueIndex, inCurr) {
+Exolve.prototype.updateOrphanEntry = function(clueIndex, inCurr, evt) {
   if (!clueIndex || !this.clues[clueIndex] || !this.clues[clueIndex].clueTR ||
-      !this.isOrphan(clueIndex) || this.clues[clueIndex].parentClueIndex) {
+      this.clues[clueIndex].parentClueIndex ||
+      !this.clues[clueIndex].placeholderBlank) {
     return
   }
-  let clueInputs = this.clues[clueIndex].clueTR.getElementsByTagName('input')
-  if (clueInputs.length != 1) {
-    this.log('Missing placeholder input for clue ' + clueIndex)
-    return
-  }
-  let theInput = clueInputs[0]
+  evt.stopPropagation();
+  const theInput = this.clues[clueIndex].placeholderBlank;
   if (!inCurr) {
     let cursor = theInput.selectionStart
     theInput.value = theInput.value.toUpperCase().trimLeft()
     theInput.selectionEnd = cursor
     this.updateAndSaveState()
   }
-  let curr = document.getElementById(this.CURR_ORPHAN_ID)
+  let curr = document.getElementById(this.CURR_PLACEHOLDER_BLANK_ID)
   if (!curr) {
     return
   }
@@ -4778,37 +4822,38 @@ Exolve.prototype.updateOrphanEntry = function(clueIndex, inCurr) {
 }
 
 // Copy placeholder value from clue table to the newly created curr clue.
-Exolve.prototype.copyOrphanEntryToCurr = function(clueIndex) {
+Exolve.prototype.copyPlaceholderBlankToCurr = function(clueIndex) {
   if (!clueIndex || !this.clues[clueIndex] || !this.clues[clueIndex].clueTR ||
-      !this.isOrphan(clueIndex) || this.clues[clueIndex].parentClueIndex) {
+      this.clues[clueIndex].parentClueIndex ||
+      !this.clues[clueIndex].placeholderBlank) {
     return
   }
-  let clueInputs = this.clues[clueIndex].clueTR.getElementsByTagName('input')
-  if (clueInputs.length != 1) {
-    this.log('Missing placeholder input for clue ' + clueIndex)
-    return
-  }
-  let curr = document.getElementById(this.CURR_ORPHAN_ID)
+  const clueInput = this.clues[clueIndex].placeholderBlank;
+  const curr = document.getElementById(this.CURR_PLACEHOLDER_BLANK_ID);
   if (!curr) {
-    return
+    return;
   }
-  let currInputs = curr.getElementsByTagName('input')
-  if (clueInputs.length != 1) {
-    return
+  const currInputs = curr.getElementsByTagName('input');
+  if (currInputs.length != 1) {
+    return;
   }
-  currInputs[0].value = clueInputs[0].value
+  currInputs[0].value = clueInput.value;
 }
 
-Exolve.prototype.orphanCopier = function(clueIndex, e) {
-  this.copyOrphanEntry(clueIndex)
+Exolve.prototype.phBlankCopier = function(clueIndex, e) {
+  this.copyPlaceholderBlank(clueIndex)
   e.stopPropagation()
 }
 
-Exolve.prototype.addOrphanUI =
-    function(elt, inCurr, len, placeholder, clueIndex) {
+Exolve.prototype.phBlankOnClick = function(e) {
+  e.stopPropagation();
+}
+
+Exolve.prototype.addPlaceholderBlank = function(
+    elt, inCurr, len, placeholder, clueIndex) {
   let html = '<span'
   if (inCurr) {
-    html = html + ' id="' + this.CURR_ORPHAN_ID + '"'
+    html = html + ' id="' + this.CURR_PLACEHOLDER_BLANK_ID + '"'
   }
   html = html + ' class="xlv-nobr">' +
     '<input size="' + len + '" class="xlv-incluefill" placeholder="' +
@@ -4824,14 +4869,16 @@ Exolve.prototype.addOrphanUI =
   }
   html = html + '</span>'
   elt.insertAdjacentHTML('beforeend', html)
-  let incluefill = elt.lastElementChild.firstElementChild
-  incluefill.style.color = this.colorScheme['solution']
-  incluefill.addEventListener(
-      'input', this.updateOrphanEntry.bind(this, clueIndex, inCurr))
+  const incluefill = elt.lastElementChild.firstElementChild;
+  incluefill.style.color = this.colorScheme['solution'];
+  incluefill.addEventListener('input',
+      this.updateOrphanEntry.bind(this, clueIndex, inCurr));
+  incluefill.addEventListener('click', this.phBlankOnClick.bind(this));
   if (!this.hideCopyPlaceholders) {
     elt.lastElementChild.lastElementChild.addEventListener(
-      'click', this.orphanCopier.bind(this, clueIndex))
+      'click', this.phBlankCopier.bind(this, clueIndex));
   }
+  return incluefill;
 }
 
 Exolve.prototype.followDirOrder = function() {
@@ -5327,13 +5374,16 @@ Exolve.prototype.createListeners = function() {
 Exolve.prototype.recolourCells = function(scale=1) {
   // Set colours specified through exolve-colour.
   this.colourGroup.innerHTML = '';
+  const dupes = {};
   for (let colourSpec of this.colourfuls) {
     for (let cccc of colourSpec.list) {
       for (let cell of cccc.cells) {
         const row = cell[0]
         const col = cell[1]
+        if (dupes[[row, col, colourSpec.colour]]) continue;
         this.colourGroup.appendChild(
             this.makeCellDiv(row, col, colourSpec.colour, scale));
+        dupes[[row, col, colourSpec.colour]] = true;
       }
     }
   }
@@ -5626,6 +5676,7 @@ Exolve.prototype.redisplayNinas = function(scale=1) {
   this.ninaGroup.innerHTML = '';
   this.ninaClassElements = [];
   let ninaColorIndex = 0;
+  const dupes = {};
   for (let nina of this.ninas) {
     console.assert(nina.colour, nina);
     for (let cccc of nina.list) {
@@ -5647,7 +5698,9 @@ Exolve.prototype.redisplayNinas = function(scale=1) {
         for (let cell of cccc.cells) {
           const row = cell[0]
           const col = cell[1]
+          if (dupes[[row, col, nina.colour]]) continue;
           this.ninaGroup.appendChild(this.makeCellDiv(row, col, nina.colour, scale));
+          dupes[[row, col, nina.colour]] = true;
         }
       }
     }
@@ -5662,6 +5715,10 @@ Exolve.prototype.showNinas = function() {
   this.ninasButton.innerHTML = this.textLabels['hide-ninas']
   this.ninasButton.title = this.textLabels['hide-ninas.hover']
   this.showingNinas = true
+  if (this.ninas.length > 0 && this.noNinaButton) {
+    // Show the "hide-ninas" button
+    this.ninasButton.style.display = ''
+  }
 }
 
 Exolve.prototype.hideNinas = function() {
@@ -5672,6 +5729,10 @@ Exolve.prototype.hideNinas = function() {
   this.ninasButton.innerHTML = this.textLabels['show-ninas']
   this.ninasButton.title = this.textLabels['show-ninas.hover']
   this.showingNinas = false
+  if (this.ninas.length > 0 && this.noNinaButton) {
+    // Hide the "show-ninas" button
+    this.ninasButton.style.display = 'none'
+  }
 }
 
 Exolve.prototype.toggleNinas = function() {
@@ -5736,27 +5797,35 @@ Exolve.prototype.isFull = function(clueIndex) {
 Exolve.prototype.clearCurr = function() {
   let clueIndices = []
   if (this.activeCells.length > 0) {
-    for (let cell of this.activeCells) {
-      let gridCell = this.grid[cell[0]][cell[1]]
-      if (this.currDir == 'A' && gridCell.acrossClueLabel) {
-        clueIndices.push(this.getDirClueIndex('A', gridCell.acrossClueLabel));
-      }
-      if (this.currDir == 'D' && gridCell.downClueLabel) {
-        clueIndices.push(this.getDirClueIndex('D', gridCell.downClueLabel));
-      }
-      if (this.currDir == 'Z' && gridCell.z3dClueLabel) {
-        clueIndices.push(this.getDirClueIndex('Z', gridCell.z3dClueLabel));
+    let clueCells = null;
+    if (this.currClueIndex) {
+      clueCells = this.getAllCells(this.clueOrParentIndex(this.currClueIndex));
+    }
+    if (this.sameCells(this.activeCells, clueCells)) {
+      clueIndices = this.getLinkedClues(this.currClueIndex);
+    } else {
+      for (let cell of this.activeCells) {
+        const gridCell = this.grid[cell[0]][cell[1]]
+        if (this.currDir == 'A' && gridCell.acrossClueLabel) {
+          clueIndices.push(this.getDirClueIndex('A', gridCell.acrossClueLabel));
+        }
+        if (this.currDir == 'D' && gridCell.downClueLabel) {
+          clueIndices.push(this.getDirClueIndex('D', gridCell.downClueLabel));
+        }
+        if (this.currDir == 'Z' && gridCell.z3dClueLabel) {
+          clueIndices.push(this.getDirClueIndex('Z', gridCell.z3dClueLabel));
+        }
       }
     }
   } else if (this.currClueIndex) {
     clueIndices = this.getLinkedClues(this.currClueIndex)
   }
-  let currClues = {}
+  const currClues = {}
   for (let ci of clueIndices) {
     currClues[ci] = true
   }
   for (let clueIndex in currClues) {
-    let theClue = this.clues[clueIndex]
+    const theClue = this.clues[clueIndex]
     if (theClue.annoSpan) {
       theClue.annoSpan.style.display = 'none'
     }
@@ -5768,12 +5837,12 @@ Exolve.prototype.clearCurr = function() {
       }
     }
   }
-  let fullCrossers = []
-  let others = []
+  const fullCrossers = []
+  const others = []
   for (let x of this.activeCells) {
-    let row = x[0]
-    let col = x[1]
-    let gridCell = this.grid[row][col]
+    const row = x[0]
+    const col = x[1]
+    const gridCell = this.grid[row][col]
     if (gridCell.prefill) {
       continue
     }
@@ -5866,8 +5935,8 @@ Exolve.prototype.clearAll = function(conf=true) {
 
   for (let ci of this.allClueIndices) {
     this.updateClueState(ci, false, 'unsolved')
-    if (clearingPls && this.isOrphan(ci) && this.clues[ci].orphanPlaceholder) {
-      this.clues[ci].orphanPlaceholder.value = ''
+    if (clearingPls && this.clues[ci].placeholderBlank) {
+      this.clues[ci].placeholderBlank.value = ''
     }
   }
   if (clearingPls && this.currClue) {
@@ -6023,11 +6092,11 @@ Exolve.prototype.revealClueAnno = function(ci) {
     if (theClue.annoSpan) {
       theClue.annoSpan.style.display = ''
     }
-    if (theClue.orphanPlaceholder) {
+    if (theClue.placeholderBlank) {
       if (theClue.solution) {
-        theClue.orphanPlaceholder.value = theClue.solution
+        theClue.placeholderBlank.value = theClue.solution
         if (clueIndex == this.currClueIndex) {
-          this.copyOrphanEntryToCurr(clueIndex)
+          this.copyPlaceholderBlankToCurr(clueIndex)
         }
       }
     }
@@ -6273,7 +6342,7 @@ Exolve.prototype.displayButtons = function() {
     this.revealButton.title = this.textLabels['reveal.hover']
     this.revealButton.disabled = true
   }
-  if (this.ninas.length > 0) {
+  if (this.ninas.length > 0 && !this.noNinaButton) {
     this.ninasButton.style.display = ''
     this.ninasButton.title = this.textLabels['show-ninas.hover']
   }

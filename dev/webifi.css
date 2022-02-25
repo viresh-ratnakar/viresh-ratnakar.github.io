@@ -1,0 +1,36 @@
+/*
+MIT License
+
+Copyright (c) 2022 Viresh Ratnakar
+
+See the full license notice in webifi.js.
+*/
+
+.webifi-root {
+  font-size: 12px;
+  font-family: monospace;
+  box-sizing: border-box;
+  border: 1px solid black;
+}
+.webifi-log {
+  height: 150px;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+.webifi-log-entry {
+  padding: 4px;
+  box-sizing: border-box;
+}
+.webifi-input-wrapper {
+  box-sizing: border-box;
+  border: none;
+  overflow-x: hidden;
+}
+.webifi-input {
+  font-size: 12px;
+  font-family: monospace;
+  border: none;
+  padding: 0 0 6px 4px;
+  outline: none;
+  box-sizing: border-box;
+}
