@@ -42,7 +42,7 @@ pre {
 #xlvp-chooser {
   margin-top: 10px;
 }
-#xlvp-chooser-strip {
+.xlvp-hscroll {
   overflow-x: auto;
 }
 .xlvp-chooser-entry {
@@ -90,16 +90,18 @@ pre {
     <li><b>Or:</b> <input id="xlvp-file" onchange="xlvpOnOpenFile();" type="file"></input></li>
     <li><b>Or: Enter crossword text (selected from a PDF file, for example):</b>
       <br>
-      <textarea
-        placeholder='Paste just the clues from the text of a blocked, symmetric (UK-style) crossword here, including the lines that say "Across" and "Down", optionally preceded by Title/Byline/Preamble. Clues can span multiple lines, but if one of those lines starts with a number then please join it up with the previous line. Change the grid width and height below if different.'
-        id="xlvp-text" rows="8" cols="80"></textarea>
+      <div class="xlvp-hscroll">
+        <textarea
+          placeholder='Paste just the clues from the text of a blocked, symmetric (UK-style) crossword here, including the lines that say "Across" and "Down", optionally preceded by Title/Byline/Preamble. Clues can span multiple lines, but if one of those lines starts with a number then please join it up with the previous line. Change the grid width and height below if different.'
+          id="xlvp-text" rows="8" cols="80"></textarea>
+      </div>
       <br>
       <div style="margin-top:8px">
         <label for="xlvp-w">Width:</label> <input id="xlvp-w" name="xlvp-w" type="text" size="2" maxlength="2" min="3" max="21" value="15"/>
         <label for="xlvp-h">Height:</label> <input id="xlvp-h" name="xlvp-h" type="text" size="2" maxlength="2" min="3" max="21" value="15"/>
         <button onclick="xlvpOnText()"><b>Try to infer a blocked crossword from the above text</b></button>
       </div>
-    <div id="xlvp-chooser">
+    <div id="xlvp-chooser" class="xlvphscroll">
       <h3 id="xlvp-multiple-msg">Multiple grids match the text, choose the right one:</h3>
       <div id="xlvp-chooser-strip">
       </div>
