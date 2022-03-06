@@ -2278,7 +2278,7 @@ Exolve.prototype.parseDir = function(s, matchSpecial) {
         specDir = 'D';
       }
       if (specSkip > 0) {
-        const suffRE = /^((,[ ]?[0-9])|( [A-Z0-9]))/;
+        const suffRE = /^(([ ]?[,&][ ]?[0-9])|( [A-Z0-9]))/;
         if (suffRE.test(s.substr(specSkip))) {
           parse.dir = specDir;
           skip = specSkip;
