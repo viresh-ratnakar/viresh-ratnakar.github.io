@@ -183,7 +183,7 @@ exolveFromTextSections = function(w, h, sections) {
   }
   specs += `
     exolve-maker:
-      Converted by exolve-from-puz.js from ${sections.file}`
+      Converted by exolve-from-text.js from ${sections.file}`
   if (sections.preamble) {
     specs += `
     exolve-preamble:
