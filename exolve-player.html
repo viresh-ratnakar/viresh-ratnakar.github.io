@@ -353,12 +353,15 @@ function xlvpShow(buffer, fname) {
   xlvpShowText(specs, fname);
 }
 function xlvpOpenFile(f) {
+  if (!f) {
+    return;
+  }
   let fr = new FileReader(); 
   fr.onload = function(){ 
     xlvpShow(fr.result, xlvpFileName);
   }
-  xlvpFileName = f.name
-  fr.readAsArrayBuffer(f)
+  xlvpFileName = f.name;
+  fr.readAsArrayBuffer(f);
 }
 function xlvpOnOpenFile(ev) {
   let f = xlvpFile.files[0];
@@ -428,14 +431,12 @@ function xlvpShowText(text, fname='provided text') {
       const dedupe = {};
       for (let result of results) {
         gridSpecLines = result.gridSpecLines();
-        if (gridSpecLines) {
-          if (dedupe[gridSpecLines]) continue;
-          dedupe[gridSpecLines] = true;
-          matches.push({
-            'grid': gridSpecLines,
-            'exolve': result.exolve(),
-          });
-        }
+        if (dedupe[gridSpecLines]) continue;
+        dedupe[gridSpecLines] = true;
+        matches.push({
+          'grid': gridSpecLines,
+          'exolve': result.exolve(),
+        });
       }
       if (matches.length == 0) {
         return;
