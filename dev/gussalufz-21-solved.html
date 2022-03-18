@@ -7,6 +7,8 @@
 <link rel="stylesheet" type="text/css" href="webifi.css"/>
 <script src="https://viresh-ratnakar.github.io/exolve-m.js"></script>
 <script src="webifi.js"></script>
+<script src="lufz-en-lexicon.js"></script>
+<script src="exet-lexicon.js"></script>
 <script src="exolve-webifi.js"></script>
 <script src="dictionary-webifi.js"></script>
 <title>Last Solo</title>
@@ -107,10 +109,18 @@ exolve-end
 ======REPLACE WITH YOUR PUZZLE ABOVE======
 `);
 
-  const webifi = new Webifi(puz.prefix + '-clues', 'xlv-wide-box');
-  const dictionaryWebifi = new DictionaryWebifi(webifi);
-  const exolveWebifi = new ExolveWebifi(webifi, puz);
-  webifi.start();
+  let webifi;
+  let dictionaryWebifi;
+  let exolveWebifi;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    exetLexiconInit();
+    webifi = new Webifi();
+    dictionaryWebifi = new DictionaryWebifi(webifi);
+    exolveWebifi = new ExolveWebifi(webifi, puz, exetLexicon);
+    webifi.start();
+  });
+
 </script>
 </body>
 </html>

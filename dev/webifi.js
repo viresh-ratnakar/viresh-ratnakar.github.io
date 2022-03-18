@@ -32,7 +32,7 @@ https://github.com/viresh-ratnakar/webifi
  */
 function Webifi(containerId='', className='') {
   this.VERSION = 'Webifi v0.00, February 19, 2022';
-  this.MAX_LEN = 280;
+  this.MAX_LEN = 1000;
   this.MAX_LIST_LEN = 20;
   this.MAX_LOG_ENTRIES = 1000;
   this.logEntries = [];
@@ -183,7 +183,7 @@ Webifi.prototype.appendToLog = function(from, text, list=[], numbered=true) {
 }
 
 Webifi.prototype.wordsOf = function(s) {
-  const words = s.replace(/\s/g, ' ').replace(/\s+/g, ' ').trim().split(' ');
+  const words = s.replace(/\s/g, ' ').replace(/<pause>/g, ' <pause> ').replace(/\s+/g, ' ').trim().split(' ');
   if (words.length == 1 && !words[0]) {
     return [];
   }
@@ -213,14 +213,13 @@ Webifi.prototype.annotateText = function(text) {
     if (skip) {
       continue;
     }
+    if (words[i] == '<pause>') {
+      continue;
+    }
     const word = words[i].
       replace(/\//g, ' slash ').
-      replace(/%/g, ' percent ').
       replace(/\//g, ' slash ').
-      replace(/#/g, ' hash-symbol ').
-      replace(/\$/g, ' dollar-symbol ').
-      replace(/&/g, ' ampersand ').
-      replace(/@/g, ' at-symbol ').trim().replace(/\s+/g, ' ');
+      replace(/&/g, ' ampersand ').trim().replace(/\s+/g, ' ');
     if (word == '?') {
       words[i] = 'question-mark';
     } else if (word == '.') {
@@ -233,6 +232,7 @@ Webifi.prototype.annotateText = function(text) {
       // Annotate hyphen or dash in the unmodified word first.
       const dashParts = words[i].split(/[—-]/);
       if (dashParts.length > 1) {
+        words.push('<pause>');
         words.push('Note that "' + words[i] + '" is spelled as ' + dashParts.join(' dash ') + '.');
       }
       words[i] = word;
@@ -247,15 +247,18 @@ Webifi.prototype.annotateText = function(text) {
           const spellingBits = wordPart.split('');
           const spelling = spellingBits.join(' ').toUpperCase().
               replace(/\./g, 'period').replace(/'/g, 'apostrophe');
+          words.push('<pause>');
           words.push('Note that "' + wordPart + '" is spelled as ' + spelling + '.');
         }
       }
     }
   }
   if (words.length > 0 && words[words.length - 1].endsWith('...')) {
+    words.push('<pause>');
     words.push('Note that the last word ends with dot-dot-dot.');
   }
   if (originalLength > 0 &&
+      words.length > originalLength &&
       !words[originalLength - 1].endsWith('.')) {
     words[originalLength - 1] += '.';
   }
@@ -280,7 +283,7 @@ Webifi.prototype.commandMatch = function(words, matchers) {
       }
     }
     if (allMatch && (matcher.length > matchLength)) {
-      matchlength = matcher.length;
+      matchLength = matcher.length;
       longestMatchIndex = index;
     }
   }
@@ -304,11 +307,7 @@ Webifi.prototype.handleInput = function() {
     return;
   }
   this.appendToLog('', '> ' + input);
-  // Remove trailing punctuation.
-  if (input.length > 1 &&
-      (input.endsWith('?') || input.endsWith('!') || input.endsWith('.'))) {
-    input = input.substr(0, input.length - 1);
-  }
+
   const numbers = [];
   const words = this.wordsOf(input);
   const modWords = words.slice();
@@ -356,32 +355,46 @@ Webifi.prototype.output = function(avatarName, text, list=[], numbered=true) {
     return;
   }
   const avatar = this.avatars[avatarName];
-  if (text.length > this.MAX_LEN) {
-    text = text.substr(0, this.MAX_LEN);
-  }
+
+  let spokenText = text.replace(/<pause>/g, ' ... ');
+  let writtenText = text.replace(/<pause>/g, ' ').replace(/\s+/g, ' ');
   if (list.length > this.MAX_LIST_LEN) {
     list.length = this.MAX_LIST_LEN;
   }
+  let spokenList = list.slice();
+  let writtenList = list.slice();
+
+  if (spokenText.length > this.MAX_LEN) {
+    spokenText = spokenText.substr(0, this.MAX_LEN);
+  }
+  if (writtenText.length > this.MAX_LEN) {
+    writtenText = writtenText.substr(0, this.MAX_LEN);
+  }
   for (let index = 0; index < list.length; index++) {
-    if (list[index].length > this.MAX_LEN) {
-      list[index] = list[index].substr(0, this.MAX_LEN);
+    spokenList[index] = spokenList[index].replace(/<pause>/g, ' ... ');
+    if (spokenList[index].length > this.MAX_LEN) {
+      spokenList[index] = spokenList[index].substr(0, this.MAX_LEN);
+    }
+    writtenList[index] = writtenList[index].replace(/<pause>/g, ' ').replace(/\s+/g, ' ');
+    if (writtenList[index].length > this.MAX_LEN) {
+      writtenList[index] = writtenList[index].substr(0, this.MAX_LEN);
     }
   }
 
-  this.appendToLog(avatarName, text, list, numbered);
+  this.appendToLog(avatarName, writtenText, writtenList, numbered);
   if (!this.synth || !this.voice) {
     console.log('Speech synthesis or voice not available');
     return;
   }
-  const utterance = new SpeechSynthesisUtterance(text);
+  const utterance = new SpeechSynthesisUtterance(spokenText);
   utterance.voice = this.voice;
   utterance.lang = this.voice.lang;
   utterance.pitch = avatar.pitch;
   utterance.rate = this.rate;
   this.synth.speak(utterance);
   let index = 1;
-  for (let entry of list) {
-    const prefix = numbered ? ('Number ' + index + ' out of ' + list.length + ': ') : '';
+  for (let entry of spokenList) {
+    const prefix = numbered ? ('Number ' + index + ' out of ' + spokenList.length + ': ') : '';
     const li = new SpeechSynthesisUtterance(prefix + entry);
     index++;
     li.voice = this.voice;
@@ -398,7 +411,7 @@ Webifi.prototype.getUserInput = function(avatarName, prompt, func) {
         ' returning false as there already is user input pending');
     return false;
   }
-  this.output(avatarName, prompt + '. Please enter your response:');
+  this.output(avatarName, prompt + (prompt.endsWith('.') ? '' : '.') + ' Please enter your response:');
   this.pendingInputClosure = func;
   return true;
 }
@@ -571,6 +584,10 @@ Webifi.prototype.basicHandler = function(input, words, commandName,
     if (remaining) {
       this.help(remaining);
     } else {
+       this.output(this.name,
+           'Here are all the commands that you can use, grouped by "avatars"' +
+           ' that handle them. Note that you can get more details on a ' +
+           'specific command like, say, "hello", by saying "help hello".');
       for (let a of this.sortedAvatarNames) {
         this.help(a);
       }
