@@ -7,6 +7,7 @@ See the full license notice in webifi.js.
 */
 
 .webifi-root {
+  position: relative;
   font-size: 12px;
   font-family: monospace;
   box-sizing: border-box;
@@ -34,3 +35,21 @@ See the full license notice in webifi.js.
   outline: none;
   box-sizing: border-box;
 }
+.webifi-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  max-width: 10%;
+  border-radius: 12px;
+  padding: 4px;
+  border: 1px solid magenta;
+  background: white;
+}
+.webifi-button:hover {
+  border: 1px solid darkgreen;
+  background: lightyellow;
+}
+.webifi-icon {
+  max-width: 100%;
+}
+

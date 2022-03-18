@@ -34,7 +34,7 @@ function Webifi(containerId='', className='') {
   this.VERSION = 'Webifi v0.00, February 19, 2022';
   this.MAX_LEN = 1000;
   this.MAX_LIST_LEN = 20;
-  this.MAX_LOG_ENTRIES = 1000;
+  this.MAX_LOG_ENTRIES = 10;
   this.logEntries = [];
   this.logIndex = 0;
 
@@ -75,8 +75,12 @@ function Webifi(containerId='', className='') {
       description: 'Get an introduction to Webifi and a listing of available avatars.',
       prefixes: ['whats your name', 'what\'s your name', 'who are you', 'hi|hello|greeting|greetings'],
     },
+    'audio': {
+      description: 'Toggles or sets audio mode.',
+      prefixes: ['audio', 'audio off|on'],
+    },
     'echo': {
-      description: 'Tests who a word or phrase or sentence gets spoken.',
+      description: 'Tests how a word or phrase or sentence gets spoken.',
       prefixes: ['echo',],
     },
     'talking-speed': {
@@ -97,6 +101,11 @@ function Webifi(containerId='', className='') {
       'Element with id "webifi-root" already exists!');
   parent.insertAdjacentHTML('afterbegin', `
     <div id="webifi-root" class="webifi-root">
+      <div class="webifi-button"
+           title="Webifi: the interactive-fictionesque web interface">
+        <img class="webifi-icon" src="webifi-icon.png"
+           width="100px" alt="Webifi icon">
+      </div>
       <div id="webifi-log" class="webifi-log"></div>
       <hr>
       <div id="webifi-input-wrapper" class="webifi-input-wrapper">
@@ -117,6 +126,7 @@ function Webifi(containerId='', className='') {
   this.input = document.getElementById('webifi-input');
   this.input.addEventListener('change', this.handleInput.bind(this));
 
+  this.audio = false;
   this.synth = window.speechSynthesis;
   this.voice = null;
   this.rate = 1.0;
@@ -160,7 +170,8 @@ Webifi.prototype.appendToLog = function(from, text, list=[], numbered=true) {
   }
   const logEntry = document.createElement('div');
   logEntry.className = 'webifi-log-entry';
-  logEntry.innerText = (from ? from + ': ' : '') + text;
+  // logEntry.innerText = (from ? from + ': ' : '') + text;
+  logEntry.innerText = text;
   if (list && list.length > 0) {
     const l = document.createElement(numbered ? 'ol' : 'ul');
     logEntry.append(l);
@@ -214,6 +225,9 @@ Webifi.prototype.annotateText = function(text) {
       continue;
     }
     if (words[i] == '<pause>') {
+      continue;
+    }
+    if (!this.audio) {
       continue;
     }
     const word = words[i].
@@ -382,21 +396,15 @@ Webifi.prototype.output = function(avatarName, text, list=[], numbered=true) {
   }
 
   this.appendToLog(avatarName, writtenText, writtenList, numbered);
+  if (!this.audio) {
+    return;
+  }
   if (!this.synth || !this.voice) {
     console.log('Speech synthesis or voice not available');
     return;
   }
-  this.synth.speak(junk);
 
-  // TODO
-  this.appendToLog(avatarName, 'Speaking some blanks');
-  const junk = new SpeechSynthesisUtterance('       ');
-  junk.voice = this.voice;
-  junk.lang = this.voice.lang;
-  junk.pitch = avatar.pitch;
-  junk.rate = this.rate;
   const utterance = new SpeechSynthesisUtterance(spokenText);
-
   utterance.voice = this.voice;
   utterance.lang = this.voice.lang;
   utterance.pitch = avatar.pitch;
@@ -404,8 +412,7 @@ Webifi.prototype.output = function(avatarName, text, list=[], numbered=true) {
   this.synth.speak(utterance);
   let index = 1;
   for (let entry of spokenList) {
-    const prefix = numbered ? ('Number ' + index + ' out of ' + spokenList.length + ': ') : '';
-    const li = new SpeechSynthesisUtterance(prefix + entry);
+    const li = new SpeechSynthesisUtterance(entry);
     index++;
     li.voice = this.voice;
     li.lang = this.voice.lang;
@@ -574,6 +581,18 @@ Webifi.prototype.basicHandler = function(input, words, commandName,
   }
   if (commandName == 'hello') {
     this.introduce();
+  } else if (commandName == 'audio') {
+    if (numMatchedWords == 1) {
+      this.audio = !this.audio;
+    } else {
+      const setting = words[1]/toLowerCase();
+      if (setting == 'on') {
+        this.audio = true;
+      } else if (setting == 'off') {
+        this.audio = false;
+      }
+    }
+    this.output(this.name, 'Audio is now ' + (this.audio ? 'on' : 'off'));
   } else if (commandName == 'echo') {
     this.output(this.name, this.annotateText(remaining));
   } else if (commandName == 'talking-speed' && numbers.length > 0) {

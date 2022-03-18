@@ -87,6 +87,10 @@ function ExolveWebifi(webifi, puz, exetLexicon) {
       description: 'Clear entries in the current light or a particular cell.',
       prefixes: ['clear', 'clear cell [number]',],
     },
+    'check': {
+      description: 'Check entries in the current light or a particular cell or everywhere.',
+      prefixes: ['check', 'check cell [number]', 'check all'],
+    },
     'anagrams': {
       description: 'Get anagrams of a word or phrase or any set of letters.',
       prefixes: ['anagrams|anagram', 'anagrams|anagram of',],
@@ -118,6 +122,16 @@ function ExolveWebifi(webifi, puz, exetLexicon) {
     if (e.detail.knownIncorrect) msg += ' Your solution has mistakes.';
     this.webifi.output(this.name, msg);
   });
+
+  // TODO: toggle this
+  puz.updateAndSaveState = (function() {
+    var cached_function = puz.updateAndSaveState;
+    return function() {
+      cached_function.apply(this);
+      webifi.input.focus();
+    };
+  })();
+
   this.ensureActiveClue();
 }
 
@@ -562,13 +576,47 @@ ExolveWebifi.prototype.handleClearCurr = function(numbers) {
     const cell = cells[cellNumber - 1];
     this.puz.clearCell(cell[0], cell[1]);
     this.puz.updateAndSaveState();
-    this.webifi.output(this.name, 'Cleared cell ' + cellNumber + ' in ' + this.clueName(ci) + ', the entry now reads: ' + this.readCells(cells, pattern) + '.');
+    this.webifi.output(this.name, 'Cleared cell ' + cellNumber + ' in ' + this.clueName(ci) + ', the entry now reads: ' + this.readCells(cells, pattern));
   } else {
     this.puz.clearCurr();
-    this.webifi.output(this.name, 'Cleared ' + this.clueName(ci) + ', it now reads: ' + this.readCells(cells, pattern) + '.');
+    this.webifi.output(this.name, 'Cleared ' + this.clueName(ci) + ', it now reads: ' + this.readCells(cells, pattern));
     if (this.numFilled(cells) > 0) {
       this.webifi.output(this.name, 'The non-blanks are from full crossers. Another "clear" command can clear them. You can also say "crossers" to find where they are coming from.');
     }
+  }
+}
+
+ExolveWebifi.prototype.handleCheck = function(words, numMatched, numbers) {
+  if (this.puz.hasUnsolvedCells) {
+    this.webifi.output(this.name, 'Sorry, this crossword does not include solutions that can be checked.');
+    return;
+  }
+  const filledPre = this.puz.numCellsFilled;
+  if (numMatched == 2 && words[1].toLowerCase() == 'all') {
+    this.puz.checkAll(false);
+  } else {
+    const ci = this.puz.clueOrParentIndex(this.puz.currClueIndex);
+    if (!ci) return;
+    if (numbers && numbers.length > 0) {
+      const cellNumber = numbers[0];
+      const cells = this.puz.getAllCells(ci);
+      if (cellNumber < 1 || cellNumber > cells.length) {
+        this.webifi.output(this.name, 'Cell number ' + cellNumber + ' not in range 1 to ' + cells.length);
+        return;
+      }
+      const cell = cells[cellNumber - 1];
+      this.puz.activateCell(cell[0], cell[1]);
+      this.puz.cellNotLight = true;
+    }
+    this.puz.checkCurr();
+  }
+  const filledPost = this.puz.numCellsFilled; 
+  if (filledPost == filledPre) {
+    this.webifi.output(this.name, 'All checked cells were correct');
+  } else {
+    const cleared = filledPre - filledPost;
+    const term = (cleared > 1) ? ' cells that were ' : ' cell that was ';
+    this.webifi.output(this.name, 'Cleared ' + cleared + term + 'incorrect');
   }
 }
 
@@ -766,6 +814,8 @@ ExolveWebifi.prototype.handler = function(input, words, commandName,
     this.handleEnter(remaining, numbers);
   } else if (commandName == 'clear') {
     this.handleClearCurr(numbers);
+  } else if (commandName == 'check') {
+    this.handleCheck(words, numMatchedWords, numbers);
   } else if (commandName == 'crossers') {
     this.handleCrossers();
   } else if (commandName == 'navigate' && numbers.length > 0) {
