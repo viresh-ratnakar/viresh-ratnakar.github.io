@@ -386,15 +386,17 @@ Webifi.prototype.output = function(avatarName, text, list=[], numbered=true) {
     console.log('Speech synthesis or voice not available');
     return;
   }
+  this.synth.speak(junk);
+
   // TODO
-  const junk = new SpeechSynthesisUtterance('Some junk sentence.');
+  this.appendToLog(avatarName, 'Speaking some blanks');
+  const junk = new SpeechSynthesisUtterance('       ');
   junk.voice = this.voice;
   junk.lang = this.voice.lang;
   junk.pitch = avatar.pitch;
   junk.rate = this.rate;
-  this.synth.speak(junk);
-
   const utterance = new SpeechSynthesisUtterance(spokenText);
+
   utterance.voice = this.voice;
   utterance.lang = this.voice.lang;
   utterance.pitch = avatar.pitch;
