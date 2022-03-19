@@ -14,7 +14,7 @@ See the full license notice in webifi.js.
   border: 1px solid black;
 }
 .webifi-log {
-  height: 150px;
+  height: 200px;
   overflow-y: auto;
   box-sizing: border-box;
 }

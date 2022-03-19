@@ -585,7 +585,7 @@ Webifi.prototype.basicHandler = function(input, words, commandName,
     if (numMatchedWords == 1) {
       this.audio = !this.audio;
     } else {
-      const setting = words[1]/toLowerCase();
+      const setting = words[1].toLowerCase();
       if (setting == 'on') {
         this.audio = true;
       } else if (setting == 'off') {

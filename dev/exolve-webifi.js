@@ -57,6 +57,10 @@ function ExolveWebifi(webifi, puz, exetLexicon) {
       description: 'Get current status and lists unsolved clues in fraction-most-filled order.',
       prefixes: ['status', 'How am I doing', 'unsolved clues'],
     },
+    'display': {
+      description: 'Toggles or sets whether the crossword itself is displayed.',
+      prefixes: ['display', 'display on|off',],
+    },
     'navigate': {
       description: 'Navigate to a clue by naming or characterizing it.',
       prefixes: [
@@ -91,6 +95,10 @@ function ExolveWebifi(webifi, puz, exetLexicon) {
       description: 'Check entries in the current light or a particular cell or everywhere.',
       prefixes: ['check', 'check cell [number]', 'check all'],
     },
+    'reveal': {
+      description: 'Reveal entries in the current light or a particular cell or everywhere.',
+      prefixes: ['reveal', 'reveal cell [number]', 'reveal all'],
+    },
     'anagrams': {
       description: 'Get anagrams of a word or phrase or any set of letters.',
       prefixes: ['anagrams|anagram', 'anagrams|anagram of',],
@@ -123,14 +131,8 @@ function ExolveWebifi(webifi, puz, exetLexicon) {
     this.webifi.output(this.name, msg);
   });
 
-  // TODO: toggle this
-  puz.updateAndSaveState = (function() {
-    var cached_function = puz.updateAndSaveState;
-    return function() {
-      cached_function.apply(this);
-      webifi.input.focus();
-    };
-  })();
+  this.display = false;
+  this.setDisplay();
 
   this.ensureActiveClue();
 }
@@ -195,7 +197,25 @@ ExolveWebifi.prototype.handleStatus = function() {
     `Here are the ${indicesAndFracs.length} unsolved clues out of ${this.fillableClues}, in fraction-most-filled order.` :
     'Here is the last unsolved clue.'),
     list, false);
+}
 
+ExolveWebifi.prototype.setDisplay = function() {
+  this.puz.frame.style.display = this.display ? '' : 'none';
+}
+
+ExolveWebifi.prototype.handleDisplay = function(words, numMatched) {
+  if (numMatched == 1) {
+    this.display = !this.display;
+  } else {
+    const setting = words[1].toLowerCase();
+    if (setting == 'on') {
+      this.display = true;
+    } else if (setting == 'off') {
+      this.display = false;
+    }
+  }
+  this.setDisplay();
+  this.webifi.output(this.name, 'Display is now ' + (this.display ? 'on' : 'off'));
 }
 
 ExolveWebifi.prototype.ensureActiveClue = function() {
@@ -612,11 +632,42 @@ ExolveWebifi.prototype.handleCheck = function(words, numMatched, numbers) {
   }
   const filledPost = this.puz.numCellsFilled; 
   if (filledPost == filledPre) {
-    this.webifi.output(this.name, 'All checked cells were correct');
+    this.webifi.output(this.name, 'All checked cells are correct');
   } else {
     const cleared = filledPre - filledPost;
     const term = (cleared > 1) ? ' cells that were ' : ' cell that was ';
     this.webifi.output(this.name, 'Cleared ' + cleared + term + 'incorrect');
+  }
+}
+
+ExolveWebifi.prototype.handleReveal = function(words, numMatched, numbers) {
+  if (this.puz.hasUnsolvedCells) {
+    this.webifi.output(this.name, 'Sorry, this crossword does not include solutions that can be revealed.');
+    return;
+  }
+  const filledPre = this.puz.numCellsFilled;
+  if (numMatched == 2 && words[1].toLowerCase() == 'all') {
+    this.puz.revealAll(false);
+    this.webifi.output(this.name,
+        `The crossword's ${this.fillableClues} clues and ${this.puz.numCellsToFill} cells have been fully revealed`);
+  } else {
+    const ci = this.puz.clueOrParentIndex(this.puz.currClueIndex);
+    const clue = this.puz.clues[ci];
+    const cells = this.puz.getAllCells(ci);
+    if (!ci) return;
+    if (numbers && numbers.length > 0) {
+      const cellNumber = numbers[0];
+      if (cellNumber < 1 || cellNumber > cells.length) {
+        this.webifi.output(this.name, 'Cell number ' + cellNumber + ' not in range 1 to ' + cells.length);
+        return;
+      }
+      const cell = cells[cellNumber - 1];
+      this.puz.activateCell(cell[0], cell[1]);
+      this.puz.cellNotLight = true;
+    }
+    this.puz.revealCurr();
+    const pattern = clue.placeholder || '';
+    this.webifi.output(this.name, 'Revealed. The entry now reads: ' + this.readCells(cells, pattern));
   }
 }
 
@@ -806,6 +857,8 @@ ExolveWebifi.prototype.handler = function(input, words, commandName,
     this.handleDescribe();
   } else if (commandName == 'status') {
     this.handleStatus();
+  } else if (commandName == 'display') {
+    this.handleDisplay(words, numMatchedWords);
   } else if (commandName == 'clue') {
     this.handleClue();
   } else if (commandName == 'entry') {
@@ -816,6 +869,8 @@ ExolveWebifi.prototype.handler = function(input, words, commandName,
     this.handleClearCurr(numbers);
   } else if (commandName == 'check') {
     this.handleCheck(words, numMatchedWords, numbers);
+  } else if (commandName == 'reveal') {
+    this.handleReveal(words, numMatchedWords, numbers);
   } else if (commandName == 'crossers') {
     this.handleCrossers();
   } else if (commandName == 'navigate' && numbers.length > 0) {
