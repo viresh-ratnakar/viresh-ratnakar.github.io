@@ -79,10 +79,6 @@ function Webifi(containerId='', className='') {
       description: 'Toggles or sets audio mode.',
       prefixes: ['audio', 'audio off|on'],
     },
-    'voice': {
-      description: 'Displays info about the current voice.',
-      prefixes: ['voice',],
-    },
     'echo': {
       description: 'Tests how a word or phrase or sentence gets spoken.',
       prefixes: ['echo',],
@@ -146,25 +142,44 @@ Webifi.prototype.setVoice = function() {
     return;
   }
   const voices = this.synth.getVoices();
+  this.voice = null;
+  const enVars = [];
   for (let voice of voices) {
-    const lang = voice.lang.toLowerCase().replace(/[_-].*/, '');
-    if (lang != 'en' && lang != 'english') {
+    const lang = voice.lang.toLowerCase().replace('_', '-');
+    if (!lang.startsWith('en-')) {
       continue;
     }
-    if (!this.voice) {
-      this.voice = voice;
-    }
+    enVars.push(lang);
     if (voice.name.indexOf('UK English Female') >= 0 ||
         voice.name.indexOf('Daniel') >= 0 ||
         voice.name.indexOf('Rishi') >= 0) {
-      console.log('Found voice: ' + voice.name);
       this.voice = voice;
       break;
     }
   }
   if (!this.voice) {
+    let en = 'en-';
+    if (enVars.includes('en-gb')) {
+      en = 'en-gb';
+    } else if (enVars.includes('en-uk')) {
+      en = 'en-uk';
+    } else if (enVars.includes('en-us')) {
+      en = 'en-us';
+    } else if (enVars.includes('en-in')) {
+      en = 'en-in';
+    }
+    for (let voice of voices) {
+      const lang = voice.lang.toLowerCase().replace('_', '-');
+      if (lang.startsWith(en)) {
+        this.voice = voice;
+        break;
+      }
+    }
+  }
+  if (this.voice) {
+    console.log('Found voice: language: ' + this.voice.lang + ', name: ' + this.voice.name);
+  } else {
     console.log('Speech synthesis: no voice found');
-    return;
   }
 }
 
@@ -600,15 +615,17 @@ Webifi.prototype.basicHandler = function(input, words, commandName,
         this.audio = false;
       }
     }
-    this.output(this.name, 'Audio is now ' + (this.audio ? 'on' : 'off'));
+    if (!this.audio) {
+      this.output(this.name, 'Audio is now off');
+    } else {
+      if (!this.voice) {
+        this.output(this.name, 'Audio is now on; voice has not been set yet');
+      } else {
+        this.output(this.name, `Audio is now on; language is ${this.voice.lang}, with the name, ${this.voice.name}`);
+      }
+    }
   } else if (commandName == 'echo') {
     this.output(this.name, this.annotateText(remaining));
-  } else if (commandName == 'voice') {
-    if (!this.voice) {
-      this.output(this.name, 'Audio voice has not been set yet');
-    } else {
-      this.output(this.name, `Language: ${this.voice.lang}, Name: ${this.voice.name}`);
-    }
   } else if (commandName == 'talking-speed' && numbers.length > 0) {
     this.rate = parseFloat(numbers[0]);
     if (isNaN(this.rate) || this.rate < 0.1 || this.rate > 2.0) this.rate = 1.0;
