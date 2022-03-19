@@ -617,8 +617,10 @@ ExolveWebifi.prototype.handleCheck = function(words, numMatched, numbers) {
     return;
   }
   const filledPre = this.puz.numCellsFilled;
+  let all = false;
   if (numMatched == 2 && words[1].toLowerCase() == 'all') {
     this.puz.checkAll(false);
+    all = true;
   } else {
     const ci = this.puz.clueOrParentIndex(this.puz.currClueIndex);
     if (!ci) return;
@@ -637,7 +639,11 @@ ExolveWebifi.prototype.handleCheck = function(words, numMatched, numbers) {
   }
   const filledPost = this.puz.numCellsFilled; 
   if (filledPost == filledPre) {
-    this.webifi.output(this.name, 'All checked cells are correct');
+     if (all) {
+       this.webifi.output(this.name, 'All the entries in the crossword are correct!');
+     } else {
+       this.webifi.output(this.name, 'All cells are correct');
+     }
   } else {
     const cleared = filledPre - filledPost;
     const term = (cleared > 1) ? ' cells that were ' : ' cell that was ';
