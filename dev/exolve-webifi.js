@@ -54,7 +54,7 @@ function ExolveWebifi(webifi, puz, exetLexicon) {
       prefixes: ['?|intro|introduction|describe|puzzle|crossword'],
     },
     'status': {
-      description: 'Get current status and lists unsolved clues in fraction-most-filled order.',
+      description: 'Get current status and lists some unsolved clues in fraction-most-filled order.',
       prefixes: ['status', 'How am I doing', 'unsolved clues'],
     },
     'display': {
@@ -152,7 +152,7 @@ ExolveWebifi.prototype.handleDescribe = function() {
   this.webifi.output(this.name,
       'Here are some commands you can use. Say "help" to get the full list of commands.', [
         'You can say "clue" to get the current clue to be read out.',
-        '"status" lists unsolved clues in fraction-most-filled order.',
+        '"status" lists some unsolved clues in fraction-most-filled order.',
         'Jump to any clue by entering its number followed optionally by "A" or "D" or "across" or "down". You can also say "next" or "next best" or "previous" or "back".',
         'You can enter solutions by saying "fill" or "enter" followed by the entry.',], false);
 
@@ -187,14 +187,17 @@ ExolveWebifi.prototype.handleStatus = function() {
     return;
   }
   list = [];
+  let num = 0;
   for (let iAndF of indicesAndFracs) {
     const ci = iAndF[0];
     list.push(this.clueName(ci) + ' has ' + (iAndF[2] - iAndF[1]) + ' unfilled cells, out of ' + iAndF[2] + '. ' + this.readEntry(ci) + '.');
+    if (++num >= 5) break;
   }
+  const len = indicesAndFracs.length;
   this.webifi.output(this.name,
     `There are ${this.puz.numCellsToFill - this.puz.numCellsFilled} unfilled cells out of ${this.puz.numCellsToFill} cells. ` +
-    (indicesAndFracs.length > 1 ?
-    `Here are the ${indicesAndFracs.length} unsolved clues out of ${this.fillableClues}, in fraction-most-filled order.` :
+    (len > 1 ?
+    `There are ${len} unsolved clues out of ${this.fillableClues}. ${num < len ? "Here are the first few" :  "Here they are"} in fraction-most-filled order:` :
     'Here is the last unsolved clue.'),
     list, false);
 }
