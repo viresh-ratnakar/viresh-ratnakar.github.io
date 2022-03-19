@@ -79,6 +79,10 @@ function Webifi(containerId='', className='') {
       description: 'Toggles or sets audio mode.',
       prefixes: ['audio', 'audio off|on'],
     },
+    'voice': {
+      description: 'Displays info about the current voice.',
+      prefixes: ['voice',],
+    },
     'echo': {
       description: 'Tests how a word or phrase or sentence gets spoken.',
       prefixes: ['echo',],
@@ -599,6 +603,12 @@ Webifi.prototype.basicHandler = function(input, words, commandName,
     this.output(this.name, 'Audio is now ' + (this.audio ? 'on' : 'off'));
   } else if (commandName == 'echo') {
     this.output(this.name, this.annotateText(remaining));
+  } else if (commandName == 'voice') {
+    if (!this.voice) {
+      this.output(this.name, 'Audio voice has not been set yet');
+    } else {
+      this.output(this.name, `Language: ${this.voice.lang}, Name: ${this.voice.name}`);
+    }
   } else if (commandName == 'talking-speed' && numbers.length > 0) {
     this.rate = parseFloat(numbers[0]);
     if (isNaN(this.rate) || this.rate < 0.1 || this.rate > 2.0) this.rate = 1.0;
