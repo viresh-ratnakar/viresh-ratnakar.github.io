@@ -65,7 +65,8 @@ function ExolveWebifi(webifi, puz, exetLexicon) {
       description: 'Navigate to a clue by naming or characterizing it.',
       prefixes: [
         '[number]', '[number]A|[number]D', '[number] across|down|A|D',
-        'next best|easiest|solvable', 'next', 'prev|previous|back',
+        'best|easiest|solvable',
+        'next|most best|easiest|solvable', 'next', 'prev|previous|back',
         'first|last', 'first|last across|down|clue',
       ],
       helpkeys: ['number', 'jump', 'nav',],
@@ -563,7 +564,8 @@ ExolveWebifi.prototype.handleNavigate = function(words, numMatchedWords) {
 
   const prefix = words.slice(0, numMatchedWords).join(' ').toLowerCase();
 
-  if (prefix == 'next best' || prefix == 'next easiest' || prefix == 'next solvable') {
+  if (prefix.includes('best') || prefix.includes('most') ||
+      prefix.includes('easiest') || prefix.includes('solvable')) {
     this.navigateNextBest();
     return;
   }
