@@ -41,7 +41,7 @@ See the full license notice in webifi.js.
   right: 0;
   max-width: 10%;
   border-radius: 12px;
-  padding: 4px;
+  padding: 4px 4px 2px;
   border: 1px solid magenta;
   background: white;
 }
