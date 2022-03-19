@@ -143,6 +143,10 @@ Webifi.prototype.setVoice = function() {
   }
   const voices = this.synth.getVoices();
   for (let voice of voices) {
+    const lang = voice.lang.toLowerCase().replace(/[_-].*/, '');
+    if (lang != 'en' && lang != 'english') {
+      continue;
+    }
     if (!this.voice) {
       this.voice = voice;
     }
