@@ -199,7 +199,7 @@ Webifi.prototype.setVoice = function(desired='') {
   this.voice = null;
   const enVars = [];
   for (let voice of voices) {
-    const lang = voice.lang.toLowerCase().replace('_', '-');
+    const lang = voice.lang.toLowerCase().replace('_', '-').replace('eng', 'en');
     if (!lang.startsWith('en-')) {
       continue;
     }
@@ -227,7 +227,7 @@ Webifi.prototype.setVoice = function(desired='') {
       en = 'en-in';
     }
     for (let voice of voices) {
-      const lang = voice.lang.toLowerCase().replace('_', '-');
+      const lang = voice.lang.toLowerCase().replace('_', '-').replace('eng', 'en');
       if (lang.startsWith(en)) {
         this.voice = voice;
         break;
