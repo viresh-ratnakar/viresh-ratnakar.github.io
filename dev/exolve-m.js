@@ -314,7 +314,9 @@ function Exolve(puzzleSpec,
     'manage-storage-close': 'Close (local storage)',
     'manage-storage-close.hover': 'Close the local storage management panel',
     'exolve-link': 'Exolve on GitHub',
-    'report-bug': 'Report bug',
+    'report-bug': 'Bug',
+    'webifi': 'Webifi',
+    'webifi.hover': 'Toggle Webifi, the interactive-fictionesque text/audio interface',
     'saving-msg': 'Your entries are auto-saved in the browser\'s local ' +
         'storage.',
     'saving-bookmark': 'You can share the state using this link:',
@@ -578,6 +580,9 @@ Exolve.prototype.init = function() {
               <a id="${this.prefix}-print" href=""
                   title="${this.textLabels['print.hover']}"
                   >${this.textLabels['print']}</a>
+              <a id="${this.prefix}-webifi" href=""
+                  title="${this.textLabels['webifi.hover']}"
+                  >${this.textLabels['webifi']}</a>
               <a id="${this.prefix}-report-bug"
                 href="https://github.com/viresh-ratnakar/exolve/issues/new"
                     >${this.textLabels['report-bug']}</a>
@@ -800,6 +805,9 @@ Exolve.prototype.init = function() {
   this.printFontInput = document.getElementById(this.prefix + '-print-font-inp');
   this.printFontInput.addEventListener(
       'change', this.setPrintFont.bind(this, false));
+
+  this.webifiButton = document.getElementById(this.prefix + '-webifi');
+  this.webifiButton.style.display = 'none';
 
   document.getElementById(this.prefix + '-tools-link').addEventListener(
         'click', this.togglePanel.bind(this, '-tools'));
@@ -4252,6 +4260,90 @@ Exolve.prototype.restoreState = function() {
   this.updateAndSaveState()
 }
 
+Exolve.prototype.addWebifi = function() {
+  if (this.webifi) {
+    return;
+  }
+  if ((typeof Webifi) == 'undefined' ||
+      (typeof WordsWebifi) == 'undefined' ||
+      (typeof CrosswordWebifi) == 'undefined') {
+    return;
+  }
+  console.log('Adding Webifi');
+  this.webifi = new Webifi();
+  this.wordsWebifi = new WordsWebifi(this.webifi);
+  this.crosswordWebifi = new CrosswordWebifi(this.webifi, this);
+
+  if (!this.webifi.urlForced) {
+    this.webifiButton.style.display = '';
+    this.webifiButton.addEventListener('click',
+        this.webifi.toggle.bind(this.webifi));
+  }
+  this.webifi.start(this.frame);
+}
+
+Exolve.prototype.loadWebifiScripts = function() {
+  const handler = this.addWebifi.bind(this);
+  let tryAdding = true;
+  if ((typeof Webifi) == 'undefined') {
+    const script = document.createElement('script');
+    script.src = 'webifi.js';
+    script.onload = handler;
+    document.head.append(script);
+    tryAdding = false;
+  }
+  if ((typeof WordsWebifi) == 'undefined') {
+    const script = document.createElement('script');
+    script.src = 'words-webifi.js';
+    script.onload = handler;
+    document.head.append(script);
+    tryAdding = false;
+  }
+  if ((typeof CrosswordWebifi) == 'undefined') {
+    const script = document.createElement('script');
+    script.src = 'crossword-webifi.js';
+    script.onload = handler;
+    document.head.append(script);
+    tryAdding = false;
+  }
+  if (tryAdding) {
+    xlv.addWebifi();
+  }
+}
+
+/**
+ * If the serving site has provided webifi scripts, we load them async and
+ * add a Webifi button.
+ */
+Exolve.prototype.loadWebifi = function() {
+  if (this.webifi || !this.saveState) {
+    return;
+  }
+  if (window.location.protocol == "file:") {
+    this.loadWebifiScripts();
+    return;
+  }
+  // We check if 'webifi-version.txt' is getting served. If we find it,
+  // only then we try to load the other webifi script files.
+  var xhttp = new XMLHttpRequest();
+  const xlv = this;
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4) {
+      let now = (new Date()).toLocaleString()
+      if (this.status < 200 || this.status > 299) {
+        console.log(now + ": Webifi version check request failed")
+        return
+      }
+      let ver = this.responseText.trim()
+      console.log(now + ": Webifi version " + ver + " found")
+      xlv.loadWebifiScripts();
+    }
+  };
+  xhttp.open("GET", "webifi-version.txt", true);
+  xhttp.send();
+}
+
+
 Exolve.prototype.deactivateCurrCell = function() {
   this.gridInputWrapper.style.display = 'none'
   for (let x of this.activeCells) {
@@ -7264,19 +7356,21 @@ Exolve.prototype.createPuzzle = function() {
   // Now that we know light numbering:
   this.parseColoursNinas();
   this.recolourCells();
-  this.redisplayNinas()
+  this.redisplayNinas();
 
-  this.displayButtons()
-  this.parseAndDisplayPS()
-  this.setColumnLayout()
+  this.displayButtons();
+  this.parseAndDisplayPS();
+  this.setColumnLayout();
 
-  this.restoreState()
-  this.checkConsistency()
+  this.restoreState();
+  this.checkConsistency();
 
-  this.createListeners()
+  this.createListeners();
+
+  this.loadWebifi();
 
   if (this.customizer) {
-    this.customizer(this)
+    this.customizer(this);
   }
 }
 

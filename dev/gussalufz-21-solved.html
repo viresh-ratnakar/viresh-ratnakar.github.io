@@ -3,14 +3,8 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<link rel="stylesheet" type="text/css" href="https://viresh-ratnakar.github.io/exolve-m.css"/>
-<link rel="stylesheet" type="text/css" href="webifi.css"/>
-<script src="https://viresh-ratnakar.github.io/exolve-m.js"></script>
-<script src="webifi.js"></script>
-<script src="lufz-en-lexicon.js"></script>
-<script src="exet-lexicon.js"></script>
-<script src="exolve-webifi.js?new"></script>
-<script src="dictionary-webifi.js"></script>
+<link rel="stylesheet" type="text/css" href="exolve-m.css"/>
+<script src="exolve-m.js"></script>
 <title>Last Solo</title>
 </head>
 
@@ -93,26 +87,9 @@ exolve-begin
     19 Husband gets perplexed stare for a suit (6) [HEARTS] Definition: a suit (of cards). H (abbreviation of "husband") + ("gets") EARTS, an anagram of STARE, indicated by "perplexed ..."
     21 Vases from empty, unpopular nurseries (4) [URNS] Definition: vases. Inner letters removed from U(npopula)R N(urserie)S, indicated by "empty ..."
     23 See Shoup Park's outstanding trail, for starters (4) [SPOT] Definition: See. First letters from (indicated by "... for starters") S(houp) P(ark's) O(utstanding) T(rail).
-  exolve-postscript:
-    <iframe style="width:100%;height:400px;border:none" src="index.html"
-      title="Links to all puzzles by Gussalufz (and doppelgängers)">
-      <a href="index.html">All puzzles by Gussalufz (and doppelgängers)</a>
-    </iframe>
 exolve-end
 ======REPLACE WITH YOUR PUZZLE ABOVE======
 `);
-
-  let webifi;
-  let dictionaryWebifi;
-  let exolveWebifi;
-
-  document.addEventListener('DOMContentLoaded', () => {
-    exetLexiconInit();
-    webifi = new Webifi();
-    dictionaryWebifi = new DictionaryWebifi(webifi);
-    exolveWebifi = new ExolveWebifi(webifi, puz, exetLexicon);
-    webifi.start();
-  });
 
 </script>
 </body>

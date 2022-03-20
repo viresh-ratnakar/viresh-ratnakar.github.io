@@ -25,18 +25,14 @@ The latest code and documentation for Webifi can be found at:
 https://github.com/viresh-ratnakar/webifi
 */
 
-/**
- * Constructor to create TODO
- *
- * containerId TODO
- */
-function Webifi(containerId='', className='') {
+function Webifi() {
   this.VERSION = 'Webifi v0.00, February 19, 2022';
   this.MAX_LEN = 1000;
   this.MAX_LIST_LEN = 20;
-  this.MAX_LOG_ENTRIES = 10;
+  this.MAX_LOG_ENTRIES = 1000;
   this.logEntries = [];
   this.logIndex = 0;
+  this.domPeer = null;
 
   this.stopWords = {
     'the': true,
@@ -66,7 +62,7 @@ function Webifi(containerId='', className='') {
   this.index = {};
   this.helpIndex = {};
   this.name = 'Webifi';
-  this.description = 'The basic interactive fiction-esque web interface.';
+  this.description = 'An interactive fiction-esque web interface';
 
   this.pendingInputClosure = null;
 
@@ -76,11 +72,16 @@ function Webifi(containerId='', className='') {
       prefixes: ['whats your name', 'what\'s your name', 'who are you', 'hi|hello|greeting|greetings'],
     },
     'audio': {
-      description: 'Toggles or sets audio mode.',
-      prefixes: ['audio', 'audio off|on'],
+      description: 'Report or set audio mode.',
+      prefixes: ['audio', 'audio off|on|us|gb|au|in|za'],
+      helpkeys: ['voice', 'accent', 'country', 'language'],
+    },
+    'display': {
+      description: 'Report or set whether the peer element is getting displayed.',
+      prefixes: ['display', 'display off|on'],
     },
     'echo': {
-      description: 'Tests how a word or phrase or sentence gets spoken.',
+      description: 'Test how a word or phrase or sentence gets spoken.',
       prefixes: ['echo',],
     },
     'talking-speed': {
@@ -88,44 +89,89 @@ function Webifi(containerId='', className='') {
       prefixes: ['talk fast|faster', 'talk slow|slower|slowly', 'talk normal|normally', 'talk|speed|rate [number]', 'talk at [number]', 'talking speed|rate [number]'],
     },
     'help': {
-      description: 'Get a listing of all commands or help on a specific command or topic.',
-      prefixes: ['help|list|commands|?', 'help|commands on|with|for',] 
+      description: 'Get a listing of all commands or get help on a specific command or topic.',
+      prefixes: ['help|list|commands|?', 'help|commands on|with|for', 'detailed help'] 
     },
   }, this.basicHandler.bind(this));
 
-  const parent = !containerId ? document.body :
-                 document.getElementById(containerId);
-  console.assert(parent,
-      'Webifi("' + containerId + '"): could not find/create parent');
   console.assert(!document.getElementById('webifi-root'),
       'Element with id "webifi-root" already exists!');
-  parent.insertAdjacentHTML('afterbegin', `
-    <div id="webifi-root" class="webifi-root">
-      <div class="webifi-button"
-           title="Webifi: the interactive-fictionesque web interface">
-        <img class="webifi-icon" src="webifi-icon.png"
-           width="100px" alt="Webifi icon">
-      </div>
-      <div id="webifi-log" class="webifi-log"></div>
-      <hr>
-      <div id="webifi-input-wrapper" class="webifi-input-wrapper">
-        <input id="webifi-input" class="webifi-input"
-            type="text" autocomplete="off" spellcheck="false"
-            placeholder="Enter a command such as 'help'"
-            size="${this.MAX_LEN}"
-            maxlength="${this.MAX_LEN}">
-        </input>
-      </div>
+  this.root = document.createElement('div');
+  this.root.id = 'webifi-root';
+  this.root.className = 'webifi-root';
+  this.root.innerHTML = `
+    <style>
+    .webifi-root {
+      position: relative;
+      font-size: 12px;
+      font-family: monospace;
+      box-sizing: border-box;
+      border: 1px solid black;
+    }
+    .webifi-log {
+      height: 200px;
+      overflow-y: auto;
+      box-sizing: border-box;
+    }
+    .webifi-log-entry {
+      padding: 4px;
+      box-sizing: border-box;
+    }
+    .webifi-input-wrapper {
+      box-sizing: border-box;
+      border: none;
+      overflow-x: hidden;
+    }
+    .webifi-input {
+      font-size: 12px;
+      font-family: monospace;
+      border: none;
+      padding: 0 0 6px 4px;
+      outline: none;
+      box-sizing: border-box;
+    }
+    .webifi-button {
+      position: absolute;
+      top: 0;
+      right: 0;
+      max-width: 10%;
+      border-radius: 12px;
+      padding: 4px 4px 2px;
+      border: 1px solid magenta;
+      background: white;
+    }
+    .webifi-button:hover {
+      border: 1px solid darkgreen;
+      background: lightyellow;
+    }
+    .webifi-icon {
+      max-width: 100%;
+    }
+    </style>
+    <div class="webifi-button"
+         title="Webifi: ${this.description}: Open help in a new tab">
+      <a href="https://github.com/viresh-ratnakar/webifi#readme"
+         target="_blank">
+      <img class="webifi-icon" src="webifi-icon.png"
+         width="100px" alt="Webifi icon">
+      </a>
     </div>
-  `);
-  this.root = document.getElementById('webifi-root');
-  if (className) {
-    this.root.classList.add(className);
-  }
-  this.log = document.getElementById('webifi-log');
-  this.input = document.getElementById('webifi-input');
-  this.input.addEventListener('change', this.handleInput.bind(this));
+    <div id="webifi-log" class="webifi-log"></div>
+    <hr>
+    <div id="webifi-input-wrapper" class="webifi-input-wrapper">
+      <input id="webifi-input" class="webifi-input"
+          type="text" autocomplete="off" spellcheck="false"
+          placeholder="Enter a command such as 'help' or 'hello'"
+          size="${this.MAX_LEN}"
+          maxlength="${this.MAX_LEN}">
+      </input>
+    </div>
+  `;
 
+  const urlParams = new URLSearchParams(window.location.search);
+  this.urlForced = urlParams.has('webifi');
+
+  this.display = this.urlForced ? false : true;
   this.audio = false;
   this.synth = window.speechSynthesis;
   this.voice = null;
@@ -133,13 +179,21 @@ function Webifi(containerId='', className='') {
   if (!this.synth) {
     console.log('Speech synthesis is not supported');
   }
-  this.synth.onvoiceschanged = this.setVoice.bind(this);
-  this.root.display = 'none';
+  this.synth.onvoiceschanged = this.handleVoicesChanged.bind(this);
+  this.started = false;
 }
 
-Webifi.prototype.setVoice = function() {
+Webifi.prototype.handleVoicesChanged = function(evt) {
+  this.setVoice();
+}
+
+Webifi.prototype.setVoice = function(desired='') {
   if (!this.synth) {
-    return;
+    this.synth = window.speechSynthesis;
+    if (!this.synth) {
+      console.log('Speech synthesis is not available');
+      return;
+    }
   }
   const voices = this.synth.getVoices();
   this.voice = null;
@@ -148,6 +202,10 @@ Webifi.prototype.setVoice = function() {
     const lang = voice.lang.toLowerCase().replace('_', '-');
     if (!lang.startsWith('en-')) {
       continue;
+    }
+    if (desired && lang == ('en-' + desired.toLowerCase())) {
+      this.voice = voice;
+      break;
     }
     enVars.push(lang);
     if (voice.name.indexOf('UK English Female') >= 0 ||
@@ -304,7 +362,7 @@ Webifi.prototype.annotateText = function(text) {
 
 Webifi.prototype.notIndexable = function(lcWord) {
   return this.stopWords[lcWord] ||
-    (lcWord.search(/[^a-z0-9\.,'\[\]-]/) >= 0) || false;
+    (lcWord.search(/[^a-z0-9\.,?'\[\]-]/) >= 0) || false;
 }
 
 Webifi.prototype.commandMatch = function(words, matchers) {
@@ -330,6 +388,9 @@ Webifi.prototype.commandMatch = function(words, matchers) {
 Webifi.prototype.handleInput = function() {
   let input = this.input.value.trim().substr(0, this.MAX_LEN);
   this.input.value = '';
+  if (input.endsWith('?') && !input.startsWith('?')) {
+    input = input.replace(/[?]+$/, '');
+  }
   if (!input) {
     return;
   }
@@ -344,7 +405,11 @@ Webifi.prototype.handleInput = function() {
     return;
   }
   this.appendToLog('', '> ' + input);
+  this.processInput(input);
+  this.input.focus();
+}
 
+Webifi.prototype.processInput = function(input) {
   const numbers = [];
   const words = this.wordsOf(input);
   const modWords = words.slice();
@@ -379,8 +444,50 @@ Webifi.prototype.handleInput = function() {
       }
     }
   }
-  this.input.focus();
 }
+
+Webifi.prototype.handleAudio = function(words, numMatched) {
+  if (numMatched > 1) {
+    const setting = words[1].toLowerCase();
+    if (setting == 'off') {
+      this.audio = false;
+    } else if (setting == 'on') {
+      // Keep existing voice
+      this.audio = true;
+    } else {
+      // Try to switch to desired voice
+      this.audio = true;
+      this.setVoice(setting);
+    }
+  }
+  if (!this.audio) {
+    this.output(this.name, 'Audio is off');
+  } else {
+    if (!this.voice) {
+      this.output(this.name, 'Audio is on; voice has not been set yet');
+    } else {
+      this.output(this.name, `Audio is on; language is ${this.voice.lang}, with the name, ${this.voice.name}`);
+    }
+  }
+}
+
+Webifi.prototype.setDisplay = function() {
+  this.domPeer.style.display = this.display ? '' : 'none';
+}
+
+Webifi.prototype.handleDisplay = function(words, numMatched) {
+  if (numMatched > 1) {
+    const setting = words[1].toLowerCase();
+    if (setting == 'on') {
+      this.display = true;
+    } else if (setting == 'off') {
+      this.display = false;
+    }
+    this.setDisplay();
+  }
+  this.output(this.name, 'Display is ' + (this.display ? 'on' : 'off'));
+}
+
 
 Webifi.prototype.output = function(avatarName, text, list=[], numbered=true) {
   if (this.pendingInputClosure) {
@@ -457,7 +564,6 @@ Webifi.prototype.getUserInput = function(avatarName, prompt, func) {
 }
 
 /**
- * TODO
  * commands is a dict that look like: {
  *   '..name..': {
  *     description: '...',
@@ -516,45 +622,61 @@ Webifi.prototype.registerAvatar = function(name, description, commands, handler)
       }
     }
   }
-  const avatarWords = this.wordsOf(name + ' ' + description);
-  for (let word of avatarWords) {
-    const lcWord = word.toLowerCase();
-    if (this.notIndexable(lcWord)) {
-      continue;
-    }
-    if (!this.helpIndex[lcWord]) this.helpIndex[lcWord] = [];
-    this.helpIndex[lcWord].push({'avatar': name});
-  }
   return true;
 }
 
-/**
- * TODO
- */
-Webifi.prototype.start = function() {
-  this.root.display = '';
-  this.input.focus();
+Webifi.prototype.start = function(domPeer=null) {
+  if (this.started) {
+    return;
+  }
+  if (!domPeer) {
+    domPeer = document.body.firstElementChild;
+  }
+  this.domPeer = domPeer;
+  const par = this.domPeer.parentElement;
+  console.assert(par, 'Webifi("Could not find/create parent for domPeer');
+  par.insertBefore(this.root, this.domPeer);
+
+
+  this.log = document.getElementById('webifi-log');
+  this.input = document.getElementById('webifi-input');
+  this.input.addEventListener('change', this.handleInput.bind(this));
+
+  this.setDisplay();
+
+  if (this.urlForced) {
+    this.root.style.display = '';
+    this.input.focus();
+  }
+  this.started = true;
 }
 
-/**
- * TODO
- */
-Webifi.prototype.stop = function() {
-  this.root.display = 'none';
+Webifi.prototype.toggle = function(ev) {
+  ev.preventDefault();
+  if (this.urlForced) {
+    return;
+  }
+  if (this.root.style.display == '') {
+    this.root.style.display = 'none';
+    this.display = true;
+    this.setDisplay();
+  } else {
+    this.root.style.display = '';
+  }
 }
 
 Webifi.prototype.introduce = function() {
-  this.output(this.name, 'Hi! I am Webifi, an interactive fiction-esque web interface.');
-  this.output(this.name, 'You can say, "help," to get a full list of commands, or you can say, "help," followed by a topic.');
-  if (this.sortedAvatarNames.length > 1) {
-    this.output(this.name,
-        'Here are the avatars helping me. You can also say, "help," followed by any avatar name.',
-        this.sortedAvatarNames.slice(0, this.sortedAvatarNames.length - 1));
+  this.output(this.name, 'Hi! I am Webifi, an interactive fiction-esque text and audio interface to the web.');
+  if (this.audio) {
+    this.output(this.name, 'You can use the command "audio off" to use just the text interface.');
+    this.output(this.name, 'You can always cut short whatever I am saying by entering any word, such as OK or Shh.');
+  } else {
+    this.output(this.name, 'You can use the command "audio on" to turn on the audio interface.');
   }
-  this.output(this.name, 'You can always cut short whatever I am saying by entering any word, such as OK or Shh.');
+  this.output(this.name, 'You can say, "help," to get a full list of commands, or you can say, "help," followed by a topic.');
 }
 
-Webifi.prototype.help = function(topic) {
+Webifi.prototype.helpOnTopic = function(topic) {
   const words = this.wordsOf(topic);
   const candidates = {};
   for (let word of words) {
@@ -562,11 +684,13 @@ Webifi.prototype.help = function(topic) {
     if (!this.helpIndex[lcWord]) continue;
     const choices = this.helpIndex[lcWord];
     for (let choice of choices) {
+      if (!choice.command || !choice.avatar) {
+        continue;
+      }
       if (!candidates[choice.avatar]) {
         candidates[choice.avatar] = {};
       }
-      const command = choice.command || '_';
-      candidates[choice.avatar][command] = true;
+      candidates[choice.avatar][choice.command] = true;
     }
   }
   if (Object.keys(candidates).length == 0) {
@@ -576,21 +700,43 @@ Webifi.prototype.help = function(topic) {
   for (let avatarName in candidates) {
     const avatar = this.avatars[avatarName];
     for (let commandName in candidates[avatarName]) {
-      if (commandName == '_') {
-        const list = Object.keys(avatar.commands);
-        const opening = avatarName + '. ' + avatar.description + ' Available commands:';
-        this.output(avatarName, opening, list);
-        continue;
-      }
       const command = avatar.commands[commandName];
       const opening = (avatarName == this.name) ?
-         this.name : ('As ' + avatarName + ', I');
-      const prefixesToSay = command.prefixes.map(x => x.replace(/\|/g, ' or '));
+         this.name : ('In my ' + avatarName + ' avatar, I');
       this.output(avatarName,
-          opening + ' can handle the command ' +
-          commandName + '. ' + command.description +
+          opening + ' can handle the command "' +
+          commandName + '". ' + command.description +
           ' Trigger this command with any of these prefixes:',
-          prefixesToSay);
+          command.prefixes);
+    }
+  }
+}
+
+Webifi.prototype.help = function(detailed=false) {
+  let text =
+    'Here are all the commands that you can use, grouped by "avatars"' +
+    ' that handle them.';
+  if (!detailed) {
+    text += ' Note that you can get more details on a ' +
+      'specific command such as "hello" by saying "help hello".';
+  }
+  this.output(this.name, text);
+  for (let avatarName in this.avatars) {
+    const avatar = this.avatars[avatarName];
+    if (!detailed) {
+      const list = Object.keys(avatar.commands);
+      const opening = avatarName + '. ' + avatar.description + '. Available commands:';
+      this.output(avatarName, opening, list);
+      continue;
+    }
+    this.output(avatarName, avatarName + '. ' + avatar.description +
+        '. Available commands:');
+    for (let commandName in avatar.commands) {
+      const command = avatar.commands[commandName];
+      this.output(avatarName,
+          commandName + '. ' + command.description +
+          ' Triggering prefixes:',
+          command.prefixes);
     }
   }
 }
@@ -605,25 +751,9 @@ Webifi.prototype.basicHandler = function(input, words, commandName,
   if (commandName == 'hello') {
     this.introduce();
   } else if (commandName == 'audio') {
-    if (numMatchedWords == 1) {
-      this.audio = !this.audio;
-    } else {
-      const setting = words[1].toLowerCase();
-      if (setting == 'on') {
-        this.audio = true;
-      } else if (setting == 'off') {
-        this.audio = false;
-      }
-    }
-    if (!this.audio) {
-      this.output(this.name, 'Audio is now off');
-    } else {
-      if (!this.voice) {
-        this.output(this.name, 'Audio is now on; voice has not been set yet');
-      } else {
-        this.output(this.name, `Audio is now on; language is ${this.voice.lang}, with the name, ${this.voice.name}`);
-      }
-    }
+    this.handleAudio(words, numMatchedWords);
+  } else if (commandName == 'display') {
+    this.handleDisplay(words, numMatchedWords);
   } else if (commandName == 'echo') {
     this.output(this.name, this.annotateText(remaining));
   } else if (commandName == 'talking-speed' && numbers.length > 0) {
@@ -642,15 +772,9 @@ Webifi.prototype.basicHandler = function(input, words, commandName,
     this.output(this.name, 'OK, talking speed now set to ' + this.rate.toFixed(1));
   } else if (commandName == 'help') {
     if (remaining) {
-      this.help(remaining);
+      this.helpOnTopic(remaining);
     } else {
-       this.output(this.name,
-           'Here are all the commands that you can use, grouped by "avatars"' +
-           ' that handle them. Note that you can get more details on a ' +
-           'specific command like, say, "hello", by saying "help hello".');
-      for (let a of this.sortedAvatarNames) {
-        this.help(a);
-      }
+      this.help(words[0] == 'detailed');
     }
   }
 }
