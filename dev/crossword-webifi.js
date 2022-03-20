@@ -51,7 +51,7 @@ function CrosswordWebifi(webifi, puz) {
       prefixes: ['intro|introduction|describe|puzzle|crossword'],
     },
     'status': {
-      description: 'Get current status and lists some unsolved clues in fraction-most-filled order.',
+      description: 'Get current status and list some unsolved clues in fraction-most-filled order.',
       prefixes: ['status', 'how am I doing', 'unsolved clues'],
     },
     'navigate': {
