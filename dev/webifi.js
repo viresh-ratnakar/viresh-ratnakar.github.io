@@ -173,29 +173,26 @@ function Webifi() {
 
   this.display = this.urlForced ? false : true;
   this.audio = false;
-  this.synth = window.speechSynthesis;
   this.voice = null;
+  this.desiredVoice = '';
   this.rate = 1.0;
+  this.synth = window.speechSynthesis;
   if (!this.synth) {
     console.log('Speech synthesis is not supported');
   } else {
-    this.synth.onvoiceschanged = this.handleVoicesChanged.bind(this);
+    this.synth.onvoiceschanged = this.setVoice.bind(this);
   }
   this.started = false;
 }
 
-Webifi.prototype.handleVoicesChanged = function(evt, desired='') {
-  this.setVoice(desired);
-}
-
-Webifi.prototype.setVoice = function(desired='') {
+Webifi.prototype.setVoice = function() {
   if (!this.synth) {
     this.synth = window.speechSynthesis;
     if (!this.synth) {
       console.log('Speech synthesis is not available');
       return;
     }
-    this.synth.onvoiceschanged = this.handleVoicesChanged.bind(this, desired);
+    this.synth.onvoiceschanged = this.setVoice.bind(this);
   }
   const voices = this.synth.getVoices();
   this.voice = null;
@@ -205,7 +202,7 @@ Webifi.prototype.setVoice = function(desired='') {
     if (!lang.startsWith('en-')) {
       continue;
     }
-    if (desired && lang == ('en-' + desired.toLowerCase())) {
+    if (this.desiredVoice && lang == ('en-' + this.desiredVoice)) {
       this.voice = voice;
       break;
     }
@@ -459,7 +456,8 @@ Webifi.prototype.handleAudio = function(words, numMatched) {
     } else {
       // Try to switch to desired voice
       this.audio = true;
-      this.setVoice(setting);
+      this.desiredVoice = setting;
+      this.setVoice();
     }
   }
   if (!this.audio) {
@@ -669,6 +667,7 @@ Webifi.prototype.toggle = function(ev) {
     this.setDisplay();
   } else {
     this.root.style.display = '';
+    this.input.focus();
   }
 }
 
