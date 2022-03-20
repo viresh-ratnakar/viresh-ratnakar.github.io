@@ -135,7 +135,7 @@ function customizeExolve(puz) {
   document.getElementById('xlv1-controls-etc').style.display = 'none';
   puz.currClueParent.style.display = 'none'
 }
-createExolve(`
+const puz = new Exolve(`
 exolve-begin
   exolve-id: gussalufz-logo-v2
   exolve-width: 18
@@ -152,7 +152,7 @@ exolve-begin
   exolve-option: colour-prefill:black
   exolve-option: ignore-unclued ignore-enum-mismatch
 exolve-end
-`, '', false);
+`, '', null, false, 0, 0, false);
 </script>
 
 <center>
