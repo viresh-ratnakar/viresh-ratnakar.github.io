@@ -189,12 +189,9 @@ Webifi.prototype.handleVoicesChanged = function(evt, desired='') {
 }
 
 Webifi.prototype.setVoice = function(desired='') {
-  alert('setVoice(' + desired + ')');
   if (!this.synth) {
-    alert('no synth');
     this.synth = window.speechSynthesis;
     if (!this.synth) {
-      alert('synth failed');
       console.log('Speech synthesis is not available');
       return;
     }
