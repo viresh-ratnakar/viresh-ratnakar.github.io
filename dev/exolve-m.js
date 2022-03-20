@@ -79,7 +79,7 @@ function Exolve(puzzleSpec,
                 visTop=0,
                 maxDim=0,
                 saveState=true) {
-  this.VERSION = 'Exolve v1.33 March 15, 2022';
+  this.VERSION = 'Exolve v1.34 March 20, 2022';
   this.id = '';
 
   this.puzzleText = puzzleSpec;
@@ -4284,29 +4284,23 @@ Exolve.prototype.addWebifi = function() {
 
 Exolve.prototype.loadWebifiScripts = function() {
   const handler = this.addWebifi.bind(this);
-  let tryAdding = true;
+  const notFound = [];
   if ((typeof Webifi) == 'undefined') {
-    const script = document.createElement('script');
-    script.src = 'webifi.js';
-    script.onload = handler;
-    document.head.append(script);
-    tryAdding = false;
+    notFound.push("webifi.js");
   }
   if ((typeof WordsWebifi) == 'undefined') {
-    const script = document.createElement('script');
-    script.src = 'words-webifi.js';
-    script.onload = handler;
-    document.head.append(script);
-    tryAdding = false;
+    notFound.push("words-webifi.js");
   }
   if ((typeof CrosswordWebifi) == 'undefined') {
+    notFound.push("crossword-webifi.js");
+  }
+  for (let needed of notFound) {
     const script = document.createElement('script');
-    script.src = 'crossword-webifi.js';
+    script.src = needed;
     script.onload = handler;
     document.head.append(script);
-    tryAdding = false;
   }
-  if (tryAdding) {
+  if (notFound.length == 0) {
     xlv.addWebifi();
   }
 }
