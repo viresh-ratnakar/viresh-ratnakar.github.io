@@ -472,6 +472,9 @@ Webifi.prototype.handleAudio = function(words, numMatched) {
 }
 
 Webifi.prototype.setDisplay = function() {
+  if (!this.domPeer) {
+    return;
+  }
   this.domPeer.style.display = this.display ? '' : 'none';
 }
 
@@ -647,6 +650,8 @@ Webifi.prototype.start = function(domPeer=null) {
   if (this.urlForced) {
     this.root.style.display = '';
     this.input.focus();
+  } else {
+    this.root.style.display = 'none';
   }
   this.started = true;
 }
