@@ -105,7 +105,7 @@ pre,
 
 <div id="xlvp-player" ondrop="xlvpDrop(event);" ondragover="xlvpDrag(event);">
   <button id="xlvp-last-crossword">
-    Minimize current crossword
+    Hide current crossword
   </button>
   <h2><b>Exolve Player</b></h2>
   <h3><b>Interactively solve a crossword</b></h3>
@@ -254,10 +254,10 @@ function xlvpDeleteOld(hideChooser=true) {
 
 function xlvpToggleMinimizeCurrent() {
   if (xlvpShowing) {
-    xlvpLastCrossword.innerHTML = 'Restore previous crossword';
+    xlvpLastCrossword.innerHTML = 'Show current crossword';
     xlvpFrame.style.display = 'none';
   } else {
-    xlvpLastCrossword.innerHTML = 'Minimize current crossword';
+    xlvpLastCrossword.innerHTML = 'Hide current crossword';
     xlvpFrame.style.display = '';
   }
   xlvpShowing = !xlvpShowing;
@@ -304,7 +304,7 @@ function xlvpShowExolveInner(specs, converted, hideChooser) {
   xlvpSaveButton.disabled = !converted;
   xlvpFrame.style.display = '';
   xlvpShowing = true;
-  xlvpLastCrossword.innerHTML = 'Minimize current crossword';
+  xlvpLastCrossword.innerHTML = 'Hide current crossword';
   xlvpLastCrossword.disabled = false;
   xlvpFrame.scrollIntoView();
   return true;
