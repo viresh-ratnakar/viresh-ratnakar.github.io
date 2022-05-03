@@ -182,6 +182,8 @@ function Webifi() {
   } else {
     this.synth.onvoiceschanged = this.setVoice.bind(this);
   }
+  this.inputPressed = false;  /* Since last use, was there a keypress/click */
+  this.inputWaiter = null;    /* Timer waiting to act on audio input */
   this.started = false;
 }
 
@@ -384,9 +386,36 @@ Webifi.prototype.commandMatch = function(words, matchers) {
   return longestMatchIndex;
 }
 
-Webifi.prototype.handleInput = function() {
+Webifi.prototype.handleInputPress = function() {
+  this.inputPressed = true;
+  if (this.inputWaiter) {
+    clearTimeout(this.inputWaiter);
+  }
+  this.inputWaiter = null;
+  console.log('Press/click detected');
+}
+
+Webifi.prototype.handleInputInput = function() {
+  if (this.inputPressed) {
+    console.log('Likely not audio input');
+    return;
+  }
+  if (this.inputWaiter) {
+    clearTimeout(this.inputWaiter);
+  }
+  this.inputWaiter = setTimeout(this.handleInputChange.bind(this), 2000);
+  console.log('Likely audio input, waiting');
+}
+
+Webifi.prototype.handleInputChange = function() {
+  console.log('Processing input');
   let input = this.input.value.trim().substr(0, this.MAX_LEN);
   this.input.value = '';
+  this.inputPressed = false;
+  if (this.inputWaiter) {
+    clearTimeout(this.inputWaiter);
+  }
+  this.inputWaiter = null;
   if (input.endsWith('?') && !input.startsWith('?')) {
     input = input.replace(/[?]+$/, '');
   }
@@ -643,7 +672,11 @@ Webifi.prototype.start = function(domPeer=null) {
 
   this.log = document.getElementById('webifi-log');
   this.input = document.getElementById('webifi-input');
-  this.input.addEventListener('change', this.handleInput.bind(this));
+  this.inputPressed = false;
+  this.input.addEventListener('change', this.handleInputChange.bind(this));
+  this.input.addEventListener('input', this.handleInputInput.bind(this));
+  this.input.addEventListener('keypress', this.handleInputPress.bind(this));
+  this.input.addEventListener('click', this.handleInputPress.bind(this));
 
   this.setDisplay();
 

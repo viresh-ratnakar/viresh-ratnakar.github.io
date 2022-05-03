@@ -4329,7 +4329,7 @@ Exolve.prototype.loadWebifi = function() {
     document.head.append(script);
   }
   if (notFound.length == 0) {
-    xlv.addWebifi();
+    this.addWebifi();
   }
 }
 
