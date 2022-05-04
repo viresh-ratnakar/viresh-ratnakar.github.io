@@ -392,23 +392,19 @@ Webifi.prototype.handleInputPress = function() {
     clearTimeout(this.inputWaiter);
   }
   this.inputWaiter = null;
-  console.log('Press/click detected');
 }
 
 Webifi.prototype.handleInputInput = function() {
   if (this.inputPressed) {
-    console.log('Likely not audio input');
     return;
   }
   if (this.inputWaiter) {
     clearTimeout(this.inputWaiter);
   }
-  this.inputWaiter = setTimeout(this.handleInputChange.bind(this), 2000);
-  console.log('Likely audio input, waiting');
+  this.inputWaiter = setTimeout(this.handleInputChange.bind(this), 1000);
 }
 
 Webifi.prototype.handleInputChange = function() {
-  console.log('Processing input');
   let input = this.input.value.trim().substr(0, this.MAX_LEN);
   this.input.value = '';
   this.inputPressed = false;
@@ -497,6 +493,7 @@ Webifi.prototype.handleAudio = function(words, numMatched) {
     } else {
       this.output(this.name, `Audio is on; language is ${this.voice.lang}, with the name, ${this.voice.name}`);
     }
+    this.output(this.name, 'Please prefer to use headphones for privacy and also to avoid interference if using voice-typing.');
   }
 }
 
