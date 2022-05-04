@@ -182,7 +182,7 @@ function Webifi() {
   } else {
     this.synth.onvoiceschanged = this.setVoice.bind(this);
   }
-  this.inputPressed = false;  /* Since last use, was there a keypress/click */
+  this.inputKeyDown = false;  /* Since last use, was there a keydown */
   this.inputWaiter = null;    /* Timer waiting to act on audio input */
   this.started = false;
 }
@@ -386,8 +386,8 @@ Webifi.prototype.commandMatch = function(words, matchers) {
   return longestMatchIndex;
 }
 
-Webifi.prototype.handleInputPress = function() {
-  this.inputPressed = true;
+Webifi.prototype.handleInputKeyDown = function() {
+  this.inputKeyDown = true;
   if (this.inputWaiter) {
     clearTimeout(this.inputWaiter);
   }
@@ -395,19 +395,19 @@ Webifi.prototype.handleInputPress = function() {
 }
 
 Webifi.prototype.handleInputInput = function() {
-  if (this.inputPressed) {
+  if (this.inputKeyDown) {
     return;
   }
   if (this.inputWaiter) {
     clearTimeout(this.inputWaiter);
   }
-  this.inputWaiter = setTimeout(this.handleInputChange.bind(this), 1000);
+  this.inputWaiter = setTimeout(this.handleInputChange.bind(this), 1500);
 }
 
 Webifi.prototype.handleInputChange = function() {
   let input = this.input.value.trim().substr(0, this.MAX_LEN);
   this.input.value = '';
-  this.inputPressed = false;
+  this.inputKeyDown = false;
   if (this.inputWaiter) {
     clearTimeout(this.inputWaiter);
   }
@@ -669,10 +669,10 @@ Webifi.prototype.start = function(domPeer=null) {
 
   this.log = document.getElementById('webifi-log');
   this.input = document.getElementById('webifi-input');
-  this.inputPressed = false;
+  this.inputKeyDown = false;
   this.input.addEventListener('change', this.handleInputChange.bind(this));
   this.input.addEventListener('input', this.handleInputInput.bind(this));
-  this.input.addEventListener('keypress', this.handleInputPress.bind(this));
+  this.input.addEventListener('keydown', this.handleInputKeyDown.bind(this));
 
   this.setDisplay();
 
