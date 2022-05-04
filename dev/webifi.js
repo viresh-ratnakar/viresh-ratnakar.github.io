@@ -516,7 +516,7 @@ Webifi.prototype.output = function(avatarName, text, list=[], numbered=true) {
   }
   const avatar = this.avatars[avatarName];
 
-  let spokenText = text.replace(/<pause>/g, ' . . . ');
+  let spokenText = text.replace(/<pause>/g, ' ; ');
   let writtenText = text.replace(/<pause>/g, ' ').replace(/\s+/g, ' ');
   if (list.length > this.MAX_LIST_LEN) {
     list.length = this.MAX_LIST_LEN;
@@ -531,7 +531,7 @@ Webifi.prototype.output = function(avatarName, text, list=[], numbered=true) {
     writtenText = writtenText.substr(0, this.MAX_LEN);
   }
   for (let index = 0; index < list.length; index++) {
-    spokenList[index] = spokenList[index].replace(/<pause>/g, ' . . . ');
+    spokenList[index] = spokenList[index].replace(/<pause>/g, ' ; ');
     if (spokenList[index].length > this.MAX_LEN) {
       spokenList[index] = spokenList[index].substr(0, this.MAX_LEN);
     }
