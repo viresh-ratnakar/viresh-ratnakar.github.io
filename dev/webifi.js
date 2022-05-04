@@ -673,7 +673,6 @@ Webifi.prototype.start = function(domPeer=null) {
   this.input.addEventListener('change', this.handleInputChange.bind(this));
   this.input.addEventListener('input', this.handleInputInput.bind(this));
   this.input.addEventListener('keypress', this.handleInputPress.bind(this));
-  this.input.addEventListener('click', this.handleInputPress.bind(this));
 
   this.setDisplay();
 
