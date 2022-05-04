@@ -182,8 +182,7 @@ function Webifi() {
   } else {
     this.synth.onvoiceschanged = this.setVoice.bind(this);
   }
-  this.inputKeyDown = false;  /* Since last use, was there a keydown */
-  this.inputWaiter = null;    /* Timer waiting to act on audio input */
+  this.inputWaiter = null;    /* Timer waiting to act on current input */
   this.started = false;
 }
 
@@ -386,28 +385,16 @@ Webifi.prototype.commandMatch = function(words, matchers) {
   return longestMatchIndex;
 }
 
-Webifi.prototype.handleInputKeyDown = function() {
-  this.inputKeyDown = true;
-  if (this.inputWaiter) {
-    clearTimeout(this.inputWaiter);
-  }
-  this.inputWaiter = null;
-}
-
 Webifi.prototype.handleInputInput = function() {
-  if (this.inputKeyDown) {
-    return;
-  }
   if (this.inputWaiter) {
     clearTimeout(this.inputWaiter);
   }
-  this.inputWaiter = setTimeout(this.handleInputChange.bind(this), 1500);
+  this.inputWaiter = setTimeout(this.handleInputChange.bind(this), 2000);
 }
 
 Webifi.prototype.handleInputChange = function() {
   let input = this.input.value.trim().substr(0, this.MAX_LEN);
   this.input.value = '';
-  this.inputKeyDown = false;
   if (this.inputWaiter) {
     clearTimeout(this.inputWaiter);
   }
@@ -529,7 +516,7 @@ Webifi.prototype.output = function(avatarName, text, list=[], numbered=true) {
   }
   const avatar = this.avatars[avatarName];
 
-  let spokenText = text.replace(/<pause>/g, ' ... ');
+  let spokenText = text.replace(/<pause>/g, ' . . . ');
   let writtenText = text.replace(/<pause>/g, ' ').replace(/\s+/g, ' ');
   if (list.length > this.MAX_LIST_LEN) {
     list.length = this.MAX_LIST_LEN;
@@ -544,7 +531,7 @@ Webifi.prototype.output = function(avatarName, text, list=[], numbered=true) {
     writtenText = writtenText.substr(0, this.MAX_LEN);
   }
   for (let index = 0; index < list.length; index++) {
-    spokenList[index] = spokenList[index].replace(/<pause>/g, ' ... ');
+    spokenList[index] = spokenList[index].replace(/<pause>/g, ' . . . ');
     if (spokenList[index].length > this.MAX_LEN) {
       spokenList[index] = spokenList[index].substr(0, this.MAX_LEN);
     }
@@ -669,10 +656,8 @@ Webifi.prototype.start = function(domPeer=null) {
 
   this.log = document.getElementById('webifi-log');
   this.input = document.getElementById('webifi-input');
-  this.inputKeyDown = false;
   this.input.addEventListener('change', this.handleInputChange.bind(this));
   this.input.addEventListener('input', this.handleInputInput.bind(this));
-  this.input.addEventListener('keydown', this.handleInputKeyDown.bind(this));
 
   this.setDisplay();
 
