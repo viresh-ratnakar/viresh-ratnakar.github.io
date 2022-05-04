@@ -280,6 +280,36 @@ CrosswordWebifi.prototype.readEntry = function(ci) {
   return this.readCells(cells, pattern);
 }
 
+/**
+ * Remove in-clue annos.
+ */
+CrosswordWebifi.prototype.cleanClueText = function(s) {
+  s = this.puz.stripLineBreaks(s);
+  let out = '';
+  let idx = s.indexOf('~{');
+  let endIdx = 0;
+  while (idx >= 0) {
+    out = out + s.substring(endIdx, idx);
+    endIdx = s.indexOf('}~', idx + 2);
+    if (endIdx < 0) {
+      endIdx = idx;
+      break;
+    }
+    let skip = 2;
+    if (s.charAt(idx + skip) == '{') {
+      let close = s.indexOf('}', idx + skip + 1);
+      if (close >= idx + skip + 1) {
+        skip = close + 1 - idx;
+      }
+    }
+    out = out + s.substring(idx + skip, endIdx);
+    endIdx += 2;
+    idx = s.indexOf('~{', endIdx);
+  }
+  out = out + s.substr(endIdx);
+  return out;
+}
+
 CrosswordWebifi.prototype.handleClue = function() {
   this.ensureActiveClue();
   if (!this.puz.currClueIndex) return;
@@ -297,7 +327,7 @@ CrosswordWebifi.prototype.handleClue = function() {
     const childrenName = this.linkedChildrenNames(clue.childrenClueIndices);
     this.webifi.output(this.name, clueName + '  is a linked clue consisting of ' + childrenName + '.');
   }
-  let clueText = clue.clue;
+  let clueText = this.cleanClueText(clue.clue);
   let enumText = clue.enumStr;
   if (enumText) {
     const loc = clueText.lastIndexOf(enumText);
