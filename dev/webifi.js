@@ -387,10 +387,8 @@ Webifi.prototype.commandMatch = function(words, matchers) {
 
 Webifi.prototype.handleInputInput = function() {
   if (this.inputWaiter) {
-    this.appendToLog('', 'Debug: clearing timeout');
     clearTimeout(this.inputWaiter);
   }
-    this.appendToLog('', 'Debug: input [' + this.input.value + ']');
   this.inputWaiter = setTimeout(this.handleInputChange.bind(this), 2000);
 }
 
