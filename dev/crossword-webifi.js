@@ -281,10 +281,11 @@ CrosswordWebifi.prototype.readEntry = function(ci) {
 }
 
 /**
- * Remove in-clue annos.
+ * Remove in-clue annos and any HTML tags.
  */
 CrosswordWebifi.prototype.cleanClueText = function(s) {
   s = this.puz.stripLineBreaks(s);
+  s = s.replace(/<[^>]*>/g, '');
   let out = '';
   let idx = s.indexOf('~{');
   let endIdx = 0;
