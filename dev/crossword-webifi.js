@@ -59,7 +59,9 @@ function CrosswordWebifi(webifi, puz) {
       prefixes: [
         '[number]', '[number]A|[number]D', '[number] across|down|A|D',
         'best|easiest|solvable',
-        'next|most best|easiest|solvable', 'next', 'prev|previous|back',
+        'next|most best|easiest|solvable',
+        'next', 'next clue',
+        'prev|previous|back', 'previous clue',
         'first|last', 'first|last across|down|clue',
       ],
       helpkeys: ['number', 'jump', 'nav',],
@@ -528,11 +530,11 @@ CrosswordWebifi.prototype.handleNavigate = function(words, numMatchedWords) {
     return;
   }
 
-  if (prefix == 'next') {
+  if (prefix == 'next' || prefix == 'next clue') {
     this.navigateNext();
     return;
   }
-  if (prefix == 'prev' || prefix == 'previous') {
+  if (prefix == 'prev' || prefix == 'previous' || prefix == 'previous clue') {
     this.navigatePrev();
     return;
   }
