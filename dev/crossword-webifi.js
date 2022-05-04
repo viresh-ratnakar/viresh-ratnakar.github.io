@@ -58,7 +58,7 @@ function CrosswordWebifi(webifi, puz) {
       description: 'Navigate to a clue by naming or characterizing it.',
       prefixes: [
         '[number]', '[number]A|[number]D', '[number] across|down|A|D',
-        'best|easiest|solvable',
+        'navigate|best|easiest|solvable',
         'next|most best|easiest|solvable',
         'next', 'next clue',
         'prev|previous|back', 'previous clue',
@@ -96,7 +96,7 @@ function CrosswordWebifi(webifi, puz) {
       prefixes: ['reveal', 'reveal cell [number]', 'reveal all'],
     },
     'matches': {
-      description: 'Get words or phrases matching the current light.',
+      description: 'Get words or phrases matching the letters that have been entered so far in the current light.',
       prefixes: ['matches', 'matching words', 'matching phrases', 'what fits',],
     },
   }, this.handler.bind(this));
@@ -525,7 +525,8 @@ CrosswordWebifi.prototype.handleNavigate = function(words, numMatchedWords) {
   const prefix = words.slice(0, numMatchedWords).join(' ').toLowerCase();
 
   if (prefix.includes('best') || prefix.includes('most') ||
-      prefix.includes('easiest') || prefix.includes('solvable')) {
+      prefix.includes('navigate') || prefix.includes('easiest') ||
+      prefix.includes('solvable')) {
     this.navigateNextBest();
     return;
   }
