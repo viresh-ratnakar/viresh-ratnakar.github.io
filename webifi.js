@@ -25,14 +25,19 @@ The latest code and documentation for Webifi can be found at:
 https://github.com/viresh-ratnakar/webifi
 */
 
-function Webifi() {
-  this.VERSION = 'Webifi v0.01, May 3, 2022';
+/**
+ * scriptUrlBase is the url prefix to use for loading any needed scripts.
+ *     This is typically the URL for the dir in which exolve-m.js is located.
+ */
+function Webifi(scriptUrlBase='') {
+  this.VERSION = 'Webifi v0.02, May 9, 2022';
   this.MAX_LEN = 1000;
   this.MAX_LIST_LEN = 20;
   this.MAX_LOG_ENTRIES = 1000;
   this.logEntries = [];
   this.logIndex = 0;
   this.domPeer = null;
+  this.scriptUrlBase = scriptUrlBase;
 
   this.stopWords = {
     'the': true,

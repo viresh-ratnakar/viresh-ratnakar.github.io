@@ -86,11 +86,11 @@ WordsWebifi.prototype.initLex = function() {
 WordsWebifi.prototype.loadLex = function() {
   const handler = this.initLex.bind(this);
   const scriptLufz = document.createElement('script');
-  scriptLufz.src = 'lufz-en-lexicon.js';
+  scriptLufz.src = this.webifi.scriptUrlBase + 'lufz-en-lexicon.js';
   scriptLufz.onload = handler;
   scriptLufz.onerror = (ev) => {console.log(ev); console.log('error loading script');}
   const scriptLex = document.createElement('script');
-  scriptLex.src = 'exet-lexicon.js';
+  scriptLex.src = this.webifi.scriptUrlBase + 'exet-lexicon.js';
   scriptLex.onload = handler;
   document.head.append(scriptLufz);
   document.head.append(scriptLex);
