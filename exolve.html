@@ -436,8 +436,9 @@ function Exolve(puzzleSpec,
   const scriptTags = document.getElementsByTagName('script');
   for (let i = 0; i < scriptTags.length; i++) {
     const src = scriptTags[i].src;
-    if (src.endsWith('/exolve-m.js')) {
-      this.scriptUrlBase = src.substring(0, src.length - 11);
+    const loc = src.lastIndexOf('/exolve-m.js');
+    if (loc >= 0) {
+      this.scriptUrlBase = src.substring(0, loc + 1);
       break;
     }
   }
