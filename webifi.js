@@ -394,6 +394,10 @@ Webifi.prototype.handleInputInput = function() {
   if (this.inputWaiter) {
     clearTimeout(this.inputWaiter);
   }
+  if (this.input.value.endsWith(' ')) {
+    /* Do not grab the text */
+    return;
+  }
   this.inputWaiter = setTimeout(this.handleInputChange.bind(this), 2000);
 }
 
