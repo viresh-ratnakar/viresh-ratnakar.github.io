@@ -78,9 +78,9 @@ function CrosswordWebifi(webifi, puz) {
       description: 'Describe clues for lights that cross the current lights.',
       prefixes: ['crossers', 'crossing clues', 'crossing lights'],
     },
-    'enter': {
+    'type': {
       description: 'Enter the solution for the current clue, optionally starting at a cell.',
-      prefixes: ['enter|fill', 'enter|fill at|in|from cell [number]'],
+      prefixes: ['type|enter|fill', 'type|enter|fill at|in|from cell [number]'],
       helpkeys: ['solve', 'solution'],
     },
     'clear': {
