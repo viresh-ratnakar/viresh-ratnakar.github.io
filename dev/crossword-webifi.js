@@ -775,7 +775,7 @@ CrosswordWebifi.prototype.handler = function(input, words, commandName,
     this.handleClue();
   } else if (commandName == 'entry') {
     this.handleEntry();
-  } else if (commandName == 'enter') {
+  } else if (commandName == 'type') {
     this.handleEnter(remaining, numbers);
   } else if (commandName == 'clear') {
     this.handleClearCurr(numbers);
