@@ -67,7 +67,7 @@ function Webifi(scriptUrlBase='') {
   this.index = {};
   this.helpIndex = {};
   this.name = 'Webifi';
-  this.description = 'An interactive fiction-esque web interface';
+  this.description = 'An interactive fiction-esque chat interface for the web';
 
   this.pendingInputClosure = null;
 
@@ -695,7 +695,7 @@ Webifi.prototype.toggle = function(ev) {
 }
 
 Webifi.prototype.introduce = function() {
-  this.output(this.name, 'Hi! I am Webifi, an interactive fiction-esque text and audio interface to the web.');
+  this.output(this.name, 'Hi! I am Webifi, an interactive fiction-esque chat interface for the web.');
   if (this.audio) {
     this.output(this.name, 'You can use the command "audio off" to use just the text interface.');
     this.output(this.name, 'You can always cut short whatever I am saying by entering any word, such as OK or Shh.');
