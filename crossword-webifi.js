@@ -234,7 +234,7 @@ CrosswordWebifi.prototype.readCells = function(cells, pattern) {
   for (let letter of entry) {
     if (letter != '?') {
       if (blanks > 0) {
-        spokenChunks.push((blanks == 1) ? 'dash' : ('webifi-escape ' + blanks + ' webifi-escape dashes ;'));
+        spokenChunks.push((blanks == 1) ? 'dash' : ('webifi-escape ' + blanks + ' webifi-escape dashes<pause>'));
       }
       if (letter == ' ' || letter == '-') {
         if (chunk) {
@@ -261,7 +261,7 @@ CrosswordWebifi.prototype.readCells = function(cells, pattern) {
     spokenChunks.push(chunk);
     chunk = '';
   } else if (blanks > 0) {
-    spokenChunks.push((blanks == 1) ? 'dash' : ('webifi-escape ' + blanks + ' webifi-escape dashes ;'));
+    spokenChunks.push((blanks == 1) ? 'dash' : ('webifi-escape ' + blanks + ' webifi-escape dashes<pause>'));
   }
   let spokenEntry = spokenChunks.join('<pause>').trim();
   if (haveBlanks) {
