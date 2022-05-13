@@ -261,7 +261,7 @@ CrosswordWebifi.prototype.readCells = function(cells, pattern) {
     spokenChunks.push(chunk);
     chunk = '';
   } else if (blanks > 0) {
-    spokenChunks.push((blanks == 1) ? 'blank' : ('webifi-escape ' + blanks + ' webifi-escape blanks'));
+    spokenChunks.push((blanks == 1) ? 'dash' : ('webifi-escape ' + blanks + ' webifi-escape dashes ;'));
   }
   let spokenEntry = spokenChunks.join('<pause>').trim();
   if (haveBlanks) {
@@ -340,9 +340,8 @@ CrosswordWebifi.prototype.handleClue = function() {
       replace(/'/, ' apostrophe ').trim();
     clueText = clueText + ' webifi-escape<pause>' + enumText + ' webifi-escape';
   }
-  this.webifi.output(this.name,
-      clueName + '. ' + this.webifi.annotateText(clueText));
-  this.webifi.output(this.name, 'Current entry:<pause>' + this.readEntry(ci) + '.');
+  this.webifi.output(this.name, this.webifi.annotateText(clueText));
+  this.webifi.output(this.name, clueName + ': Current entry:<pause>' + this.readEntry(ci));
   if (this.clueHistory.length == 0 ||
       this.clueHistory[this.clueHistory.length - 1] != ci) {
     this.clueHistory.push(ci);
