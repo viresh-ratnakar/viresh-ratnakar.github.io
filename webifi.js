@@ -154,7 +154,7 @@ function Webifi(scriptUrlBase='') {
     }
     </style>
     <div class="webifi-button"
-         title="Webifi: ${this.description}: Open help in a new tab">
+         title="Webifi: ${this.description}: Click here to open help in a new tab">
       <a href="https://github.com/viresh-ratnakar/webifi#readme"
          target="_blank">
       <img class="webifi-icon" src="${this.scriptUrlBase}webifi-icon.png"
