@@ -67,12 +67,30 @@ function CrosswordWebifi(webifi, puz) {
       helpkeys: ['number', 'jump', 'nav',],
     },
     'clue': {
-      description: 'Read the current clue and its current entry.',
-      prefixes: ['clue', 'read',],
+      description: 'Read the current clue again.',
+      prefixes: ['clue',],
+    },
+    'words': {
+      description: 'Read parts of the current clue again.',
+      prefixes: [
+        'words|word|part|parts [number]',
+        'words|word|part|parts at|from [number]',
+        'clue words|word|part|parts [number]',
+        'clue words|word|part|parts at|from [number]',
+        'clue start|starting|end|ending',
+        'word|words at start|starting|end|ending',
+        'word|words at the start|starting|end|ending',
+        'clue word|words at start|starting|end|ending',
+        'clue word|words at the start|starting|end|ending',
+        'words|word after',
+        'clue words|word after',
+        'words|word before',
+        'clue words|word before',
+      ],
     },
     'entry': {
-      description: 'Read just the current entry in the current clue.',
-      prefixes: ['entry|cells|letters|word|phrase', 'read|current entry|cells|letters|word|phrase', ],
+      description: 'Read the current entry (letters entered as well as blanks) and identfy the current clue again.',
+      prefixes: ['entry|current|read|cells|letters', 'read|current entry|cells|letters', ],
     },
     'crossers': {
       description: 'Describe clues for lights that cross the current lights.',
@@ -263,6 +281,12 @@ CrosswordWebifi.prototype.readCells = function(cells, pattern) {
   } else if (blanks > 0) {
     spokenChunks.push((blanks == 1) ? 'dash' : ('webifi-escape ' + blanks + ' webifi-escape dashes<pause>'));
   }
+  for (let i = 0; i < spokenChunks.length; i++) {
+    const chunk = spokenChunks[i].toUpperCase();
+    if (this.webifi.phonetic[chunk]) {
+      spokenChunks[i] = '<phonetic>' + chunk;
+    }
+  }
   let spokenEntry = spokenChunks.join('<pause>').trim();
   if (haveBlanks) {
     spokenEntry = this.webifi.annotateText(spokenEntry);
@@ -322,11 +346,9 @@ CrosswordWebifi.prototype.handleClue = function() {
     ci = clue.parentClueIndex;
     const parentName = this.clueName(ci);
     clue = this.puz.clues[ci];
-    this.webifi.output(this.name, clueName + ' is a part of the linked clue, ' + parentName + '.');
     clueName = parentName;
   } else if (clue.childenClueIndices && clue.childrenClueIndices.length > 0) {
     const childrenName = this.linkedChildrenNames(clue.childrenClueIndices);
-    this.webifi.output(this.name, clueName + '  is a linked clue consisting of ' + childrenName + '.');
   }
   let clueText = this.cleanClueText(clue.clue);
   let enumText = clue.enumStr;
@@ -335,24 +357,111 @@ CrosswordWebifi.prototype.handleClue = function() {
     if (loc >= 0) {
       clueText = clueText.substr(0, loc);
     }
-    enumText = enumText.replace(/,/g, ' comma ').
-      replace(/-/g, ' dash ').
-      replace(/'/, ' apostrophe ').trim();
+    enumText = enumText.replace(/,/g, ',<spoken:comma>').
+      replace(/-/g, '-<spoken-hyphen>').
+      replace(/'/, "'<spoken:apostrophe>").trim();
     clueText = clueText + ' webifi-escape<pause>' + enumText + ' webifi-escape';
   }
   this.webifi.output(this.name, this.webifi.annotateText(clueText));
-  this.webifi.output(this.name, clueName + ': Current entry:<pause>' + this.readEntry(ci));
   if (this.clueHistory.length == 0 ||
       this.clueHistory[this.clueHistory.length - 1] != ci) {
     this.clueHistory.push(ci);
+    this.handleEntry();
+  }
+}
+
+CrosswordWebifi.prototype.wordMatch = function(matcher, word) {
+  return word.toLowerCase().startsWith(matcher.toLowerCase());
+}
+
+CrosswordWebifi.prototype.handleWords = function(
+    words, numMatchedWords, matchingPrefix, numbers) {
+  this.ensureActiveClue();
+  if (!this.puz.currClueIndex) return;
+  let ci = this.puz.currClueIndex;
+  let clue = this.puz.clues[ci];
+
+  if (clue.parentClueIndex) {
+    ci = clue.parentClueIndex;
+    clue = this.puz.clues[ci];
+  }
+  let clueText = this.cleanClueText(clue.clue);
+  if (clue.enumStr) {
+    const loc = clueText.lastIndexOf(clue.enumStr);
+    if (loc >= 0) {
+      clueText = clueText.substr(0, loc);
+    }
+  }
+  clueText = clueText.trim();
+  const clueWords = clueText.split(' ');
+  let startWord = -1;
+  let endWord = -1;
+  let before = false;
+  let phraseWords = null;
+
+  if (numbers.length > 0) {
+    startWord = numbers[0] - 1;
+  } else if (numMatchedWords >= 2) {
+    if (words[numMatchedWords - 1].startsWith('start')) {
+      startWord = 0;
+    } else if (words[numMatchedWords - 1].startsWith('end')) {
+      startWord = Math.max(0, clueWords.length - 3);
+    } else {
+      phraseWords = words.slice(numMatchedWords);
+      if (phraseWords.length > 0) {
+        for (let i = 0; i < clueWords.length; i++) {
+          let match = true;
+          for (let j = 0; j < phraseWords.length; j++) {
+            if (i + j >= clueWords.length ||
+                !this.wordMatch(phraseWords[j], clueWords[i + j])) {
+              match = false;
+              break;
+            }
+          }
+          if (match) {
+            if (words[numMatchedWords - 1] == 'before') {
+              startWord = Math.max(1, i - 3);
+            } else if (words[numMatchedWords - 1] == 'after') {
+              startWord = i + phraseWords.length;
+            }
+            break;
+          }
+        }
+      }
+    }
+  }
+  endWord = Math.min(startWord + 3, clueWords.length);
+  if (startWord >= 0 && startWord < clueWords.length &&
+      endWord > startWord) {
+    const cluePart = clueWords.slice(startWord, endWord).join(' ');
+    /** Do not call annotateText() on cluePart, keep it siimple */
+    this.webifi.output(this.name, cluePart);
+  } else {
+    this.webifi.output(this.name, 'There is no matching part for that in the current clue');
   }
 }
 
 CrosswordWebifi.prototype.handleEntry = function() {
   this.ensureActiveClue();
-  const ci = this.puz.clueOrParentIndex(this.puz.currClueIndex);
-  if (!ci) return;
-  this.webifi.output(this.name, this.readEntry(ci) + '.');
+  if (!this.puz.currClueIndex) return;
+  let ci = this.puz.currClueIndex;
+  let clueName = this.clueName(ci);
+  let clue = this.puz.clues[ci];
+
+  let linkedInfo = '';
+  if (clue.parentClueIndex) {
+    ci = clue.parentClueIndex;
+    const parentName = this.clueName(ci);
+    linkedInfo = 'Note that ' + clueName + ' is a part of the linked clue, ' + parentName;
+    clueName = parentName;
+  } else if (clue.childenClueIndices && clue.childrenClueIndices.length > 0) {
+    const childrenName = this.linkedChildrenNames(clue.childrenClueIndices);
+    linkedInfo = 'Note that ' + clueName + ' is a linked clue consisting of ' + childrenName;
+  }
+  this.webifi.output(this.name, 'Current entry in this ' + clueName + ' clue is:<pause>' + this.readEntry(ci));
+  if (linkedInfo) {
+    this.webifi.output(this.name, linkedInfo);
+  }
 }
 
 CrosswordWebifi.prototype.handleCrossers = function() {
@@ -770,8 +879,10 @@ CrosswordWebifi.prototype.handler = function(input, words, commandName,
     this.handleDescribe();
   } else if (commandName == 'status') {
     this.handleStatus();
-  } else if (commandName == 'clue') {
+  } else if (commandName == 'clue' && words.length == 1) {
     this.handleClue();
+  } else if (commandName == 'words') {
+    this.handleWords(words, numMatchedWords, matchingPrefix, numbers);
   } else if (commandName == 'entry') {
     this.handleEntry();
   } else if (commandName == 'type') {

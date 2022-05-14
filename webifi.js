@@ -30,7 +30,7 @@ https://github.com/viresh-ratnakar/webifi
  *     This is typically the URL for the dir in which exolve-m.js is located.
  */
 function Webifi(scriptUrlBase='') {
-  this.VERSION = 'Webifi v0.02, May 9, 2022';
+  this.VERSION = 'Webifi v0.03, May 13, 2022';
   this.MAX_LEN = 1000;
   this.MAX_LIST_LEN = 20;
   this.MAX_LOG_ENTRIES = 1000;
@@ -39,6 +39,34 @@ function Webifi(scriptUrlBase='') {
   this.domPeer = null;
   this.scriptUrlBase = scriptUrlBase;
 
+  this.phonetic = {
+    'A': 'Alpha', 
+    'B': 'Bravo',
+    'C': 'Charlie',
+    'D': 'Delta',
+    'E': 'Echo',
+    'F': 'Foxtrot',
+    'G': 'Golf',
+    'H': 'Hotel',
+    'I': 'India',
+    'J': 'Juliett',
+    'K': 'Kilo',
+    'L': 'Lima',
+    'M': 'Mike',
+    'N': 'November',
+    'O': 'Oscar',
+    'P': 'Papa',
+    'Q': 'Quebec',
+    'R': 'Romeo',
+    'S': 'Sierra',
+    'T': 'Tango',
+    'U': 'Uniform',
+    'V': 'Victor',
+    'W': 'Whisky',
+    'X': 'X-ray',
+    'Y': 'Yankee',
+    'Z': 'Zulu',
+  };
   this.stopWords = {
     'the': true,
     'of': true,
@@ -280,7 +308,7 @@ Webifi.prototype.appendToLog = function(from, text, list=[], numbered=true) {
 }
 
 Webifi.prototype.wordsOf = function(s) {
-  const words = s.replace(/\s/g, ' ').replace(/<pause>/g, ' <pause> ').replace(/\s+/g, ' ').trim().split(' ');
+  const words = s.replace(/\s/g, ' ').replace(/<([^>]*)>/g, ' <$1> ').replace(/\s+/g, ' ').trim().split(' ');
   if (words.length == 1 && !words[0]) {
     return [];
   }
@@ -300,6 +328,7 @@ Webifi.prototype.replaceNumbers = function(s, numbers) {
 Webifi.prototype.annotateText = function(text) {
   const words = this.wordsOf(text);
   const originalLength = words.length;
+  const tagRe = /<[^>]*>/;
   let skip = false;
   for (let i = 0; i < originalLength; i++) {
     if (words[i] == 'webifi-escape') {
@@ -310,46 +339,38 @@ Webifi.prototype.annotateText = function(text) {
     if (skip) {
       continue;
     }
-    if (words[i] == '<pause>') {
+    if (tagRe.test(words[i])) {
       continue;
     }
     if (!this.audio) {
       continue;
     }
-    const word = words[i].
-      replace(/\//g, ' slash ').
-      replace(/\//g, ' slash ').
-      replace(/&/g, ' ampersand ').trim().replace(/\s+/g, ' ');
-    if (word == '?') {
-      words[i] = 'question-mark';
-    } else if (word == '.') {
-      words[i] = 'period';
-    } else if (word == '!') {
-      words[i] = 'exclamation-mark';
-    } else if (word == '-' || word == '—') {
-      words[i] = 'dash';
-    } else {
-      // Annotate hyphen or dash in the unmodified word first.
-      const dashParts = words[i].split(/[—-]/);
-      if (dashParts.length > 1) {
-        words.push('<pause>');
-        words.push('Note that "' + words[i] + '" is spelled as ' + dashParts.join(' dash ') + '.');
-      }
-      words[i] = word;
-      const wordParts = word.split(' ');
-      for (let wordPart of wordParts) {
-        const letters = wordPart.replace(/[^a-zA-Z\(\)\?\.,!—-]/g, '');
-        const lettersAfter = letters.substr(1);
-        if (lettersAfter.toLowerCase() != lettersAfter ||
-            (letters.length < wordPart.length) ||
-            wordPart.indexOf('\'') >= 0 ||
-            (!wordPart.endsWith('...') && wordPart.endsWith('.'))) {
-          const spellingBits = wordPart.split('');
-          const spelling = spellingBits.join(' ').toUpperCase().
-              replace(/\./g, 'period').replace(/'/g, 'apostrophe');
-          words.push('<pause>');
-          words.push('Note that "' + wordPart + '" is spelled as ' + spelling + '.');
+    const word = words[i];
+    // Annotate hyphen or dash in the unmodified word first.
+    const dashParts = words[i].split(/[—-]/);
+    if (dashParts.length > 1) {
+      words.push('<pause>');
+      words.push('Note that "' + words[i] + '" is spelled as ' + dashParts.join(' dash ') + '.');
+    }
+    const wordParts = word.split(' ');
+    for (let wordPart of wordParts) {
+      const letters = wordPart.replace(/[^a-zA-Z\(\)\?\.,!—-]/g, '');
+      const lettersAfter = letters.substr(1);
+      if (lettersAfter.toLowerCase() != lettersAfter ||
+          (letters.length < wordPart.length) ||
+          wordPart.indexOf('\'') >= 0 ||
+          (!wordPart.endsWith('...') && wordPart.endsWith('.'))) {
+        const spellingBits = wordPart.trim().split('');
+        for (let x = 0; x < spellingBits.length; x++) {
+          const chr = spellingBits[x].toUpperCase();
+          if (chr.length == 1 && this.phonetic[chr]) {
+            spellingBits[x] = '<phonetic>' + chr;
+          }
         }
+        const spelling = spellingBits.join(' ').
+            replace(/\./g, 'period').replace(/'/g, 'apostrophe');
+        words.push('<pause>');
+        words.push('Note that "' + wordPart + '" is spelled as ' + spelling + '.');
       }
     }
   }
@@ -513,6 +534,31 @@ Webifi.prototype.handleDisplay = function(words, numMatched) {
   this.output(this.name, 'Display is ' + (this.display ? 'on' : 'off'));
 }
 
+Webifi.prototype.spokenText = function(markedUpText) {
+  let spokenText = markedUpText.replace(/<pause>/g, ' ; ');
+  let ppos;
+  while ((ppos = spokenText.indexOf('<phonetic>')) >= 0) {
+    const prefix = spokenText.substr(0, ppos);
+    let suffix = spokenText.substr(ppos + 10).trim();
+    let letter = '';
+    if (suffix.length > 0) {
+      letter = suffix[0].toUpperCase();
+      if (this.phonetic[letter]) {
+        letter += ' (as in ' + this.phonetic[letter] + ')';
+        suffix = suffix.substr(1);
+      } else {
+        letter = '';
+      }
+    }
+    spokenText = prefix + letter + suffix;
+  }
+  spokenText = spokenText.replace(/<spoken:([^>]*)>/g, ' $1 ');
+  return spokenText.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ');
+}
+
+Webifi.prototype.writtenText = function(markedUpText) {
+  return markedUpText.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ');
+}
 
 Webifi.prototype.output = function(avatarName, text, list=[], numbered=true) {
   if (this.pendingInputClosure) {
@@ -525,8 +571,8 @@ Webifi.prototype.output = function(avatarName, text, list=[], numbered=true) {
   }
   const avatar = this.avatars[avatarName];
 
-  let spokenText = text.replace(/<pause>/g, ' ; ');
-  let writtenText = text.replace(/<pause>/g, ' ').replace(/\s+/g, ' ');
+  let spokenText = this.spokenText(text);
+  let writtenText = this.writtenText(text);
   if (list.length > this.MAX_LIST_LEN) {
     list.length = this.MAX_LIST_LEN;
   }
@@ -540,11 +586,11 @@ Webifi.prototype.output = function(avatarName, text, list=[], numbered=true) {
     writtenText = writtenText.substr(0, this.MAX_LEN);
   }
   for (let index = 0; index < list.length; index++) {
-    spokenList[index] = spokenList[index].replace(/<pause>/g, ' ; ');
+    spokenList[index] = this.spokenText(spokenList[index]);
     if (spokenList[index].length > this.MAX_LEN) {
       spokenList[index] = spokenList[index].substr(0, this.MAX_LEN);
     }
-    writtenList[index] = writtenList[index].replace(/<pause>/g, ' ').replace(/\s+/g, ' ');
+    writtenList[index] = this.writtenText(writtenList[index]);
     if (writtenList[index].length > this.MAX_LEN) {
       writtenList[index] = writtenList[index].substr(0, this.MAX_LEN);
     }

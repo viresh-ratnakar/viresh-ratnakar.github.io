@@ -42,7 +42,7 @@ function WordsWebifi(webifi) {
     },
     'synonyms': {
       description: 'Use dictionary dev dot api to look up synonyms of a word or phrase.',
-      prefixes: ['synonyms|syns', 'synonyms|syns of',],
+      prefixes: ['synonym|synonyms|syns', 'synonym|synonyms|syns of',],
       helpkeys: ['word', 'words', 'phrase',],
     },
     'pattern': {
