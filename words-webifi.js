@@ -236,9 +236,8 @@ WordsWebifi.prototype.handleHomophones = function(phrase) {
     this.webifi.output(this.name, 'No homophones were found.');
     return;
   }
-  // Best to spell out homophones.
   for (let i = 0; i < matchingWords.length; i++) {
-    matchingWords[i] = this.webifi.annotateText(matchingWords[i].toUpperCase());
+    matchingWords[i] = matchingWords[i].toUpperCase();
   }
   this.webifi.output(this.name, 'Here are some homophones of ' + phrase + '.', this.makeGroups(matchingWords, this.WORD_GROUP_SIZE), false);
 }
@@ -256,9 +255,8 @@ WordsWebifi.prototype.handleSpoonerisms = function(phrase) {
     this.webifi.output(this.name, 'No spoonerisms were found.');
     return;
   }
-  // Best to spell out spoonerisms.
   for (let i = 0; i < matchingWords.length; i++) {
-    matchingWords[i] = this.webifi.annotateText(matchingWords[i].join(' ').toUpperCase());
+    matchingWords[i] = matchingWords[i].join(' ').toUpperCase();
   }
   this.webifi.output(this.name, 'Here are some spoonerisms of ' + phrase + '.', this.makeGroups(matchingWords, this.WORD_GROUP_SIZE), false);
 }
