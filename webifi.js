@@ -68,6 +68,8 @@ function Webifi(scriptUrlBase='') {
     'Y': 'Yankee',
     'Z': 'Zulu',
     ',': 'comma',
+    ':': 'colon',
+    ';': 'semicolon',
     ' ': 'space',
     '.': 'period',
     '(': 'open-parenthesis',
