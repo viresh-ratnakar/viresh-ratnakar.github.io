@@ -82,6 +82,7 @@ function Webifi(scriptUrlBase='') {
     '@': 'at-sign',
     '!': 'exclamation-mark',
     '-': 'hyphen',
+    '—': 'dash',
     "'": 'apostrophe',
     '’': 'apostrophe',
     '"': 'quote',
