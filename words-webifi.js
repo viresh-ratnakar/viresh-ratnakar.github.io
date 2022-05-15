@@ -31,8 +31,7 @@ function WordsWebifi(webifi) {
   if (!this.initLex()) {
     this.loadLex();
   }
-  this.WORD_GROUP_SIZE = 4;
-  this.WORD_CHOICES = this.WORD_GROUP_SIZE * webifi.MAX_LIST_LEN;
+  this.MAX_WORD_CHOICES = webifi.GROUP_SIZE * webifi.MAX_LIST_LEN;
 
   this.webifi.registerAvatar(this.name, this.description, {
     'define': {
@@ -169,20 +168,6 @@ WordsWebifi.prototype.enumMatchSorter = function(p, k1, k2) {
          this.numEnumPunctMatches(p, entry1);
 }
 
-WordsWebifi.prototype.makeGroups = function(list, groupSize) {
-  const grouped = [];
-  let x = -1;
-  for (let i = 0; i < list.length; i++) {
-    if (i % groupSize == 0) {
-      grouped.push('');
-      x = grouped.length - 1;
-    }
-    if (grouped[x]) grouped[x] = grouped[x] + ',<pause>' + list[i];
-    else grouped[x] = list[i];
-  }
-  return grouped;
-}
-
 WordsWebifi.prototype.handlePattern = function(pattern) {
   if (!pattern) {
     return;
@@ -197,14 +182,14 @@ WordsWebifi.prototype.handlePattern = function(pattern) {
     return;
   }
   matchingIndices.sort(this.enumMatchSorter.bind(this, pattern));
-  if (matchingIndices.length > this.WORD_CHOICES) {
-    matchingIndices.length = this.WORD_CHOICES;
+  if (matchingIndices.length > this.MAX_WORD_CHOICES) {
+    matchingIndices.length = this.MAX_WORD_CHOICES;
   }
   const matchingWords = [];
   for (let idx of matchingIndices) {
     matchingWords.push(this.lex.getLex(idx));
   }
-  this.webifi.output(this.name, 'Here are some matches.', this.makeGroups(matchingWords, this.WORD_GROUP_SIZE), false);
+  this.webifi.output(this.name, 'Here are some matches.', this.webifi.makeGroupedList(matchingWords), false);
 }
 
 WordsWebifi.prototype.handleAnagrams = function(fodder) {
@@ -215,12 +200,12 @@ WordsWebifi.prototype.handleAnagrams = function(fodder) {
     this.webifi.output(this.name, 'This command is not available as the lexicon file has not been loaded');
     return;
   }
-  const matchingWords = this.lex.getAnagrams(fodder, this.WORD_CHOICES);
+  const matchingWords = this.lex.getAnagrams(fodder, this.MAX_WORD_CHOICES);
   if (matchingWords.length == 0) {
     this.webifi.output(this.name, 'No anagrams were found.');
     return;
   }
-  this.webifi.output(this.name, 'Here are some anagrams of ' + fodder + '.', this.makeGroups(matchingWords, this.WORD_GROUP_SIZE), false);
+  this.webifi.output(this.name, 'Here are some anagrams of ' + fodder + '.', this.webifi.makeGroupedList(matchingWords), false);
 }
 
 WordsWebifi.prototype.handleHomophones = function(phrase) {
@@ -237,9 +222,9 @@ WordsWebifi.prototype.handleHomophones = function(phrase) {
     return;
   }
   for (let i = 0; i < matchingWords.length; i++) {
-    matchingWords[i] = matchingWords[i].toUpperCase();
+    matchingWords[i] = '<verbose>' + matchingWords[i] + '</verbose>';
   }
-  this.webifi.output(this.name, 'Here are some homophones of ' + phrase + '.', this.makeGroups(matchingWords, this.WORD_GROUP_SIZE), false);
+  this.webifi.output(this.name, 'Here are some homophones of ' + phrase + '.', this.webifi.makeGroupedList(matchingWords), false);
 }
 
 WordsWebifi.prototype.handleSpoonerisms = function(phrase) {
@@ -256,9 +241,9 @@ WordsWebifi.prototype.handleSpoonerisms = function(phrase) {
     return;
   }
   for (let i = 0; i < matchingWords.length; i++) {
-    matchingWords[i] = matchingWords[i].join(' ').toUpperCase();
+    matchingWords[i] = '<verbose>' + matchingWords[i].join(' ') + '</verbose>';
   }
-  this.webifi.output(this.name, 'Here are some spoonerisms of ' + phrase + '.', this.makeGroups(matchingWords, this.WORD_GROUP_SIZE), false);
+  this.webifi.output(this.name, 'Here are some spoonerisms of ' + phrase + '.', this.webifi.makeGroupedList(matchingWords), false);
 }
 
 

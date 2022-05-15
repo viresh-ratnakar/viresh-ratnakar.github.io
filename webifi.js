@@ -30,10 +30,11 @@ https://github.com/viresh-ratnakar/webifi
  *     This is typically the URL for the dir in which exolve-m.js is located.
  */
 function Webifi(scriptUrlBase='') {
-  this.VERSION = 'Webifi v0.03, May 13, 2022';
+  this.VERSION = 'Webifi v0.04, May 14, 2022';
   this.MAX_LEN = 1000;
   this.MAX_LIST_LEN = 20;
   this.MAX_LOG_ENTRIES = 1000;
+  this.GROUP_SIZE = 4;
   this.logEntries = [];
   this.logIndex = 0;
   this.domPeer = null;
@@ -66,6 +67,38 @@ function Webifi(scriptUrlBase='') {
     'X': 'X-ray',
     'Y': 'Yankee',
     'Z': 'Zulu',
+    ',': 'comma',
+    ' ': 'space',
+    '.': 'period',
+    '(': 'open-parenthesis',
+    ')': 'close-parenthesis',
+    '?': 'question-mark',
+    '$': 'dollar-sign',
+    '&': 'ampersand',
+    '%': 'percent',
+    '#': 'hash-sign',
+    '@': 'at-sign',
+    '!': 'exclamation-mark',
+    '-': 'hyphen',
+    "'": 'apostrophe',
+    '’': 'apostrophe',
+    '"': 'quote',
+    '“': 'open-quote',
+    '”': 'close-quote',
+    '*': 'asterisk',
+    '+': 'plus-sign',
+    '=': 'equals-sign',
+    '<': 'less-than-sign',
+    '>': 'greater-than-sign',
+    '/': 'slash',
+    '\\': 'backslash',
+    '^': 'caret-sign',
+    '…': 'ellipsis',
+    '|': 'or',
+    '{': 'open-brace',
+    '}': 'close-brace',
+    '[': 'open-bracket',
+    ']': 'close-bracket',
   };
   this.stopWords = {
     'the': true,
@@ -470,92 +503,99 @@ Webifi.prototype.handleDisplay = function(words, numMatched) {
   this.output(this.name, 'Display is ' + (this.display ? 'on' : 'off'));
 }
 
-/**
- * Will skip annotating parts within '<speak-as-is>' occurrences/
- */
-Webifi.prototype.annotateSpokenText = function(text) {
-  const words = this.wordsOf(text);
-  const originalLength = words.length;
-  const tagRe = /<[^>]*>/;
-  let skip = false;
-  for (let i = 0; i < originalLength; i++) {
-    if (words[i] == '<speak-as-is>') {
-      skip = !skip;
-      continue;
-    }
-    if (skip) {
-      continue;
-    }
-    if (tagRe.test(words[i])) {
-      continue;
-    }
-    const word = words[i];
-    // Annotate apostrophe or hyphen or dash in the unmodified word first.
-    if (word.endsWith("'s")) {
-      words.push('Note that "' + word + '" ends with apostrophe S');
-    }
-    const dashParts = word.split(/[—-]/);
-    if (dashParts.length > 1) {
-      words.push('Note that "' + words + '" is spelled as ' + dashParts.join(' hyphen ') + '.');
-    }
-    const wordParts = word.split(' ');
-    for (let wordPart of wordParts) {
-      const ucLetters = wordPart.replace(/[^A-Z]/g, '');
-      const letters = wordPart.replace(/[^a-zA-Z0-9\(\)\?\.'",:;!—-]/g, '');
-      if ((ucLetters.length > 1) ||
-          (letters.length < wordPart.length && !wordPart.startsWith(letters)) ||
-          (!wordPart.endsWith('...') && wordPart.endsWith('.') &&
-           wordPart.substr(0, wordPart.length - 1).indexOf('.') >= 0)) {
-        const spellingBits = wordPart.trim().split('');
-        for (let x = 0; x < spellingBits.length; x++) {
-          const chr = spellingBits[x].toUpperCase();
-          if (chr.length == 1 && this.phonetic[chr]) {
-            spellingBits[x] = '<phonetic>' + chr;
-          }
-        }
-        const spelling = spellingBits.join(' ').
-            replace(/\./g, 'period').replace(/'/g, 'apostrophe');
-        words.push('Note that "' + wordPart + '" is spelled as ' + spelling + '.');
+Webifi.prototype.spokenVerbosely = function(text, veryVerbose=false) {
+  let blanksStart = -1;
+  let outText = '';
+  for (let i = 0; i < text.length; i++) {
+    const chr = text.charAt(i);
+    if (chr != '_') {
+      if (blanksStart >= 0) {
+        const blanks = i - blanksStart;
+        outText += (blanks == 1 ? ' ; blank' : ' ; ' + blanks + ' blanks')
       }
+      blanksStart = -1;
+    } else if (blanksStart < 0) {
+      blanksStart = i;
+    }
+    const uChr = chr.toUpperCase();
+    const shouldCopy = /[A-Z0-9 ]/.test(uChr);
+    if (this.phonetic[uChr] && (veryVerbose || !shouldCopy)) {
+      outText += '; ';
+      if (shouldCopy && chr != ' ') {
+        outText += chr + ', as in ';
+      }
+      outText += this.phonetic[uChr];
+    } else if (shouldCopy) {
+      outText += chr;
     }
   }
-  if (words.length > 0 && words[words.length - 1].endsWith('...')) {
-    words.push('Note that the last word ends with dot-dot-dot.');
+  if (blanksStart >= 0) {
+    const blanks = text.length - blanksStart;
+    outText += (blanks == 1 ? ' ; blank' : ' ; ' + blanks + ' blanks')
   }
-  if (originalLength > 0 &&
-      words.length > originalLength &&
-      !words[originalLength - 1].endsWith('.')) {
-    words[originalLength - 1] += '.';
-  }
-  return words.join(' ');
+  return outText;
 }
 
 Webifi.prototype.spokenText = function(markedUpText) {
-  let spokenText = this.annotateSpokenText(markedUpText);
-  spokenText = spokenText.replace(/<pause>/g, ' ; ');
+  let spokenText = markedUpText;
   let ppos;
-  while ((ppos = spokenText.indexOf('<phonetic>')) >= 0) {
-    const prefix = spokenText.substr(0, ppos);
-    let suffix = spokenText.substr(ppos + 10).trim();
-    let letter = '';
-    if (suffix.length > 0) {
-      letter = suffix[0].toUpperCase();
-      if (this.phonetic[letter]) {
-        letter += ' (as in ' + this.phonetic[letter] + ')';
-        suffix = suffix.substr(1);
-      } else {
-        letter = '';
+  /* process the two verbosity tags: <verbose> and <punctuate> */
+  const tags = [{'opener': '<verbose>', 'closer': '</verbose>'},
+                {'opener': '<punctuate>', 'closer': '</punctuate>'},];
+  for (let tag of tags) {
+    const veryVerbose = (tag.opener == '<verbose>');
+    while ((ppos = spokenText.indexOf(tag.opener)) >= 0) {
+      const endPos = spokenText.indexOf(tag.closer);
+      if (endPos < 0) {
+        /* missing closing tag */
+        spokenText = spokenText.substr(0, ppos) + spokenText.substr(ppos + tag.opener.length);
+        break;
       }
+      const prefix = spokenText.substr(0, ppos);
+      const suffix = spokenText.substr(endPos + tag.closer.length);
+      const toVerbose = spokenText.substring(ppos + tag.opener.length, endPos);
+      const verbose = this.spokenVerbosely(toVerbose, veryVerbose);
+      spokenText = prefix + verbose + suffix;
     }
-    spokenText = prefix + letter + suffix;
   }
   spokenText = spokenText.replace(/<spoken:([^>]*)>/g, ' $1 ');
+  spokenText = spokenText.replace(/<pause>/g, ' ; ');
   return spokenText.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ');
 }
 
 Webifi.prototype.writtenText = function(markedUpText) {
   let writtenText = markedUpText.replace(/<written:([^>]*)>/g, '$1');
   return writtenText.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ');
+}
+
+/**
+ * Convenience function to make a list shorter by grouping
+ * groupSize elements together.
+ */
+Webifi.prototype.makeGroupedList = function(list, groupSize=0) {
+  if (groupSize <= 0) groupSize = this.GROUP_SIZE;
+  const grouped = [];
+  let x = -1;
+  for (let i = 0; i < list.length; i++) {
+    if (i % groupSize == 0) {
+      grouped.push('');
+      x = grouped.length - 1;
+    }
+    if (grouped[x]) grouped[x] = grouped[x] + '; <pause>' + list[i];
+    else grouped[x] = list[i];
+  }
+  return grouped;
+}
+
+/**
+ * Convenience function to copy a list with <punctuate>..</punctuate> wrappers.
+ */
+Webifi.prototype.punctuateList = function(list) {
+  const punctuated = [];
+  for (let x of list) {
+    punctuated.push('<punctuate>' + x + '</punctuate>');
+  }
+  return punctuated;
 }
 
 Webifi.prototype.output = function(avatarName, text, list=[], numbered=true) {
@@ -653,7 +693,7 @@ Webifi.prototype.registerAvatar = function(name, description, commands, handler)
     'commands': commands,
     'handler': handler,
     'description': description,
-    'pitch': 1.2 - ((avatarIndex % 4) * 0.2),
+    'pitch': 0.8 + ((avatarIndex % 4) * 0.1),
   };
   this.sortedAvatarNames = [name].concat(this.sortedAvatarNames);
   for (let commandName in commands) {
@@ -780,7 +820,7 @@ Webifi.prototype.helpOnTopic = function(topic) {
           opening + ' can handle the command "' +
           commandName + '". ' + command.description +
           ' Trigger this command with any of these prefixes:',
-          command.prefixes);
+          this.makeGroupedList(this.punctuateList(command.prefixes)));
     }
   }
 }
@@ -799,7 +839,7 @@ Webifi.prototype.help = function(detailed=false) {
     if (!detailed) {
       const list = Object.keys(avatar.commands);
       const opening = avatarName + '. ' + avatar.description + '. Available commands:';
-      this.output(avatarName, opening, list);
+      this.output(avatarName, opening, this.makeGroupedList(list));
       continue;
     }
     this.output(avatarName, avatarName + '. ' + avatar.description +
@@ -809,7 +849,7 @@ Webifi.prototype.help = function(detailed=false) {
       this.output(avatarName,
           commandName + '. ' + command.description +
           ' Triggering prefixes:',
-          command.prefixes);
+          this.makeGroupedList(this.punctuateList(command.prefixes)));
     }
   }
 }
