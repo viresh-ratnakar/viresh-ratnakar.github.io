@@ -267,6 +267,11 @@ CrosswordWebifi.prototype.readEntry = function(ci) {
   return this.readCells(cells, pattern);
 }
 
+CrosswordWebifi.prototype.htmlDecode = function(s) {
+  const doc = new DOMParser().parseFromString(s, "text/html");
+  return doc.documentElement.textContent;
+}
+
 /**
  * Remove in-clue annos and any HTML tags.
  */
@@ -295,7 +300,8 @@ CrosswordWebifi.prototype.cleanClueText = function(s) {
     idx = s.indexOf('~{', endIdx);
   }
   out = out + s.substr(endIdx);
-  return out;
+  /* decode HTML entites and return */
+  return this.htmlDecode(out);
 }
 
 CrosswordWebifi.prototype.markUpEnum = function(enumStr) {
