@@ -300,7 +300,7 @@ CrosswordWebifi.prototype.cleanClueText = function(s) {
 
 CrosswordWebifi.prototype.markUpEnum = function(enumStr) {
   return enumStr.replace(/,/g, ',<spoken:comma>').
-      replace(/-/g, '-<spoken-hyphen>').
+      replace(/-/g, '<written:-><spoken:hyphen>').
       replace(/'/, "'<spoken:apostrophe>");
 }
 
