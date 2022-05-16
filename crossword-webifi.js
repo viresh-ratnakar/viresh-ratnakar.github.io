@@ -137,8 +137,8 @@ function CrosswordWebifi(webifi, puz) {
 
 CrosswordWebifi.prototype.handleDescribe = function() {
   const description = [];
-  if (this.puz.title) description.push('The title of this crossword is "' + this.puz.title + '", ');
-  if (this.puz.setter) description.push('and the setter is "' + this.puz.setter + '".');
+  if (this.puz.title) description.push('You are using Webifi to solve a crossword titled "' + this.puz.title + '"');
+  if (this.puz.setter) description.push(' by "' + this.puz.setter + '".');
   description.push(`It's a ${this.puz.gridWidth} by ${this.puz.gridHeight} grid with ${this.fillableClues} clues.`);
   this.webifi.output(this.name, description.join(' '));
 
@@ -148,12 +148,12 @@ CrosswordWebifi.prototype.handleDescribe = function() {
   }
   this.webifi.output(this.name,
       'You can work through the crossword using four basic commands:', [
-        '"clue" gets the current clue, "entry" gets the letters entered so ' +
-          'far, "type" followed by some letters types them into the ' +
-          'crossword, and "next best" takes you to the next most solvable ' +
-          'clue.',
-        'Some other useful commands are "audio on", "matches", "check", and ' +
-          '"reveal". You can say "help" to get the full list of commands.',
+        '"clue" gets the current clue, <pause> "entry" gets the letters ' +
+          'entered so far, <pause> "type" followed by some letters types ' +
+          'them into the crossword, <pause> and "next best" takes you to ' +
+          'the next most solvable clue.',
+        'Some other useful crossword commands are "next", "back", ' +
+        '"matches", "check", and "reveal".',
       ], false);
 
 }

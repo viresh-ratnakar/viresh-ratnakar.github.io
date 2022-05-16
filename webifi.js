@@ -127,6 +127,7 @@ function Webifi(scriptUrlBase='') {
     'could': true,
   };
   this.avatars = {};
+  /** avatar names sorted in order of registration */
   this.sortedAvatarNames = [];
   this.index = {};
   this.helpIndex = {};
@@ -136,9 +137,9 @@ function Webifi(scriptUrlBase='') {
   this.pendingInputClosure = null;
 
   this.registerAvatar(this.name, this.description, {
-    'hello': {
+    'intro': {
       description: 'Get an introduction to Webifi and a listing of available avatars.',
-      prefixes: ['whats your name', 'what\'s your name', 'who are you', 'hi|hello|greeting|greetings'],
+      prefixes: ['whats your name', 'what\'s your name', 'who are you', 'hi|hello|greeting|greetings|intro|introduction'],
     },
     'audio': {
       description: 'Report or set audio mode.',
@@ -700,7 +701,7 @@ Webifi.prototype.registerAvatar = function(name, description, commands, handler)
     'description': description,
     'pitch': 0.8 + ((avatarIndex % 4) * 0.1),
   };
-  this.sortedAvatarNames = [name].concat(this.sortedAvatarNames);
+  this.sortedAvatarNames.push(name);
   for (let commandName in commands) {
     const command = commands[commandName];
     command.matchers = [];
@@ -791,13 +792,14 @@ Webifi.prototype.toggle = function(ev) {
 
 Webifi.prototype.introduce = function() {
   this.output(this.name, 'Hi! I am Webifi, an interactive fiction-esque chat interface for the web.');
+  this.output(this.name, 'My current version is ' + this.VERSION + '.');
   if (this.audio) {
     this.output(this.name, 'You can use the command "audio off" to use just the text interface.');
     this.output(this.name, 'You can always cut short whatever I am saying by entering any word, such as OK or Shh.');
   } else {
     this.output(this.name, 'You can use the command "audio on" to turn on the audio interface.');
   }
-  this.output(this.name, 'You can say, "help," to get a full list of commands, or you can say, "help," followed by a topic.');
+  this.output(this.name, 'You can say "help" to get a full list of commands, or you can say "help" followed by a topic.');
 }
 
 Webifi.prototype.helpOnTopic = function(topic) {
@@ -872,7 +874,7 @@ Webifi.prototype.basicHandler = function(input, words, commandName,
   if (numMatchedWords < words.length) {
     remaining = words.slice(numMatchedWords).join(' ');
   }
-  if (commandName == 'hello') {
+  if (commandName == 'intro') {
     this.introduce();
   } else if (commandName == 'audio') {
     this.handleAudio(words, numMatchedWords);
