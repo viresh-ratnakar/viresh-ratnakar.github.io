@@ -102,8 +102,8 @@ function CrosswordWebifi(webifi, puz) {
       helpkeys: ['solve', 'solution'],
     },
     'clear': {
-      description: 'Clear entries in the current light or a particular cell.',
-      prefixes: ['clear', 'clear cell [number]',],
+      description: 'Clear entries in the current light or a particular cell or everywhere.',
+      prefixes: ['clear', 'clear cell [number]', 'clear all'],
     },
     'check': {
       description: 'Check entries in the current light or a particular cell or everywhere.',
@@ -137,10 +137,9 @@ function CrosswordWebifi(webifi, puz) {
 
 CrosswordWebifi.prototype.handleDescribe = function() {
   const description = [];
-  if (this.puz.title) description.push('The title of this crossword is "' + this.puz.title + '";');
+  if (this.puz.title) description.push('The title of this crossword is "' + this.puz.title + '", ');
   if (this.puz.setter) description.push('and the setter is "' + this.puz.setter + '".');
-  description.push(`This crossword has ${this.puz.gridHeight} rows and ${this.puz.gridWidth} columns.`);
-  description.push(`There are ${this.fillableClues} clues to solve.`);
+  description.push(`It's a ${this.puz.gridWidth} by ${this.puz.gridHeight} grid with ${this.fillableClues} clues.`);
   this.webifi.output(this.name, description.join(' '));
 
   const preamble = document.getElementById(this.puz.prefix + '-preamble').innerText;
@@ -148,11 +147,13 @@ CrosswordWebifi.prototype.handleDescribe = function() {
     this.webifi.output(this.name, 'Preamble: ' + preamble);
   }
   this.webifi.output(this.name,
-      'Here are some commands you can use. Say "help" to get the full list of commands.', [
-        'You can say "clue" to get the current clue to be read out, and "entry" to get its current entry to be read out.',
-        'You can enter solutions by saying "type" followed by the word or phrase to enter.',
-        'The "status" command tells you where you are, and lists some unsolved clues in fraction-most-filled order.',
-        'Jump to any clue by entering its number followed optionally by "A" or "D" or "across" or "down". You can also say "next" or "next best" or "previous" or "back".',
+      'You can work through the crossword using four basic commands:', [
+        '"clue" gets the current clue, "entry" gets the letters entered so ' +
+          'far, "type" followed by some letters types them into the ' +
+          'crossword, and "next best" takes you to the next most solvable ' +
+          'clue.',
+        'Some other useful commands are "audio on", "matches", "check", and ' +
+          '"reveal". You can say "help" to get the full list of commands.',
       ], false);
 
 }
@@ -665,7 +666,22 @@ CrosswordWebifi.prototype.handleNavigate = function(words, numMatchedWords) {
   this.webifi.output(this.name, 'Could not understand the "navigate" command. Try saying "help navigate".');
 }
 
-CrosswordWebifi.prototype.handleClearCurr = function(numbers) {
+CrosswordWebifi.prototype.handleClear = function(words, numMatched, numbers, confirmation='') {
+  if (numMatched == 2 && words[1].toLowerCase() == 'all') {
+    if (!confirmation) {
+      this.webifi.getUserInput(this.name,
+          'Are you sure you want to clear all entries? ' +
+            '<pause>Enter yes or OK to confirm.',
+          this.handleClear.bind(this, words, numMatched, numbers));
+    } else {
+      confirmation = confirmation.toLowerCase();
+      if (confirmation == 'y' || confirmation == 'yes' || confirmation == 'ok') {
+        this.puz.clearAll(false);
+        this.webifi.output(this.name, 'Cleared all the cells!');
+      }
+    }
+    return;
+  }
   const ci = this.puz.clueOrParentIndex(this.puz.currClueIndex);
   if (!ci) return;
   const cells = this.puz.getAllCells(ci);
@@ -731,16 +747,24 @@ CrosswordWebifi.prototype.handleCheck = function(words, numMatched, numbers) {
   }
 }
 
-CrosswordWebifi.prototype.handleReveal = function(words, numMatched, numbers) {
+CrosswordWebifi.prototype.handleReveal = function(words, numMatched, numbers, confirmation='') {
   if (this.puz.hasUnsolvedCells) {
     this.webifi.output(this.name, 'Sorry, this crossword does not include solutions that can be revealed.');
     return;
   }
   const filledPre = this.puz.numCellsFilled;
   if (numMatched == 2 && words[1].toLowerCase() == 'all') {
-    this.puz.revealAll(false);
-    this.webifi.output(this.name,
-        `The crossword's ${this.fillableClues} clues and ${this.puz.numCellsToFill} cells have been fully revealed`);
+    if (!confirmation) {
+      this.webifi.getUserInput(this.name,
+          'Are you sure you want to reveal all entries? ' +
+            '<pause>Enter yes or OK to confirm.',
+          this.handleReveal.bind(this, words, numMatched, numbers));
+    } else {
+      this.puz.revealAll(false);
+      this.webifi.output(this.name,
+          `The crossword's ${this.fillableClues} clues and ` +
+          `${this.puz.numCellsToFill} cells have been fully revealed`);
+    } 
   } else {
     const ci = this.puz.clueOrParentIndex(this.puz.currClueIndex);
     const clue = this.puz.clues[ci];
@@ -868,7 +892,7 @@ CrosswordWebifi.prototype.handler = function(input, words, commandName,
   } else if (commandName == 'type') {
     this.handleEnter(remaining, numbers);
   } else if (commandName == 'clear') {
-    this.handleClearCurr(numbers);
+    this.handleClear(words, numMatchedWords, numbers);
   } else if (commandName == 'check') {
     this.handleCheck(words, numMatchedWords, numbers);
   } else if (commandName == 'reveal') {
