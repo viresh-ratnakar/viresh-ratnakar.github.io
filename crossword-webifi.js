@@ -137,15 +137,14 @@ function CrosswordWebifi(webifi, puz) {
 
 CrosswordWebifi.prototype.handleDescribe = function() {
   let description = '';
+  description += 'You are using Webifi to solve a crossword';
   if (this.puz.title) {
-    description += 'You are using Webifi to solve a crossword titled "' +
-                   this.puz.title + '"';
+    description += ' titled "' + this.puz.title + '"';
     if (this.puz.setter) {
       description += ' by "' + this.puz.setter + '"';
     }
-    description += '. ';
   }
-  description += `It's a ${this.puz.gridWidth} by ${this.puz.gridHeight} ` +
+  description += `. It's a ${this.puz.gridWidth} by ${this.puz.gridHeight} ` +
       `grid with ${this.fillableClues} clues.`;
   this.webifi.output(this.name, description);
 
@@ -160,7 +159,8 @@ CrosswordWebifi.prototype.handleDescribe = function() {
           'them into the crossword, <pause> and "next best" takes you to ' +
           'the next most solvable clue.',
         'Some other useful crossword commands are "next", "back", ' +
-        '"matches", "check", and "reveal".',
+        (!this.puz.hasUnsolvedCells ? '"check", "reveal", ' : '') +
+        '"anagrams", "define", and "matches".',
       ], false);
 
 }
