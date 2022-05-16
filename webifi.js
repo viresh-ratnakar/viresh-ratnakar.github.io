@@ -333,8 +333,9 @@ Webifi.prototype.appendToLog = function(from, text, list=[], numbered=true) {
   }
   this.log.append(logEntry);
 
-  // Scroll to the bottom
-  this.log.scrollTop = Number.MAX_SAFE_INTEGER;
+  // Scroll to the bottom by setting scrollTop to a high value.
+  // Number.MAX_SAFE_INTEGER does not work on Firefox.
+  this.log.scrollTop = 1000000;
 
   if (this.logEntries.length <= this.logIndex) {
     this.logEntries.length = this.logIndex + 1;
