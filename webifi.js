@@ -485,7 +485,10 @@ Webifi.prototype.handleAudio = function(words, numMatched) {
     } else {
       this.output(this.name, `Audio is on; language is ${this.voice.lang}, with the name, ${this.voice.name}`);
     }
-    this.output(this.name, 'Please prefer to use headphones for privacy and also to avoid interference if using voice-typing.');
+    this.output(this.name,
+        'Please prefer to use headphones for privacy and also to avoid ' +
+        'interference if using voice-typing. You can cut short anything I ' +
+        'am saying by entering any command or word, such as "Shh".');
   }
 }
 
