@@ -79,7 +79,7 @@ function Exolve(puzzleSpec,
                 visTop=0,
                 maxDim=0,
                 saveState=true) {
-  this.VERSION = 'Exolve v1.35 March 20, 2022';
+  this.VERSION = 'Exolve v1.38 June 12, 2022';
   this.id = '';
 
   this.puzzleText = puzzleSpec;
@@ -212,6 +212,13 @@ function Exolve(puzzleSpec,
 
   this.scriptRE = null;
   this.scriptLowerCaseRE = null;
+
+  /**
+   * Font details for clues text.
+   * If fontFamily/fontSize are not set, the CSS rule sets them to serif/16px.
+   */
+  this.fontFamily = '';
+  this.fontSize = '';
 
   this.colorScheme = {
     'background': 'black',
@@ -444,13 +451,13 @@ Exolve.prototype.init = function() {
       <h2 id="${this.prefix}-title" class="xlv-title"></h2>
       <div id="${this.prefix}-setter" class="xlv-setter"></div>
       <div id="${this.prefix}-preamble" class="xlv-preamble"></div>
-      <div id="${this.prefix}-curr-clue-parent" class="xlv-curr-clue-parent">
-        <div id="${this.prefix}-curr-clue" class="xlv-curr-clue"></div>
-      </div>
+      <div id="${this.prefix}-clear-area" class="xlv-clear-area"></div>
       <div id="${this.prefix}-grid-and-clues" class="xlv-grid-and-clues-flex">
         <div id="${this.prefix}-grid-panel" class="xlv-grid-panel">
           <div id="${this.prefix}-grid-parent-centerer"
               class="xlv-grid-parent-centerer">
+            <div id="${this.prefix}-curr-clue" class="xlv-curr-clue"
+                style="display:none"></div>
             <div id="${this.prefix}-grid-parent" class="xlv-grid-parent">
               <svg id="${this.prefix}-grid" class="xlv-grid"
                   zoomAndPan="disable"></svg>
@@ -683,6 +690,12 @@ Exolve.prototype.init = function() {
     document.body.insertAdjacentHTML('beforeend', basicHTML);
   }
   this.frame = document.getElementById(this.prefix + '-frame');
+  if (this.fontFamily) {
+    this.frame.style.fontFamily = this.fontFamily;
+  }
+  if (this.fontSize) {
+    this.frame.style.fontSize = this.fontSize;
+  }
 
   let title = document.getElementById(this.prefix + '-title');
   if (this.title) {
@@ -760,9 +773,8 @@ Exolve.prototype.init = function() {
       '-grid-and-clues');
   this.cluesContainer = document.getElementById(this.prefix + '-clues');
 
+  this.clearArea = document.getElementById(this.prefix + '-clear-area');
   this.currClue = document.getElementById(this.prefix + '-curr-clue');
-  this.currClueParent = document.getElementById(
-      this.prefix + '-curr-clue-parent');
   this.ninaGroup = document.getElementById(this.prefix + '-nina-group');
   this.colourGroup = document.getElementById(this.prefix + '-colour-group');
 
@@ -1326,6 +1338,14 @@ Exolve.prototype.parseOption = function(s) {
       this.colorScheme['background'] = kv[1]
       continue
     }
+    if (kv[0] == 'font-family') {
+      this.fontFamily = kv[1]
+      continue
+    }
+    if (kv[0] == 'font-size') {
+      this.fontSize = kv[1]
+      continue
+    }
     if (kv[0].substr(0, 6) == 'color-' || kv[0].substr(0, 7) == 'colour-') {
       let key = kv[0].substr(kv[0].indexOf('-') + 1);
       if (!this.colorScheme[key]) {
@@ -1471,6 +1491,8 @@ Exolve.prototype.throwErr = function(error) {
   if (e) {
     e.innerHTML = e.innerHTML + '<br/>' + error;
   } else {
+    console.log('Exolve error (stack trace follows):' + error);
+    console.log(error.stack);
     alert('Exolve found unrecoverable error: ' + error);
   }
   this.gridWidth = 0
@@ -3158,8 +3180,9 @@ Exolve.prototype.processClueChildren = function() {
             if (otherDir == clue.dir) {
               continue;
             }
-            childIndex = this.getDirClueIndex(otherDir, child.label);
-            if (this.clues[childIndex]) {
+            const testChildIndex = this.getDirClueIndex(otherDir, child.label);
+            if (this.clues[testChildIndex]) {
+              childIndex = testChildIndex;
               break
             }
           }
@@ -3178,8 +3201,11 @@ Exolve.prototype.processClueChildren = function() {
       }
       let childClue = this.clues[childIndex]
       if (!childClue || childIndex == clueIndex) {
-        this.throwErr('Invalid child ' + childIndex + ' in ' +
-                      clue.label + clue.dir);
+        /**
+         * Note: Keep the format of this exception exactly like this, as
+         * exolve-from-text.js parses this error.
+         */
+        this.throwErr('Invalid child ' + childIndex + ' in ' + clueIndex);
       }
       if (dupes[childIndex]) {
         this.throwErr('Duplicate child ' + childIndex + ' in ' +
@@ -3600,6 +3626,9 @@ Exolve.prototype.applyStyles = function() {
     this.frame.appendChild(customStyles);
   }
   customStyles.innerHTML = `
+    #${this.prefix}-frame .xlv-curr-clue {
+      top: ${this.visTop > 0 ? (this.visTop + 'px') : 0};
+    }
     #${this.prefix}-frame span.xlv-solved,
     #${this.prefix}-frame .xlv-solved td:first-child {
       color: ${this.colorScheme['solved']};
@@ -3927,6 +3956,8 @@ Exolve.prototype.computeGridSize = function(maxDim) {
   this.letterSize = Math.max(8, this.squareDimBy2);
   this.numberSize = 1 + Math.max(5, Math.floor(this.squareDim / 3) - 1);
   this.arrowSize = Math.max(6, Math.floor(13 * this.squareDim / 31));
+  this.currClueWidth = Math.max(this.boxWidth + (2 * this.offsetLeft),
+                                Math.min(viewportDim - 30, 450));
 }
 
 Exolve.prototype.setColumnLayout = function() {
@@ -3954,7 +3985,7 @@ Exolve.prototype.setColumnLayout = function() {
 
 Exolve.prototype.handleResize = function() {
   this.setColumnLayout();
-  this.makeCurrClueVisible();
+  this.resizeCurrClue();
 }
 
 Exolve.prototype.makeRect = function(x, y, w, h, colour) {
@@ -4410,55 +4441,22 @@ Exolve.prototype.deactivateCurrClue = function() {
     x.style.background = 'inherit'
   }
   this.activeClues = [];
-  this.currClueIndex = null
-  this.currClue.innerHTML = ''
-  this.currClue.style.background = 'transparent'
-  this.currClue.style.top = '0'
-  this.clearButton.disabled = true
-  this.checkButton.disabled = true
-  this.revealButton.disabled = true
+  this.currClueIndex = null;
+  this.currClue.style.display = 'none';
+  this.clearButton.disabled = true;
+  this.checkButton.disabled = true;
+  this.revealButton.disabled = true;
 }
 
-Exolve.prototype.makeCurrClueVisible = function() {
+Exolve.prototype.resizeCurrClue = function() {
   const bPos = this.frame.getBoundingClientRect();
   const gpPos = this.gridPanel.getBoundingClientRect();
-  this.currClue.style.left = (gpPos.left - bPos.left) + 'px';
-
-  let inputPos = this.gridInput.getBoundingClientRect();
-  if (inputPos.top < gpPos.top) {
-    inputPos = gpPos
-  }
-  // Check if grid/grid-input is visible.
-  if (inputPos.top < this.visTop) {
-    return
-  }
-  let windowH = this.getViewportHeight()
-  if (!windowH || windowH <= 0) {
-    return
-  }
-
-  const cluePos = this.currClue.getBoundingClientRect();
-  const clueParentPos = this.currClueParent.getBoundingClientRect();
-
-  let normalTop = 0;
   const clearance = 4;
-  const maxClueHeight = Math.max(
-      50, (gpPos.top -bPos.top) - clearance - this.visTop)
-  const parentTop = clueParentPos.top
-  this.currClue.style.maxHeight = maxClueHeight + 'px';
-  if (gpPos.top - parentTop < cluePos.height + clearance) {
-    normalTop = (gpPos.top - parentTop) - (cluePos.height + clearance);
-  }
-  if (normalTop + parentTop >= this.visTop || inputPos.bottom >= windowH) {
-    this.currClue.style.top = normalTop + 'px';
-    return
-  }
-  // Reposition
-  let adjustment = cluePos.height + clearance - inputPos.top + this.visTop
-  if (adjustment < 0) {
-    adjustment = 0;
-  }
-  this.currClue.style.top = (this.visTop - parentTop - adjustment) + 'px';
+  this.currClue.style.width = this.currClueWidth + 'px';
+  this.currClue.style.maxHeight = (Math.max(
+      50, (gpPos.top - bPos.top) - clearance - this.visTop)) + 'px';
+  const cPos = this.currClue.getBoundingClientRect();
+  this.currClue.style.marginTop = '-' + cPos.height + 'px';
 }
 
 Exolve.prototype.gnavToInner = function(cell, dir) {
@@ -4812,7 +4810,8 @@ Exolve.prototype.cnavToInner = function(activeClueIndex, grabFocus = false) {
   this.currClue.style.background = orphan ?
       this.colorScheme['orphan'] : this.colorScheme['currclue'];
   this.updateClueState(parentIndex, false, null)
-  this.makeCurrClueVisible();
+  this.currClue.style.display = '';
+  this.resizeCurrClue();
   return gnav
 }
 
@@ -5513,7 +5512,6 @@ Exolve.prototype.createListeners = function() {
   document.getElementById(this.prefix + '-preamble').addEventListener(
     'click', boundDeactivator);
   
-  window.addEventListener('scroll', this.makeCurrClueVisible.bind(this));
   window.addEventListener('resize', this.handleResize.bind(this));
 
   window.addEventListener('beforeprint', this.handleBeforePrint.bind(this));
@@ -6828,7 +6826,6 @@ Exolve.prototype.handleBeforePrint = function() {
   .xlv-status,
   .xlv-saving,
   .xlv-button,
-  .xlv-curr-clue-parent,
   .xlv-small-button,
   .xlv-small-print,
   .xlv-dont-print,
@@ -7387,8 +7384,9 @@ function createExolve(puzzleText, containerId="",
                       provideStateUrl=true, visTop=0, maxDim=0) {
   const customizer = (typeof customizeExolve === 'function') ?
       customizeExolve : null;
-  let p = new Exolve(puzzleText, containerId, customizer,
+  const p = new Exolve(puzzleText, containerId, customizer,
                      provideStateUrl, visTop, maxDim);
+  return p;
 }
 
 /*
@@ -7396,5 +7394,5 @@ function createExolve(puzzleText, containerId="",
  * @deprecated use createExolve() or the Exolve() constructor.
  */
 function createPuzzle() {
-  createExolve(puzzleText, "");
+  return createExolve(puzzleText, "");
 }
