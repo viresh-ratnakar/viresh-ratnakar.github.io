@@ -4311,7 +4311,7 @@ Exolve.prototype.restoreState = function() {
 }
 
 Exolve.prototype.addWebifi = function() {
-  if (this.webifi) {
+  if (this.webifi || !this.useWebifi) {
     return;
   }
   if ((typeof Webifi) == 'undefined' ||
