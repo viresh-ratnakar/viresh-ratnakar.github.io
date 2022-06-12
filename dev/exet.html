@@ -1405,6 +1405,7 @@ Exet.prototype.setPuzzle = function(puz) {
     }
   }
   this.puz = puz
+  puz.useWebifi = false;
   puz.revealAll(false)
 
   if (!this.prefix && !this.suffix) {
