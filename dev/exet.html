@@ -4759,6 +4759,9 @@ Exet.prototype.reposition = function() {
       }
     }
   }
+  if (this.xetCurrClue) {
+    this.xetCurrClue.style.maxHeight = this.puz.currClue.style.maxHeight;
+  }
 
   const clearAreaBox = this.puz.clearArea.getBoundingClientRect()
 
@@ -4946,7 +4949,6 @@ Exet.prototype.makeClueEditable = function() {
   this.xetCurrClue.className = 'xet-curr-clue';
   this.xetCurrClue.id = 'xet-curr-clue';
   this.xetCurrClue.style.width = this.puz.currClue.style.width;
-  this.xetCurrClue.style.height = this.puz.currClue.style.height;
   this.xetCurrClue.style.maxHeight = this.puz.currClue.style.maxHeight;
   while (this.puz.currClue.children.length > 0) {
     this.xetCurrClue.appendChild(this.puz.currClue.children[0]);
@@ -4992,11 +4994,12 @@ Exet.prototype.makeClueEditable = function() {
   this.linking = document.createElement('div');
   this.linking.id = 'xet-linking';
   this.linking.className = 'xet-linking';
+  this.linking.title = 'Press the "Add" button after entering the clue to link to';
   this.linking.innerHTML = `
     <button id="xet-add-linked" class="xlv-small-button">Add</button>
     <input id="xet-add-linked-num" name="xet-add-linked-num"
       title="Enter a clue number followed by a direction suffix"
-          class="xlv-answer" size="4" type="text"></input>
+          class="xlv-answer" size="8" placeholder="[N][a/d]" type="text"></input>
       as a linked clue.  &nbsp;
     <button class="xlv-small-button" id="xet-unlink" style="color:red">
     Break linked clues
