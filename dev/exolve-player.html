@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<link rel="stylesheet" type="text/css" href="exolve-m.css?v1.38"/>
-<script src="exolve-m.js?v1.38"></script>
-<script src="exolve-from-ipuz.js?v1.38"></script>
-<script src="exolve-from-puz.js?v1.38"></script>
-<script src="exolve-from-text.js?v1.38"></script>
+<link rel="stylesheet" type="text/css" href="exolve-m.css?v1.39"/>
+<script src="exolve-m.js?v1.39"></script>
+<script src="exolve-from-ipuz.js?v1.39"></script>
+<script src="exolve-from-puz.js?v1.39"></script>
+<script src="exolve-from-text.js?v1.39"></script>
 
 <style>
 .xlvp-wait {
@@ -304,10 +304,10 @@ function xlvpShowExolveInner(specs, converted, hideChooser) {
     console.log('createExolve() failed');
     return false;
   }
-  if (!xlvpPuz.useWebifi) {
-    xlvpPuz.useWebifi = true;
-    xlvpPuz.loadWebifi();
-  }
+  //if (!xlvpPuz.useWebifi) {
+  //  xlvpPuz.useWebifi = true;
+  //  xlvpPuz.loadWebifi();
+  //}
 
   xlvpData = data;
   xlvpSrc.innerText = xlvpData;
@@ -328,8 +328,8 @@ function xlvpSave() {
     '<meta charset="utf-8"/>\n' +
     '<meta name="viewport" content="width=device-width, initial-scale=1"/>\n' +
     '<link rel="stylesheet" type="text/css" ' +
-    'href="https://viresh-ratnakar.github.io/exolve-m.css?v1.38"/>\n' +
-    '<script src="https://viresh-ratnakar.github.io/exolve-m.js?v1.38">' +
+    'href="https://viresh-ratnakar.github.io/exolve-m.css?v1.39"/>\n' +
+    '<script src="https://viresh-ratnakar.github.io/exolve-m.js?v1.39">' +
     '<\/script>\n' +
     '<\/head>\n' +
     '<body>\n' +
@@ -503,7 +503,7 @@ function xlvpShowText(text, fname='provided text') {
   exolve-end`;
           const smallXlv = new Exolve(smallSpecs, `xlvp-chooser-${i}`, function(puz) {
             document.getElementById(puz.prefix + '-controls-etc').style.display = 'none';
-            document.getElementById(puz.prefix + '-curr-clue-parent').style.display = 'none';
+            document.getElementById(puz.prefix + '-clear-area').style.display = 'none';
           }, false, 0, 150, false);
           const chooser = document.getElementById(`xlvp-chooser-${i}`);
           chooser.addEventListener('click', () => {
