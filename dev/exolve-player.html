@@ -256,6 +256,10 @@ function xlvpDeleteOld(hideChooser=true) {
     xlvpChooserStrip.innerHTML = '';
   }
   xlvpLastCrossword.disabled = true;
+  webifi = document.getElementById('webifi-root');
+  if (webifi) {
+    webifi.remove();
+  }
 }
 
 function xlvpToggleMinimizeCurrent() {
