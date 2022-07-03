@@ -3693,21 +3693,21 @@ Exolve.prototype.applyStyles = function() {
       color: ${this.colorScheme['imp-text']};
     }
     #${this.prefix}-frame .xlv-button {
-      background-color: ${this.colorScheme['button']};
+      background: ${this.colorScheme['button']};
       color: ${this.colorScheme['button-text']};
     }
     #${this.prefix}-frame .xlv-button:hover {
-      background-color: ${this.colorScheme['button-hover']};
+      background: ${this.colorScheme['button-hover']};
     }
     #${this.prefix}-frame .xlv-button:disabled {
-      background-color: gray;
+      background: gray;
     }
     #${this.prefix}-frame .xlv-small-button {
-      background-color: ${this.colorScheme['small-button']};
+      background: ${this.colorScheme['small-button']};
       color: ${this.colorScheme['small-button-text']};
     }
     #${this.prefix}-frame .xlv-small-button:hover {
-      background-color: ${this.colorScheme['small-button-hover']};
+      background: ${this.colorScheme['small-button-hover']};
     }
   `;
 }
@@ -5586,6 +5586,8 @@ Exolve.prototype.recolourCells = function(scale=1) {
 }
 
 Exolve.prototype.displayGrid = function() {
+  this.gridInput.style.fontSize = this.letterSize + 'px'
+  this.gridInputWrapper.style.fontSize = this.letterSize + 'px'
   this.numCellsToFill = 0
   this.numCellsPrefilled = 0
   for (let i = 0; i < this.gridHeight; i++) {
