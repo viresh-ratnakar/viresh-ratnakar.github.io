@@ -483,7 +483,7 @@ Exolve.prototype.init = function() {
   this.prefix = 'xlv' + this.index;
 
   const basicHTML = `
-    <div class="xlv-frame xlv-flex-col" id="${this.prefix}-frame">
+    <div class="xlv-frame xlv-flex-col" tabindex="-1" id="${this.prefix}-frame">
       <h2 id="${this.prefix}-title" class="xlv-title"></h2>
       <div id="${this.prefix}-setter" class="xlv-setter"></div>
       <div id="${this.prefix}-preamble" class="xlv-preamble"></div>
@@ -5328,6 +5328,14 @@ Exolve.prototype.handleKeyDown = function(e) {
     e.stopPropagation();
     e.preventDefault();
     this.printNow('crossword');
+  } else if (e.key == 'Escape') {
+    /**
+     * As of Sept 2022, Chrome has a bug wherein after the first page
+     * load, window.print() does not conclude with an 'afterprint'
+     * event occasionally. Allow the user to press Escape to restore the
+     * page.
+     */
+    this.handleAfterPrint();
   }
 }
 
