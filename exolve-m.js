@@ -5328,14 +5328,6 @@ Exolve.prototype.handleKeyDown = function(e) {
     e.stopPropagation();
     e.preventDefault();
     this.printNow('crossword');
-  } else if (e.key == 'Escape') {
-    /**
-     * As of Sept 2022, Chrome has a bug wherein after the first page
-     * load, window.print() does not conclude with an 'afterprint'
-     * event occasionally. Allow the user to press Escape to restore the
-     * page.
-     */
-    this.handleAfterPrint();
   }
 }
 
@@ -6756,6 +6748,13 @@ Exolve.prototype.printNow = function(mode) {
     this.printOnlyCrossword = false;
   }
   window.print();
+  /**
+   * As of Sept 2022, Chrome has a bug wherein sometimes (usually after the
+   * first page load, window.print() does not conclude with an 'afterprint'
+   * event. window.print() is modal and handleAfterPrint() can be safely
+   * called twice, so just call it here.
+   */
+  this.handleAfterPrint();
 }
 
 Exolve.prototype.handleAfterPrint = function() {
