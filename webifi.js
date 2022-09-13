@@ -30,7 +30,7 @@ https://github.com/viresh-ratnakar/webifi
  *     This is typically the URL for the dir in which exolve-m.js is located.
  */
 function Webifi(scriptUrlBase='') {
-  this.VERSION = 'Webifi v0.05, May 16, 2022';
+  this.VERSION = 'Webifi v0.06, September 13, 2022';
   this.MAX_LEN = 1000;
   this.MAX_LIST_LEN = 20;
   this.MAX_LOG_ENTRIES = 1000;
@@ -246,6 +246,29 @@ function Webifi(scriptUrlBase='') {
   this.voice = null;
   this.desiredVoice = '';
   this.rate = 1.0;
+
+  if (this.urlForced) {
+    /** Allow overrides */
+    const overrides = urlParams.get('webifi') || '';
+    const parts = overrides.split('.');
+    for (let part of parts) {
+      const kv = part.split('-', 2);
+      if (kv.length != 2) {
+        console.log('Not a k-v option in the webifi param: ' + part);
+        continue;
+      }
+      const k = kv[0].toLowerCase();
+      const v = kv[1].toLowerCase();
+      if (k == 'display') {
+        this.display = (v == 'on');
+      } else if (k == 'audio') {
+        this.audio = (v == 'on');
+      } else {
+        console.log('Unrecognized key in option in the webifi param: ' + part);
+      }
+    }
+  }
+
   this.synth = window.speechSynthesis;
   if (!this.synth) {
     console.log('Speech synthesis is not supported');
