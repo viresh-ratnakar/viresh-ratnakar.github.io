@@ -6896,20 +6896,18 @@ Exolve.prototype.refreshClueNotes = function(ci) {
   clue.notesInput.innerHTML = clueNotes;
   let solvedAt = '';
   const solved = this.notes.solved[ci];
-  if (solved) {
-    if (this.notesSeq.checked) {
-      solvedAt += '#' + solved.counter + '. ';
+  if (solved && this.notesSeq.checked) {
+    solvedAt += '#' + solved.counter + '. ';
+  }
+  if (this.notesEntries.checked) {
+    const entry = clue.entry;
+    if (entry && entry.indexOf('?') < 0) {
+      solvedAt += entry + '. ';
     }
-    if (this.notesEntries.checked) {
-      const entry = clue.entry;
-      if (entry && entry.indexOf('?') < 0) {
-        solvedAt += entry + '. ';
-      }
-    }
-    if (this.notesTimes.checked) {
-      solvedAt += '<span style="font-size:8px !important">' +
-        (new Date(solved.timestamp)).toLocaleString() + '</span>. ';
-    }
+  }
+  if (solved && this.notesTimes.checked) {
+    solvedAt += '<span style="font-size:8px !important">' +
+      (new Date(solved.timestamp)).toLocaleString() + '</span>. ';
   }
   clue.solvedAt.innerHTML = solvedAt;
 }
