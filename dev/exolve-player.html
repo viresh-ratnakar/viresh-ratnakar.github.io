@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<link rel="stylesheet" type="text/css" href="exolve-m.css?v1.39"/>
-<script src="exolve-m.js?v1.39"></script>
-<script src="exolve-from-ipuz.js?v1.39"></script>
-<script src="exolve-from-puz.js?v1.39"></script>
-<script src="exolve-from-text.js?v1.39"></script>
+<link rel="stylesheet" type="text/css" href="exolve-m.css?v1.46"/>
+<script src="exolve-m.js?v1.46"></script>
+<script src="exolve-from-ipuz.js?v1.46"></script>
+<script src="exolve-from-puz.js?v1.46"></script>
+<script src="exolve-from-text.js?v1.46"></script>
 
 <style>
 .xlvp-wait {
@@ -167,7 +167,7 @@ pre,
     </details>
     <details id="xlvp-view">
       <summary>
-        View Exolve-formatted specs for the current crossword
+        Exolve-formatted specs for the current crossword
       </summary>
       <pre id="xlvp-src" class="xlvp-hscroll">
         There isn't a current crossword. Perhaps open one?
@@ -245,10 +245,9 @@ function xlvpRestoreState() {
 }
 
 function xlvpDeleteOld(hideChooser=true) {
-  for (id in exolvePuzzles) {
-    if (isNaN(exolvePuzzles[id])) {
-      delete exolvePuzzles[id];
-    }
+  if (xlvpPuz) {
+    xlvpPuz.destroy();
+    xlvpPuz = null;
   }
   xlvpFrame.innerHTML = '';
   if (hideChooser) {
@@ -305,7 +304,7 @@ function xlvpShowExolveInner(specs, converted, hideChooser) {
     xlvpPuz = new Exolve(data, 'xlvp-frame', null, false);
   } catch (err) {
     console.log(err);
-    console.log('createExolve() failed');
+    console.log('new Exolve() failed');
     return false;
   }
   if (!xlvpPuz.useWebifi) {
@@ -337,8 +336,8 @@ function xlvpSave() {
     '<meta charset="utf-8"/>\n' +
     '<meta name="viewport" content="width=device-width, initial-scale=1"/>\n' +
     '<link rel="stylesheet" type="text/css" ' +
-    'href="https://viresh-ratnakar.github.io/exolve-m.css?v1.39"/>\n' +
-    '<script src="https://viresh-ratnakar.github.io/exolve-m.js?v1.39">' +
+    'href="https://viresh-ratnakar.github.io/exolve-m.css?v1.46"/>\n' +
+    '<script src="https://viresh-ratnakar.github.io/exolve-m.js?v1.46">' +
     '<\/script>\n' +
     '<\/head>\n' +
     '<body>\n' +
