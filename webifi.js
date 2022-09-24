@@ -30,7 +30,7 @@ https://github.com/viresh-ratnakar/webifi
  *     This is typically the URL for the dir in which exolve-m.js is located.
  */
 function Webifi(scriptUrlBase='') {
-  this.VERSION = 'Webifi v0.06, September 13, 2022';
+  this.VERSION = 'Webifi v0.07, September 24, 2022';
   this.MAX_LEN = 1000;
   this.MAX_LIST_LEN = 20;
   this.MAX_LOG_ENTRIES = 1000;
@@ -426,7 +426,9 @@ Webifi.prototype.handleInputChange = function() {
     clearTimeout(this.inputWaiter);
   }
   this.inputWaiter = null;
-  if (input.endsWith('?') && !input.startsWith('?')) {
+  if (input.endsWith('.')) {
+    input = input.replace(/[\.]+$/, '');
+  } else if (input.endsWith('?') && !input.startsWith('?')) {
     input = input.replace(/[?]+$/, '');
   }
   if (!input) {

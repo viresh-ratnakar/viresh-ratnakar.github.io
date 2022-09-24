@@ -239,29 +239,8 @@ CrosswordWebifi.prototype.linkedChildrenNames = function(indices) {
   return cnames.join(' and ');
 }
 
-CrosswordWebifi.prototype.getCellsEntry = function(cells, pattern) {
-  if (!pattern) {
-    for (let i = 0; i < cells.length; i++) pattern += '?';
-  }
-  let ppos = 0;
-  let entry = '';
-  for (let i = 0; i < cells.length; i++) {
-    while (ppos < pattern.length && pattern[ppos] != '?') {
-      entry += pattern[ppos++];
-    }
-    if (ppos >= pattern.length) {
-      break;
-    }
-    const cell = cells[i];
-    const gridCell = this.puz.grid[cell[0]][cell[1]];
-    entry += (gridCell.currLetter == '0' ? '?' : gridCell.currLetter);
-    ppos++;
-  }
-  return entry;
-}
-
 CrosswordWebifi.prototype.readCells = function(cells, pattern) {
-  const entry = this.getCellsEntry(cells, pattern);
+  const entry = this.puz.getCellsEntry(cells, pattern);
   return this.markUpEntry(entry);
 }
 
@@ -493,9 +472,7 @@ CrosswordWebifi.prototype.handleCrossers = function() {
     if (crosser[1] == '0') {
       descs.push(`Cell ${crosser[0]}, which is blank, <pause> crosses: ${cname}.`);
     } else {
-      const cpattern = cclue.placeholder || '';
-      const ccells = this.puz.getAllCells(cci);
-      const centry = this.getCellsEntry(ccells, cpattern);
+      const centry = this.puz.getClueEntry(cci);
       if (centry.indexOf('?') < 0) {
         descs.push(`Cell ${crosser[0]} has <verbose>${crosser[1]}</verbose>, <pause> which comes from the entry<pause> ${this.readEntry(cci)} <pause> in ${cname}.`);
       } else {
@@ -878,7 +855,7 @@ CrosswordWebifi.prototype.handleMatches = function() {
   if (!ci) return;
   const cells = this.puz.getAllCells(ci);
   const placeholder = this.puz.clues[ci].placeholder || '';
-  pattern = this.getCellsEntry(cells, placeholder);
+  pattern = this.puz.getCellsEntry(cells, placeholder);
   // Pass back to webifi, to be picked up by WordsWebifi
   this.webifi.processInput('pattern ' + pattern);
 }
