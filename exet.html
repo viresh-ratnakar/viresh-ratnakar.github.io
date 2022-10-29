@@ -3184,7 +3184,9 @@ Exet.prototype.updateOtherSections = function() {
       this.otherSecError.innerText = '' + err;
     }
     xetTemp.innerHTML = ''
-    delete exolvePuzzles[tempId]
+    if (exolvePuzzles[tempId]) {
+      exolvePuzzles[tempId].destroy();
+    }
     if (specsOK) {
       this.updatePuzzle(exetRevManager.REV_METADATA_CHANGE)
       if (this.postscript) {
@@ -7108,7 +7110,7 @@ Exet.prototype.killInvalidatedClues = function() {
     }
   }
   xetTemp.innerHTML = ''
-  delete exolvePuzzles[tempId]
+  newPuz.destroy();
 }
 
 Exet.prototype.unlinkClue = function(ci) {
@@ -7763,7 +7765,7 @@ Exet.prototype.makeExolve = function(specs) {
   let xlvFrame = document.getElementById('xet-xlv-frame')
   xlvFrame.innerHTML = ''
   if (this.puz) {
-    delete exolvePuzzles[this.puz.id]
+    this.puz.destroy();
   }
   this.puz = null;
   try {
