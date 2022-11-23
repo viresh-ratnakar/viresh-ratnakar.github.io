@@ -838,6 +838,7 @@ CrosswordWebifi.prototype.handleEnter = function(phrase, numbers, confirmation='
       this.webifi.getUserInput(this.name, 'There are potential problems. <pause>' + warnings.join(', <pause>') + ' <pause>Enter yes or OK to confirm.',
           this.handleEnter.bind(this, phrase, numbers));
     } else {
+      this.puz.updateActiveCluesState();
       this.webifi.output(this.name, 'Entered ' + phrase + ' in ' + this.clueName(ci) + (cellNumber > 1 ? (' starting at cell ' + cellNumber + '.') : '.'));
     }
   } else {
