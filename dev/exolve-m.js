@@ -4184,13 +4184,17 @@ Exolve.prototype.computeGridSize = function(maxDim) {
 }
 
 Exolve.prototype.setColumnLayout = function() {
-  const availWidth = this.getViewportWidth() - this.gridPanel.offsetWidth;
+  /**
+   * 12 = rt margin of grid panel, 8 + 8 = margins of the whole xlv-frame,
+   * 8 = rt margin of clues panel. So, subtract 36.
+   */
+  const availWidth = this.getViewportWidth() - this.gridPanel.offsetWidth - 36;
   if (availWidth < 400) {
     /* Clues in a single column, under grid */
     this.cluesBoxWidth = this.gridPanel.offsetWidth;
-  } else if (availWidth < 960 && !this.columnarLayout) {
+  } else if (availWidth < 984 && !this.columnarLayout) {
     /* Clues in two columns to the right of the grid */
-    this.cluesBoxWidth = Math.floor(availWidth / 2) - 28;
+    this.cluesBoxWidth = Math.floor(availWidth / 2) - 12;
   } else {
     this.cluesBoxWidth = 480;
   }
