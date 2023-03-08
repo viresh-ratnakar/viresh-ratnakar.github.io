@@ -4185,10 +4185,9 @@ Exolve.prototype.computeGridSize = function(maxDim) {
 
 Exolve.prototype.setColumnLayout = function() {
   /**
-   * 12 = rt margin of grid panel, 8 + 8 = margins of the whole xlv-frame,
-   * 8 = rt margin of clues panel. So, subtract 36.
+   * 12 = rt margin of grid panel, 8 = rt margin of clues panel; subtract 20.
    */
-  const availWidth = this.getViewportWidth() - this.gridPanel.offsetWidth - 36;
+  const availWidth = this.frame.offsetWidth - this.gridPanel.offsetWidth - 20;
   if (availWidth < 400) {
     /* Clues in a single column, under grid */
     this.cluesBoxWidth = this.gridPanel.offsetWidth;
