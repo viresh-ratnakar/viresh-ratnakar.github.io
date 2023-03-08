@@ -6,19 +6,18 @@
 <link rel="stylesheet" type="text/css" href="exolve-m.css?v1.48"/>
 <script src="exolve-m.js?v1.48"></script>
 
-<title>Test-NonNum</title>
+<script>
+</script>
+
+<title>Test-Override-Number</title>
 
 </head>
 <body>
 <script>
-createExolve(`
-======REPLACE WITH YOUR PUZZLE BELOW======
-
+const specs = `
 exolve-begin
-  exolve-id: test-nonnum
-  # exolve-title: Test-NonNum
-  # exolve-setter: Gussalufz
-  # exolve-copyright: 2020 Viresh Ratnakar
+  exolve-title: Test-Override-Number
+  exolve-option: override-number-GRIDLINE:1.6
   exolve-width: 5
   exolve-height: 5
   exolve-grid:
@@ -27,20 +26,22 @@ exolve-begin
     00000
     0.0.0
     00000
-  exolve-nodir: Non-<i>numerics</i>
-    [P] Nowhere (5)
+  exolve-prelude:
+    <center>
+    A grid with thick lines!
+    </center>
   exolve-across:
-    #a5 [A] Where (5)
-    #a3 [D] Bah (5)
-    #a1 [E] See (5)
+    1 TODO (5)
+    4 TODO (5)
+    5 TODO (5)
   exolve-down:
-    #a5 [A] Hm (5)
-    #c5 [B] Hm (5)
-    #e5 [C] Hm (5)
+    1 TODO (5)
+    2 TODO (5)
+    3 TODO (5)
 exolve-end
+`;
+const crossword = new Exolve(specs);
 
-======REPLACE WITH YOUR PUZZLE ABOVE======
-`);
 </script>
 </body>
 </html>
