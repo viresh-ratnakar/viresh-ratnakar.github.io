@@ -5453,6 +5453,20 @@ Exolve.prototype.handleKeyUp = function(e) {
   this.handleKeyUpInner(key)
 }
 
+Exolve.prototype.muzzleEvent = function(e) {
+  e.stopPropagation();
+  e.preventDefault();
+}
+
+Exolve.prototype.fromNotesToGrid = function() {
+  if (this.savedRow == this.currRow && this.savedCol == this.currCol) {
+    /* Firefox (etc.?) do not scroll back correctly */
+    window.scrollTo(this.savedScrollX || 0, this.savedScrollY || 0);
+  }
+  this.activateCell(this.currRow, this.currCol);
+  this.refocus();
+}
+
 // For tab/shift-tab, ctrl-q, ctrl-Q, ctrl-B, ctrl-e
 Exolve.prototype.handleKeyDown = function(e) {
   let key = e.which || e.keyCode
@@ -5462,31 +5476,26 @@ Exolve.prototype.handleKeyDown = function(e) {
       e.preventDefault()
     }
   } else if (e.ctrlKey && (e.key == 'q' || e.key == 'Q')) {
-    e.stopPropagation();
-    e.preventDefault();
+    this.muzzleEvent(e);
     if (e.key == 'Q') {
       this.clearAll();
     } else {
       this.clearCurr();
     }
   } else if (e.ctrlKey && e.key == 'B') {
-    e.stopPropagation();
-    e.preventDefault();
+    this.muzzleEvent(e);
     this.printNow('crossword');
   } else if (e.ctrlKey && e.key == '/') {
     if (this.notesPanel.contains(e.target) &&
         this.currCellIsValid()) {
-      e.stopPropagation();
-      e.preventDefault();
-      this.activateCell(this.currRow, this.currCol);
+      this.muzzleEvent(e);
+      this.fromNotesToGrid();
     } else if (this.focusOnNotes()) {
-      e.stopPropagation();
-      e.preventDefault();
+      this.muzzleEvent(e);
     }
   } else if (e.ctrlKey && e.key == '*') {
     if (this.markAsFave()) {
-      e.stopPropagation();
-      e.preventDefault();
+      this.muzzleEvent(e);
     }
   }
 }
@@ -6921,6 +6930,10 @@ Exolve.prototype.focusOnNotes = function() {
   if (!elt) {
     return false;
   }
+  this.savedScrollX = window.pageXOffset;
+  this.savedScrollY = window.pageYOffset;
+  this.savedRow = this.currRow;
+  this.savedCol = this.currCol;
   elt.focus();
   return true;
 }
