@@ -4183,6 +4183,7 @@ Exolve.prototype.computeGridSize = function(maxDim) {
                                 Math.min(viewportDim - 30, 450));
 }
 
+let TEMP_counter = 0;
 Exolve.prototype.setColumnLayout = function() {
   const frameBox = this.frame.getBoundingClientRect();
   const xStart = Math.max(frameBox.left, 0);
@@ -4200,6 +4201,10 @@ Exolve.prototype.setColumnLayout = function() {
     this.cluesBoxWidth = Math.floor(availWidth / 2) - 12;
   } else {
     this.cluesBoxWidth = 480;
+  }
+  if (TEMP_counter < 5) {
+    console.log('Sizing call # ' + TEMP_counter + ': frame: [' + frameBox.left + ',' + frameBox.right + '], vpWidth: ' + this.getViewportWidth() + ', gridpWidth: ' + this.gridPanel.offsetWidth + ', so portW = ' + portWidth + ', availWidth = ' + availWidth + ', and cluesBoxWidth = ' + this.cluesBoxWidth);
+    TEMP_counter++;
   }
   this.equalizeClueWidths(this.cluesBoxWidth);
   this.cluesContainer.style.maxWidth = (2 * (this.cluesBoxWidth + 12)) + 'px';
