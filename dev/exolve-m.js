@@ -4209,16 +4209,6 @@ Exolve.prototype.setColumnLayout = function() {
     console.log('Sizing call # ' + TEMP_counter + ': frame: [' + frameBox.left + ',' + frameBox.right + '], vpWidth: ' + vpWidth + ', gridpWidth: ' + gpWidth + ', so portW = ' + portWidth + ', availWidth = ' + availWidth + ', and cluesBoxWidth = ' + this.cluesBoxWidth);
     TEMP_counter++;
   }
-  if ((frameBox.width <= 0 || this.gridPanel.offsetWidth <= 0) &&
-      !this.calledSetColumnLayoutAgain) {
-    /**
-     * On some browsers, the first call to setColumnLayout() comes too soon, and
-     * finds this.frame and this.gridPanel to be of 0 widths.
-     */
-    console.log('setColumnLayout() called too soon, enqueuing another call.'); 
-    setTimeout(this.setColumnLayout.bind(this), 0);
-    this.calledSetColumnLayoutAgain = true;
-  }
   this.equalizeClueWidths(this.cluesBoxWidth);
   this.cluesContainer.style.maxWidth = (2 * (this.cluesBoxWidth + 12)) + 'px';
   if (!this.columnarLayout) {
