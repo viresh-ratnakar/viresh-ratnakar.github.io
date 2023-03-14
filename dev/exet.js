@@ -998,7 +998,7 @@ Exet.prototype.setPuzzle = function(puz) {
     "inds": {
       id: "inds",
       display: "Lists",
-      hover: "Crossword Unclued, Wikipedia, Highlight Press, Mythic beasts, " +
+      hover: "Crossword Unclued, Wikipedia, Mythic beasts, " +
              "cryptics.georgeho.org: cryptic indicators and abbreviations lists",
       sections: [],
     },
@@ -2596,15 +2596,11 @@ Exet.prototype.makeIndsTab = function(panelH) {
     {name: "Crossword Unclued's homophone indicators",
      url: "https://www.crosswordunclued.com/2009/02/homophone-indicators.html"},
     {name: "separator"},
-    {name: "Highlight Press's deletion and letter-picking indicators",
-     url: "https://www.highlightpress.com.au/subtractions.html"},
     {name: "Crossword Unclued's deletion indicators",
      url: "https://www.crosswordunclued.com/2009/04/deletion-indicators.html"},
     {name: "Crossword Unclued's letter-picking indicators",
      url: "https://www.crosswordunclued.com/2009/04/" +
           "letter-sequence-indicators.html"},
-    {name: "Highlight Press's containment indicators",
-     url: "https://www.highlightpress.com.au/containers.html"},
     {name: "Crossword Unclued's containment indicators",
      url: "https://www.crosswordunclued.com/2009/02/" +
           "container-and-content-indicators.html"},
