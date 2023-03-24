@@ -1564,10 +1564,10 @@ Exolve.prototype.parseLanguage = function(s) {
   this.language = parts[0]
   this.languageScript = parts[1]
   try {
-      this.scriptRE = new RegExp('\\p{Script=' + this.languageScript + '}', 'u')
-      this.scriptLowerCaseRE = new RegExp('\\p{Lowercase}', 'u')
+    this.scriptRE = new RegExp('\\p{Script=' + this.languageScript + '}', 'u')
+    this.scriptLowerCaseRE = new RegExp('\\p{Lowercase}', 'u')
   } catch (err) {
-      this.throwErr(
+    this.throwErr(
         'Your browser ' +
         '<a href="https://caniuse.com/#search=Unicode%20property%20escapes"' +
         '>does not support Unicode property escapes</a> OR you\'ve provided ' +
@@ -1575,13 +1575,13 @@ Exolve.prototype.parseLanguage = function(s) {
   }
   // Hard-code some known scripts requiring langMaxCharCodes
   if (this.languageScript.toLowerCase() == 'devanagari') {
-      this.langMaxCharCodes = 4
+    this.langMaxCharCodes = 4
   }
   if (parts.length > 2) {
-      this.langMaxCharCodes = parseInt(parts[2])
-      if (isNaN(this.langMaxCharCodes) || this.langMaxCharCodes < 1) {
-        this.throwErr('invalid max-char-codes in exolve-language: ' + parts[2])
-      }
+    this.langMaxCharCodes = parseInt(parts[2])
+    if (isNaN(this.langMaxCharCodes) || this.langMaxCharCodes < 1) {
+      this.throwErr('invalid max-char-codes in exolve-language: ' + parts[2])
+    }
   }
 }
 
@@ -4233,21 +4233,24 @@ Exolve.prototype.computeGridSize = function(maxDim) {
 Exolve.prototype.setColumnLayout = function() {
   const frameBox = this.frame.getBoundingClientRect();
   const xStart = Math.max(frameBox.left, 0);
-  const xEnd = Math.min(frameBox.right, this.getViewportWidth());
+  const vpWidth = this.getViewportWidth();
+  const xEnd = frameBox.right > 0 ? Math.min(frameBox.right, vpWidth) : vpWidth;
   const portWidth = xEnd - xStart;
+  const gpWidth = this.gridPanel.offsetWidth || 481;
   /**
    * 12 = rt margin of grid panel, 8 = rt margin of clues panel; subtract 20.
    */
-  const availWidth = portWidth - this.gridPanel.offsetWidth - 20;
+  const availWidth = portWidth - gpWidth - 20;
   if (availWidth < 400) {
     /* Clues in a single column, under grid */
-    this.cluesBoxWidth = this.gridPanel.offsetWidth;
+    this.cluesBoxWidth = gpWidth;
   } else if (availWidth < 984 && !this.columnarLayout) {
     /* Clues in two columns to the right of the grid */
     this.cluesBoxWidth = Math.floor(availWidth / 2) - 12;
   } else {
     this.cluesBoxWidth = 480;
   }
+  console.assert(this.cluesBoxWidth > 0, this.cluesBoxWidth);
   this.equalizeClueWidths(this.cluesBoxWidth);
   this.cluesContainer.style.maxWidth = (2 * (this.cluesBoxWidth + 12)) + 'px';
   if (!this.columnarLayout) {
@@ -4255,8 +4258,8 @@ Exolve.prototype.setColumnLayout = function() {
     this.gridcluesContainer.className = 'xlv-grid-and-clues-flex'
     return;
   }
-  const numColumns = Math.floor(this.getViewportWidth() /
-    (15 + Math.max(this.cluesBoxWidth, this.gridPanel.offsetWidth)));
+  const numColumns = Math.floor(
+      vpWidth / (15 + Math.max(this.cluesBoxWidth, gpWidth)));
   if (numColumns == 2) {
     this.cluesContainer.className = 'xlv-clues xlv-clues-columnar'
     this.gridcluesContainer.className = 'xlv-grid-and-clues-2-columnar'
@@ -4302,7 +4305,8 @@ Exolve.prototype.displayGridBackground = function() {
 }
 
 Exolve.prototype.fireCompletionEvent = function() {
-  if (this.numCellsToFill != this.numCellsFilled) {
+  if (this.numCellsToFill != this.numCellsFilled ||
+      !this.frame) {
     return;
   }
   const event = new CustomEvent('exolve', {

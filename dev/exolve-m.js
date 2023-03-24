@@ -1517,10 +1517,10 @@ Exolve.prototype.parseLanguage = function(s) {
   this.language = parts[0]
   this.languageScript = parts[1]
   try {
-      this.scriptRE = new RegExp('\\p{Script=' + this.languageScript + '}', 'u')
-      this.scriptLowerCaseRE = new RegExp('\\p{Lowercase}', 'u')
+    this.scriptRE = new RegExp('\\p{Script=' + this.languageScript + '}', 'u')
+    this.scriptLowerCaseRE = new RegExp('\\p{Lowercase}', 'u')
   } catch (err) {
-      this.throwErr(
+    this.throwErr(
         'Your browser ' +
         '<a href="https://caniuse.com/#search=Unicode%20property%20escapes"' +
         '>does not support Unicode property escapes</a> OR you\'ve provided ' +
@@ -1528,13 +1528,13 @@ Exolve.prototype.parseLanguage = function(s) {
   }
   // Hard-code some known scripts requiring langMaxCharCodes
   if (this.languageScript.toLowerCase() == 'devanagari') {
-      this.langMaxCharCodes = 4
+    this.langMaxCharCodes = 4
   }
   if (parts.length > 2) {
-      this.langMaxCharCodes = parseInt(parts[2])
-      if (isNaN(this.langMaxCharCodes) || this.langMaxCharCodes < 1) {
-        this.throwErr('invalid max-char-codes in exolve-language: ' + parts[2])
-      }
+    this.langMaxCharCodes = parseInt(parts[2])
+    if (isNaN(this.langMaxCharCodes) || this.langMaxCharCodes < 1) {
+      this.throwErr('invalid max-char-codes in exolve-language: ' + parts[2])
+    }
   }
 }
 
@@ -4183,7 +4183,6 @@ Exolve.prototype.computeGridSize = function(maxDim) {
                                 Math.min(viewportDim - 30, 450));
 }
 
-let TEMP_counter = 0;
 Exolve.prototype.setColumnLayout = function() {
   const frameBox = this.frame.getBoundingClientRect();
   const xStart = Math.max(frameBox.left, 0);
@@ -4205,10 +4204,6 @@ Exolve.prototype.setColumnLayout = function() {
     this.cluesBoxWidth = 480;
   }
   console.assert(this.cluesBoxWidth > 0, this.cluesBoxWidth);
-  if (TEMP_counter < 5) {
-    console.log('Sizing call # ' + TEMP_counter + ': frame: [' + frameBox.left + ',' + frameBox.right + '], vpWidth: ' + vpWidth + ', gridpWidth: ' + gpWidth + ', so portW = ' + portWidth + ', availWidth = ' + availWidth + ', and cluesBoxWidth = ' + this.cluesBoxWidth);
-    TEMP_counter++;
-  }
   this.equalizeClueWidths(this.cluesBoxWidth);
   this.cluesContainer.style.maxWidth = (2 * (this.cluesBoxWidth + 12)) + 'px';
   if (!this.columnarLayout) {
@@ -4263,7 +4258,8 @@ Exolve.prototype.displayGridBackground = function() {
 }
 
 Exolve.prototype.fireCompletionEvent = function() {
-  if (this.numCellsToFill != this.numCellsFilled) {
+  if (this.numCellsToFill != this.numCellsFilled ||
+      !this.frame) {
     return;
   }
   const event = new CustomEvent('exolve', {
