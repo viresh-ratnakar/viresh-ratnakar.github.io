@@ -1,0 +1,374 @@
+<html>
+<head>
+<style>
+body {
+  font-family: serif;
+  font-size: 16px;
+  line-height: 155%;
+  margin: 12px;
+  max-width: 1000px;
+}
+.anno,
+.clue {
+  font-family: monospace;
+  font-size: 14px;
+}
+.clue {
+  font-weight: bold;
+}
+.elision {
+  color: red;
+}
+.figure {
+  border: 0;
+  float: right;
+  margin: 8px;
+  padding: 4px;
+}
+.figure img {
+  border: 1px solid lightgray;
+  padding: 6px;
+}
+.figure table {
+  border: 0;
+}
+.caption {
+  font-size: 14px;
+  font-style: italic;
+  text-align: center;
+  line-height: 100%;
+  padding: 4px;
+}
+</style>
+<title>Cryptic Grammar</title>
+</head>
+<body>
+ 
+<img src="../../gussalufz-wizard.png" width="60px" align="left"
+     alt="Picture of Gussalufz (a wizard bearing a crossword).">
+
+<center>
+<h2>Cryptic Grammar</h2>
+<h4>Gussalufz, April 2023</h4>
+</center>
+
+<p>
+A cryptic crossword clue is a pretty weird thing. It’s a sentence fragment that
+seems to be saying something, but, upon closer scrutiny, turns out to be saying
+a completely different thing, and that too in <i>two</i> ways! What’s going on!?
+</p>
+
+<p>
+I like to think of it as a conversation between the setter and the solver. The
+setter picks a grid, fills it with words, and then invents an interesting way
+to arrive at the sequence of letters in each word. The setter then presents these
+inventions in plain English to the solver after affixing definitions of the
+solution words, in a fun way that creates sentence fragments that seem to
+obfuscate their true intents. The solver takes on each clue and tries to
+recover its true intent. There is much chuckling on both sides.
+</p>
+
+<div class="figure">
+  <table>
+    <tr>
+      <td>
+        <img src="vikram-betaal-crossword.png" width="400px"
+             alt="Solver Vikram solving a crossword by Setter Betaal.">
+      </td>
+    </tr>
+    <tr>
+      <td class="caption">
+        <div style="width: 400px">
+        Solver Vikram solving a crossword by Setter Betaal
+        (an AI-generated image by DALL-E).
+        </div>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<p>
+In this playful contract between the cryptic crossword setter and the cryptic
+crossword solver, the expection is that each clue can be applauded in two
+distinct ways:
+</p>
+
+<ol>
+  <li>
+    The <b>surface reading</b> of the clue is <i>interesting</i>. Here are
+    some possible ways for that:
+    <ol>
+      <li>
+        It is <i>funny,</i> or, <i>shocking,</i> or <i>profound,</i> or tugs
+        compellingly at some other emotion.
+      </li>
+      <li>
+        It says something quite <i>plausible</i> or <i>natural,</i> something
+        that does not seem to be a cryptic clue at all.
+      </li>
+      <li>
+        It is <i>weird,</i> maybe even <i>nonsensical,</i> but in some nice,
+        catchy, vivid way.
+      </li>
+    </ol>
+  </li>
+  <li>
+    The <b>cryptic reading</b> of the clue clearly describes wordplay
+    manipulations that lead to the solution, and begins or ends with a
+    definition part that also leads to the solution. Ideally, it passes
+    muster on <i>all</i> these counts:
+    <ol>
+      <li>
+        The wordplay recipe as well as the definition is
+        <i>precise,</i> once parsed correctly.
+      </li>
+      <li>
+        The wordplay recipe is <i>fair,</i> adhering to some commonly
+        agreed-upon norms (such as no extraneous words, no indirect anagrams,
+        etc.).
+      </li>
+      <li>
+        The cryptic reading of the clue is <i>grammatically correct.</i>
+      </li>
+    </ol>
+  </li>
+</ol>
+
+<p>
+In this piece, I will focus on 2.3. (cryptic grammar), which is unfortunately an
+oft-overlooked aspect. Parsing out the cryptic reading correctly is a big part
+of the fun for the solver, and if that reading turns out to be grammatically
+incorrect, then it can be a let-down. Fortunately, it’s not that hard to check
+and get right, as we shall see here.
+</p>
+
+<p>
+The cryptic wordplay recipe, once teased out correctly from the clue, should be
+a grammatically correct English statement that generally takes one of the
+following forms.
+</p>
+
+<ul>
+  <li>
+    Assertive present tense forms:
+    <ul>
+      <li>
+        This manipulation happens and then that shenanigan is carried out and
+        then this scrambled word is added, etc.
+      </li>
+      <li>
+        This phrase contains ...
+      </li>
+      <li>
+        This manipulation is happening and then that shenanigan is getting
+        carried out and then this reversal is being performed, etc.
+      </li>
+      <li>
+        This container has taken in this fodder, etc. 
+      </li>
+    </ul>
+  </li>
+  <li>
+    Imperative directions:
+    <ul>
+      <li>
+        Do this manipulation and scramble this word and also add this or
+        substitute that, etc.
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<p>
+The above clue forms are in line with the model of the setter coming up with
+inventions leading to the make-up of each word and then presenting these
+inventions to the solver. Let’s look at nuances and gotchas using a few
+Gussalufz clues as illustrative examples. Consider the following Down clue:
+</p>
+
+<blockquote class="clue">
+Women who criticized menu finish up noodles (4)
+</blockquote>
+
+<p>
+The solution is <span class="anno">UDON</span>, obtained by reversing the last
+letters of the first four words. The surface reading is grammatically correct,
+but can we say the same about the cryptic reading? Clearly not. This is a
+flagrant example of the problem, but one that I would like to use to introduce
+a trick that can be used to help with checking the cryptic grammar.
+</p>
+
+<p>
+Here’s the trick: to see past the surface distractions and look at the cryptic
+reading directly, mentally replace the wordplay fodder part(s) with
+placeholders such as <span class="clue">[fodder]</span> (or <span
+class="clue">[fodder-1]</span>, <span class="clue">[fodder-2]</span>, <span
+class="clue">[fodder-for-up]</span>, etc.). While at it, also replace the
+definition part with <span class="clue">[solution]</span>. If there are any
+connecting words between the wordplay part and the definition part, then retain
+them; otherwise, interject an equals sign between these two parts.  So, your
+mental model of the above clue’s cryptic reading, shorn of surface distractions,
+becomes:
+</p>
+
+<blockquote class="clue">
+[Fodder-1] [fodder-2] [fodder-3] [fodder-4] finish up = [solution] (4)
+</blockquote>
+
+<p>
+Ah, there are four foddery thingies here, and the word
+<span class="clue">finish</span> is not the
+grammatically correct way to refer to their four last letters—we need the
+plural form, <span class="clue">finishes</span>. Of course, merely changing the
+indicator word to its plural form would wreak havoc on the surface grammar, so
+we need a small additional modification: let’s change
+<span class="clue">Women</span> to <span class="clue">Woman</span>:
+</p>
+
+<blockquote class="clue">
+Woman who criticized menu finishes up noodles (4)
+</blockquote>
+
+<p>
+The next example has a slightly more subtle problem:
+</p>
+
+<blockquote class="clue">
+Bank's endeavour to keep a user in confusion (8)
+</blockquote>
+
+<p>
+The solution is <span class="anno">TREASURY (TRY around AUSER*)</span>. The
+cryptic reading seems OK... or, is it? This clue uses the common trick of
+having ‘s mean one thing in the surface reading (here, it acts in the
+possessive sense) and another thing in the cryptic reading (here, it stands for
+"is"). Let’s spell out the cryptic reading:
+</p>
+
+<blockquote class="clue">
+[Solution] is TRY to keep [fodder] in confusion (8)
+</blockquote>
+
+<p>
+This is grammatically flawed, a fact that is revealed clearly once the "is" is
+spelled out. The right form would be <span class="clue">[Solution] is TRY,
+keeping [fodder]*</span>. A slight change in punctuation works better for the
+surface in my opinion, so my final version is:
+</p>
+
+<blockquote class="clue">
+Bank's endeavour: keeping a user in confusion (8)
+</blockquote>
+ 
+<p>
+To summarize, my suggestion is to examine the cryptic reading (every clause in
+it, as well as the whole thing) in its bare grammatical essence, by mentally
+replacing parts of the clue with placeholder terms such as <span
+class="clue">[fodder]</span>, <span class="clue">[part]</span>, <span
+class="clue">[solution]</span>, etc. While on the topic of placeholders, I
+would like to add that I find a very similar strategy to be very useful in
+crafting nice, coherent surfaces: I may start my clue’s draft with a
+placeholder term for the wordplay indicator, such as, <span class="clue">Bank’s
+  endeavour, keeping a user anagrinding</span>. At least for me, starting from
+this partial state works better for the gray cells, priming them nicely to
+conjure up good candidates for replacing <span class="clue">anagrinding</span>
+that work well with the rest of the surface.
+</p>
+
+<p>
+Let’s look at one more example.
+</p>
+
+<blockquote class="clue">
+Police officer probes the woman about dates (6)
+</blockquote>
+
+<p>
+The solution is <span class="anno">EPOCHS (COP in SHE, reversed)</span>. The
+cryptic reading is, <span class="clue">[Fodder] probes [container] about =
+[solution]</span>. The problem here is that the wordplay part starts off in
+the present tense with <span class="clue">probes</span>, and <span class="clue">[Fodder] probes
+[container]</span> is not a noun phrase that can be seen as getting reversed
+with the <span class="clue">about</span> suffix. To make sense of the reversal requires a
+substantial piece of patchwork to be imagined as having been elided (something like,
+<span class="clue">[Fodder] probes [container]
+<span class="elision">and turns</span> about =
+[solution]</span>). A simpler construction, one that clearly works grammatically,
+is obtained by using the present participle form,
+<span class="clue">probing</span>, as that allows us to
+think of <span class="clue">[Fodder] probing [container]</span> as a noun
+phrase, and we just have to imagine a missing comma: <span
+class="clue">[Fodder] probing [container]<span class="elision">,</span> about = [solution]</span>.
+</p>
+
+<blockquote class="clue">
+Police officer probing the woman about dates (6)
+</blockquote>
+
+<p>
+A few final tips that might be helpful in keeping the cryptic reading
+grammatically correct:
+</p>
+
+<ul>
+<li>
+Fodder consisting of a single word should be thought of in the singular. Fodder
+consisting of multiple words can be interpreted in the plural (<span
+  class="clue">A, B anagrind</span> = <i>"these words anagrind"</i>) as well as
+singular (<span class="clue">A, B, C anagrinds</span> = <i>"this group of words
+  anagrinds"</i>)—except that if there is something like a connecting <span
+  class="clue">and</span> (as in, <span class="clue">A and B anagrind</span>), then
+only the plural interpretation makes sense.
+</li>
+<li>
+When there is a connecting word or phrase between the definition and the
+wordplay, it should connect the two parts in the sense of implying that the
+wordplay leads to the solution or the solution is derived from the wordplay. A
+common error, easily exposed by using the placeholder trick, is the
+construction <span class="clue">[Wordplay] of/from [solution]</span>.
+</li>
+<li>
+Ideally, the punctuation marks already in the clue (for its surface reading)
+should fit perfectly in the cryptic reading as well. But in moderation, it’s OK
+to expect the solver to imagine an extra comma or ignore a hyphen, when parsing
+out the cryptic reading.
+</li>
+<li>
+While not every setter agrees with this, in my opinion, the cryptic reading
+does not work if the wordplay recipe is in the past tense.
+<blockquote>
+  <span
+  class="clue">[Wordplay] happened
+  <span class="elision">and left behind (for us to see) the</span>
+  [solution]</span>?
+</blockquote>
+I think not; that’s not how a setter would present their own
+inventions, their own discoveries (Einstein would not have presented
+his work as <b>E <i>equalled</i> mc<sup style="font-size:10px">2</sup></b>).
+Of course, it is perfectly fine and common to use indicator verbs
+in the past tense as adjectives in the cryptic reading, such as in <span
+class="clue">Boiled pasta for a quick meal (5)</span>, where the surface
+reading of the clue might be in the past tense.
+</li>
+<li>
+Sometimes, grammatical correctness can be subjective, as some people might be
+more willing than others to imagine long elisions that would fix the issue.
+</li>
+</ul>
+
+<p>
+Let’s turn this around now. Each of the following clues has a flawed cryptic
+reading, in my opinion. Can you find the flaws and come up with fixes?
+</p>
+
+<ol>
+  <li><span class="clue">Snowflakes perhaps whine and start shedding salt tears (8)</span></li>
+  <li><span class="clue">Cancellation of date’s certain (7)</span></li>
+  <li><span class="clue">Strip, subjugate husband with extremely lascivious poetry (7)</span></li>
+  <li><span class="clue">Communicates goodbye after ending encounter (6)</span></li>
+  <li><span class="clue">Conflict with lover suspicious to some extent (6)</span></li>
+  <li><span class="clue">Doctor cures poor father? Is expected (3,3,3,6)</span></li>
+</ol>
+
+</body>
+</html>
