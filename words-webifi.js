@@ -156,7 +156,7 @@ WordsWebifi.prototype.numEnumPunctMatches = function(p, e) {
   let minl = Math.min(p.length, e.length);
   for (let i = 0; i < minl; i++) {
     if (p[i] != '?' && p[i] == e[i]) num++;
-    if (p[i] == '?' && !this.lex.allLetters[e[i].toUpperCase()]) num--;
+    if (p[i] == '?' && !this.lex.letterSet[e[i].toUpperCase()]) num--;
   }
   return num;
 }
