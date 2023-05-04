@@ -5,7 +5,7 @@
  *
  * See the full license notice in exet.js.
  *
- * Current version: v0.84 April 3, 2023
+ * Current version: v0.85 May 3, 2023
  */
 
 [contenteditable="true"]:active,
@@ -488,7 +488,7 @@
 .xet-companag-text {
   color: blue;
   font-family: monospace;
-  font-size: 14px;
+  font-size: 12px;
 }
 .xet-table-midline td:nth-child(2) {
   border-left: 1px solid gray;
@@ -635,4 +635,26 @@
 }
 .xet-indent {
   margin-left: 2em;
+}
+#xet-inds-select:focus,
+#xet-inds-highlight:focus,
+#xet-research-select:focus {
+  outline: none;
+}
+.xet-anag-help {
+  color: darkgray;
+  font-size: small;
+  max-width: 340px;
+}
+.xet-anag-help:hover {
+  color: black;
+}
+.xet-anag-table {
+  min-width: 300px;
+  max-height: 420px;
+  overflow: auto;
+}
+.xet-cah {
+  font-weight: bold;
+  padding-bottom: 4px;
 }
