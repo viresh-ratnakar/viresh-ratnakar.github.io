@@ -490,15 +490,16 @@
   font-family: monospace;
   font-size: 12px;
 }
+.xet-table-midline td:nth-child(1) {
+  padding: 2px 4px 2px 0;
+  padding-right: 4px;
+}
 .xet-table-midline td:nth-child(2) {
   border-left: 1px solid gray;
-  padding-left: 4px;
+  padding: 2px 0 2px 6px;
 }
 .xet-table-midline td {
   padding-top: 4px;
-}
-.xet-table-midline {
-  margin-top: 10px;
 }
 .xet-preview {
   height: 300px;
@@ -655,6 +656,9 @@
   overflow: auto;
 }
 .xet-cah {
+  background-color: white;
   font-weight: bold;
-  padding-bottom: 4px;
+  padding: 0 0 4px 0;
+  position: sticky;
+  top: 0;
 }

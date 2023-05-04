@@ -3179,40 +3179,44 @@ Exet.prototype.updateCA = function() {
 
   const emptyDraft = anagram.length == 0;
   if (emptyDraft) {
-    this.cahExtra.style.visibility = 'hidden';
+    this.cahExtra.style.display = 'none';
     this.cahUnused.style.visibility = 'hidden';
     this.caExtra.style.visibility = 'hidden';
     this.caUnused.style.visibility = 'hidden';
     this.cahExtraAnags.style.visibility = 'hidden';
     this.cahUnusedAnags.title = 'Anagrams of Fodder';
+    this.caExtraAnags.style.display = 'none';
   } else {
-    this.cahExtra.style.visibility = 'visible';
+    this.cahExtra.style.display = '';
     this.cahUnused.style.visibility = 'visible';
     this.caExtra.style.visibility = 'visible';
     this.caUnused.style.visibility = 'visible';
     this.cahExtraAnags.style.visibility = 'visible';
     this.cahUnusedAnags.title = 'Anagrams of Fodder, excluding letters in Draft';
+    this.caExtraAnags.style.display = '';
   }
 
   this.caExtra.innerText = extraS;
-  let html = '';
+  let html = '<table>\n';
   let maxAnags = extra.length < 8 ? 400 : (extra.length < 10 ? 200 : 100);
   let extraAnags = exetLexicon.getAnagrams(extraS, maxAnags);
   for (let choice of extraAnags) {
     html = html + `
       <tr><td>${choice}</td></tr>`;
   }
+  html += '\n</table>';
   this.caExtraAnags.innerHTML = html;
 
   unusedS = unused.join('');
   this.caUnused.innerText = unusedS;
-  html = '';
+  html = '<table>\n';
   maxAnags = unused.length < 8 ? 400 : (unused.length < 10 ? 200 : 100);
   let unusedAnags = exetLexicon.getAnagrams(unusedS, maxAnags);
   for (let choice of unusedAnags) {
     html = html + `
       <tr><td>${choice}</td></tr>`;
   }
+  html += '\n</table>';
   this.caUnusedAnags.innerHTML = html;
 }
 
@@ -3282,13 +3286,9 @@ Exet.prototype.populateCompanag = function() {
           </td>
         </tr>
         <tr>
-          <td class="xet-td">
-            <table id="xet-ca-unused-anags">
-            </table>
+          <td class="xet-td" id="xet-ca-unused-anags">
           </td>
-          <td class="xet-td">
-            <table id="xet-ca-extra-anags">
-            </table>
+          <td class="xet-td" id="xet-ca-extra-anags">
           </td>
         </tr>
       </table>
