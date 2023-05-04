@@ -8,6 +8,9 @@ body {
   margin: 12px;
   max-width: 1000px;
 }
+a {
+  text-decoration: none;
+}
 .anno,
 .clue {
   font-family: monospace;
@@ -31,6 +34,9 @@ body {
 }
 .figure table {
   border: 0;
+}
+.footnote {
+  font-size: 14px;
 }
 .caption {
   font-size: 16px;
@@ -89,7 +95,7 @@ recover its true intent. There is much chuckling on both sides.
 
 <p>
 In this playful contract between the cryptic crossword setter and the cryptic
-crossword solver, the expectation is that each clue can be applauded in two
+crossword solver, the expectation is that each clue can be appreciated in two
 distinct ways:
 </p>
 
@@ -306,8 +312,10 @@ class="clue">[fodder]</span>, <span class="clue">[XYZ]</span>, <span
 class="clue">[solution]</span>, etc. While on the topic of placeholders, I
 would like to add that I find a very similar strategy to be very useful in
 crafting nice, coherent surfaces: I may start my clue’s draft with a
-placeholder term for the wordplay indicator, such as, <span class="clue">Bank’s
-  endeavour, keeping a user anagrinding</span>. At least for me, starting from
+placeholder term for the wordplay indicator, such as,
+<span id="footnote-ref-1" class="clue">Bank’s endeavour, keeping a user
+  anagrinding<a href="#footnote-1"><sup>&dagger;</sup></a></span>.
+At least for me, starting from
 this partial state works better for the gray cells, priming them nicely to
 conjure up good candidates for replacing <span class="clue">anagrinding</span>
 that work well with the rest of the surface.
@@ -424,5 +432,10 @@ reading, in my opinion. Can you find the flaws and come up with fixes?
   <li><span class="clue">Doctor cures poor father? Is expected (3,3,3,6)</span></li>
 </ol>
 
+<hr>
+<p id="footnote-1" class="footnote">
+"Anagrind" is a portmanteau term ("anagram" + "indicator") commonly used for anagram indicators.
+<a href="#footnote-ref-1">&#8617;</a></span>
+</p>
 </body>
 </html>
