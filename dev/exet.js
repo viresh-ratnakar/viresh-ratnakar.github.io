@@ -3179,7 +3179,7 @@ Exet.prototype.updateCA = function() {
 
   const emptyDraft = anagram.length == 0;
   if (emptyDraft) {
-    this.cahExtra.style.display = 'none';
+    this.cahExtra.style.visibility = 'hidden';
     this.cahUnused.style.visibility = 'hidden';
     this.caExtra.style.visibility = 'hidden';
     this.caUnused.style.visibility = 'hidden';
@@ -3187,7 +3187,7 @@ Exet.prototype.updateCA = function() {
     this.cahUnusedAnags.title = 'Anagrams of Fodder';
     this.caExtraAnags.style.display = 'none';
   } else {
-    this.cahExtra.style.display = '';
+    this.cahExtra.style.visibility = 'visible';
     this.cahUnused.style.visibility = 'visible';
     this.caExtra.style.visibility = 'visible';
     this.caUnused.style.visibility = 'visible';
