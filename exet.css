@@ -130,6 +130,7 @@
   overflow: visible;
 }
 .xet-curr-clue {
+  min-height: 80px;
   overflow-y: auto;
 }
 #xet-unlink {
