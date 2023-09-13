@@ -3627,10 +3627,17 @@ Exolve.prototype.roughlyStartsWith = function(s, prefix) {
 // Copy clue solutions to annos if warranted.
 // Place a trailing period and space at the end of clue full display labels that
 // end in letter/digit. Wrap in a clickable span if all cells are not known.
+//
+// For American-style crosswords (no enums provided), set enunLen in the
+// clue to be the number of cells.
 Exolve.prototype.finalClueTweaks = function() {
-  for (let clueIndex of this.allClueIndices) {
-    let theClue = this.clues[clueIndex]
-    this.setClueSolution(clueIndex)
+  for (const clueIndex of this.allClueIndices) {
+    const theClue = this.clues[clueIndex];
+    this.setClueSolution(clueIndex);
+    if (!theClue.enumLen && !this.hasDgmlessCells) {
+      const cells = this.getAllCells(clueIndex);
+      theClue.enumLen = cells.length;
+    }
     theClue.dispSol = ''
     if (this.addSolutionToAnno && theClue.solution &&
         !this.isOrphan(clueIndex) && !theClue.showBlanks &&

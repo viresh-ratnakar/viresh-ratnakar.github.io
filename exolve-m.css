@@ -125,21 +125,27 @@ Version: Exolve v1.51 September 9, 2023
   fill: rgba(0,0,0,0.0);
 }
 .xlv-frame .xlv-clues table {
-  border: none;
-  border-collapse: collapse;
-  border-spacing: 0;
+  background-image: none !important;
+  border: none !important;
+  border-collapse: collapse !important;
+  border-spacing: 0 !important;
+  letter-spacing: normal !important;
   margin: inherit;
 }
 .xlv-frame .xlv-clues tr {
-  border: none;
+  background-image: none !important;
+  border: none !important;
   break-inside: avoid;
 }
 .xlv-frame .xlv-clues td {
-  border: none;
-  padding: 0 6px 4px 0;
+  background-image: none !important;
+  border: none !important;
+  padding: 0 6px 4px 0 !important;
   vertical-align: top;
+  white-space: normal !important;
 }
 .xlv-frame .xlv-clues td:first-child:not(.xlv-filler) {
+  background-image: none !important;
   box-sizing: content-box;
   font-weight: bold;
   max-width: 2ch;
@@ -147,7 +153,7 @@ Version: Exolve v1.51 September 9, 2023
   text-align: right;
   word-break: normal;
   word-wrap: normal;
-  white-space: nowrap;
+  white-space: nowrap !important;
 }
 .xlv-invisible {
   color: transparent;
@@ -479,6 +485,7 @@ Version: Exolve v1.51 September 9, 2023
 a.xlv-toggler:active,
 a.xlv-toggler:link,
 a.xlv-toggler:visited {
+  color: inherit !important;
   outline: none;
   text-decoration: none;
 }
