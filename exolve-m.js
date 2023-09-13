@@ -236,6 +236,7 @@ function Exolve(puzzleSpec,
   this.colorScheme = {
     'active': 'mistyrose',
     'active-clue': 'mistyrose',
+    'active-clue-text': 'black',
     'anno': 'darkgreen',
     'arrow': 'white',
     'background': 'black',
@@ -5104,7 +5105,8 @@ Exolve.prototype.cnavToInner = function(activeClueIndex, grabFocus = false) {
     if (!theClue.clueTR) {
       continue
     }
-    theClue.clueTR.style.background = colour
+    theClue.clueTR.style.background = colour;
+    theClue.clueTR.style.color = this.colorScheme['active-clue-text'];
     if (this.cluesPanelLines > 0) {
       this.scrollIfNeeded(theClue.clueTR)
     }
