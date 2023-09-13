@@ -247,6 +247,7 @@ function Exolve(puzzleSpec,
     'circle': 'gray',
     'circle-input': 'gray',
     'currclue': 'white',
+    'currclue-text': 'black',
     'def-underline': '#3eb0ff',
     'imp-text': 'darkgreen',
     'input': '#ffb6b4',
@@ -5140,6 +5141,7 @@ Exolve.prototype.cnavToInner = function(activeClueIndex, grabFocus = false) {
   }
   this.currClue.style.background = orphan ?
       this.colorScheme['orphan'] : this.colorScheme['currclue'];
+  this.currClue.style.color = this.colorScheme['currclue-text'];
   this.updateClueState(parentIndex, false, null)
   this.currClue.style.display = '';
   this.resizeCurrClue();

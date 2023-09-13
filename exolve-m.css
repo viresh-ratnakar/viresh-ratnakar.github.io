@@ -17,7 +17,8 @@ Version: Exolve v1.51 September 9, 2023
   font-size: 16px;
   font-family: serif;
   font-weight: 400;
-  line-height: normal;
+  letter-spacing: normal !important;
+  line-height: normal !important;
   box-sizing: border-box;
 }
 .xlv-anno-text,
@@ -129,7 +130,6 @@ Version: Exolve v1.51 September 9, 2023
   border: none !important;
   border-collapse: collapse !important;
   border-spacing: 0 !important;
-  letter-spacing: normal !important;
   margin: inherit;
 }
 .xlv-frame .xlv-clues tr {
