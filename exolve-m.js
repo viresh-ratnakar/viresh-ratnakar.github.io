@@ -124,7 +124,7 @@ function Exolve(puzzleSpec,
   ];
   // Each nina will be object with props: colour and list (an array containing
   // location [i,j] pairs and/or span class names).
-  this.ninas = []
+  this.ninas = [];
   // For span-class-specified ninas, ninaClassElements[] stores the elements
   // along with the colours to apply to them when showing the ninas.
   this.ninaClassElements = []
