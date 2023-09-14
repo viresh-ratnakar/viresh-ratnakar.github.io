@@ -4277,8 +4277,8 @@ Exolve.prototype.computeGridSize = function(maxDim) {
   this.letterSize = Math.max(8, this.squareDimBy2);
   this.numberSize = 1 + Math.max(5, Math.floor(this.squareDim / 3) - 1);
   this.arrowSize = Math.max(6, Math.floor(13 * this.squareDim / 31));
-  this.currClueWidth = Math.max(this.boxWidth + (2 * this.offsetLeft),
-                                Math.min(viewportDim - 30, 450));
+  this.maxCurrClueWidth = Math.max(this.boxWidth + (2 * this.offsetLeft),
+                                   Math.min(viewportDim - 30, 450));
 }
 
 Exolve.prototype.setColumnLayout = function(cluesBoxWidth=0) {
@@ -4779,16 +4779,19 @@ Exolve.prototype.deactivateCurrClue = function() {
 Exolve.prototype.resizeCurrClue = function() {
   const bPos = this.frame.getBoundingClientRect();
   const gpPos = this.gridPanel.getBoundingClientRect();
+  const ctrlPos = this.controlsEtc.getBoundingClientRect();
+  const gcW = Math.max(gpPos.width, ctrlPos.width);
   const clearance = 4;
-  this.currClue.style.width = this.currClueWidth + 'px';
+  const currClueWidth = Math.min(this.maxCurrClueWidth, gcW);
+  this.currClue.style.width = currClueWidth + 'px';
   this.currClue.style.maxHeight = (Math.max(
       50, (gpPos.top - bPos.top) - clearance - this.visTop)) + 'px';
   const cPos = this.currClue.getBoundingClientRect();
   this.currClue.style.marginTop = '-' + cPos.height + 'px';
 
   const gPos = this.gridParent.getBoundingClientRect();
-  const horOffset = (gPos.width >= this.currClueWidth) ?
-    gPos.left : ((gpPos.width - this.currClueWidth) / 2);
+  const horOffset = (gPos.width >= currClueWidth) ?
+    gPos.left : ((gpPos.width - currClueWidth) / 2);
   this.currClue.style.left = horOffset + 'px';
 }
 

@@ -171,7 +171,7 @@ function Exolve(puzzleSpec,
   ];
   // Each nina will be object with props: colour and list (an array containing
   // location [i,j] pairs and/or span class names).
-  this.ninas = []
+  this.ninas = [];
   // For span-class-specified ninas, ninaClassElements[] stores the elements
   // along with the colours to apply to them when showing the ninas.
   this.ninaClassElements = []
@@ -283,6 +283,7 @@ function Exolve(puzzleSpec,
   this.colorScheme = {
     'active': 'mistyrose',
     'active-clue': 'mistyrose',
+    'active-clue-text': 'black',
     'anno': 'darkgreen',
     'arrow': 'white',
     'background': 'black',
@@ -294,6 +295,7 @@ function Exolve(puzzleSpec,
     'circle': 'gray',
     'circle-input': 'gray',
     'currclue': 'white',
+    'currclue-text': 'black',
     'def-underline': '#3eb0ff',
     'imp-text': 'darkgreen',
     'input': '#ffb6b4',
@@ -3674,10 +3676,17 @@ Exolve.prototype.roughlyStartsWith = function(s, prefix) {
 // Copy clue solutions to annos if warranted.
 // Place a trailing period and space at the end of clue full display labels that
 // end in letter/digit. Wrap in a clickable span if all cells are not known.
+//
+// For American-style crosswords (no enums provided), set enunLen in the
+// clue to be the number of cells.
 Exolve.prototype.finalClueTweaks = function() {
-  for (let clueIndex of this.allClueIndices) {
-    let theClue = this.clues[clueIndex]
-    this.setClueSolution(clueIndex)
+  for (const clueIndex of this.allClueIndices) {
+    const theClue = this.clues[clueIndex];
+    this.setClueSolution(clueIndex);
+    if (!theClue.enumLen && !this.hasDgmlessCells) {
+      const cells = this.getAllCells(clueIndex);
+      theClue.enumLen = cells.length;
+    }
     theClue.dispSol = ''
     if (this.addSolutionToAnno && theClue.solution &&
         !this.isOrphan(clueIndex) && !theClue.showBlanks &&
@@ -4315,8 +4324,8 @@ Exolve.prototype.computeGridSize = function(maxDim) {
   this.letterSize = Math.max(8, this.squareDimBy2);
   this.numberSize = 1 + Math.max(5, Math.floor(this.squareDim / 3) - 1);
   this.arrowSize = Math.max(6, Math.floor(13 * this.squareDim / 31));
-  this.currClueWidth = Math.max(this.boxWidth + (2 * this.offsetLeft),
-                                Math.min(viewportDim - 30, 450));
+  this.maxCurrClueWidth = Math.max(this.boxWidth + (2 * this.offsetLeft),
+                                   Math.min(viewportDim - 30, 450));
 }
 
 Exolve.prototype.setColumnLayout = function(cluesBoxWidth=0) {
@@ -4817,16 +4826,19 @@ Exolve.prototype.deactivateCurrClue = function() {
 Exolve.prototype.resizeCurrClue = function() {
   const bPos = this.frame.getBoundingClientRect();
   const gpPos = this.gridPanel.getBoundingClientRect();
+  const ctrlPos = this.controlsEtc.getBoundingClientRect();
+  const gcW = Math.max(gpPos.width, ctrlPos.width);
   const clearance = 4;
-  this.currClue.style.width = this.currClueWidth + 'px';
+  const currClueWidth = Math.min(this.maxCurrClueWidth, gcW);
+  this.currClue.style.width = currClueWidth + 'px';
   this.currClue.style.maxHeight = (Math.max(
       50, (gpPos.top - bPos.top) - clearance - this.visTop)) + 'px';
   const cPos = this.currClue.getBoundingClientRect();
   this.currClue.style.marginTop = '-' + cPos.height + 'px';
 
   const gPos = this.gridParent.getBoundingClientRect();
-  const horOffset = (gPos.width >= this.currClueWidth) ?
-    gPos.left : ((gpPos.width - this.currClueWidth) / 2);
+  const horOffset = (gPos.width >= currClueWidth) ?
+    gPos.left : ((gpPos.width - currClueWidth) / 2);
   this.currClue.style.left = horOffset + 'px';
 }
 
@@ -5143,7 +5155,8 @@ Exolve.prototype.cnavToInner = function(activeClueIndex, grabFocus = false) {
     if (!theClue.clueTR) {
       continue
     }
-    theClue.clueTR.style.background = colour
+    theClue.clueTR.style.background = colour;
+    theClue.clueTR.style.color = this.colorScheme['active-clue-text'];
     if (this.cluesPanelLines > 0) {
       this.scrollIfNeeded(theClue.clueTR)
     }
@@ -5180,6 +5193,7 @@ Exolve.prototype.cnavToInner = function(activeClueIndex, grabFocus = false) {
   }
   this.currClue.style.background = orphan ?
       this.colorScheme['orphan'] : this.colorScheme['currclue'];
+  this.currClue.style.color = this.colorScheme['currclue-text'];
   this.updateClueState(parentIndex, false, null)
   this.currClue.style.display = '';
   this.resizeCurrClue();
@@ -8344,7 +8358,8 @@ function createPuzzle() {
   font-size: 16px;
   font-family: serif;
   font-weight: 400;
-  line-height: normal;
+  letter-spacing: normal !important;
+  line-height: normal !important;
   box-sizing: border-box;
 }
 .xlv-anno-text,
@@ -8452,21 +8467,26 @@ function createPuzzle() {
   fill: rgba(0,0,0,0.0);
 }
 .xlv-frame .xlv-clues table {
-  border: none;
-  border-collapse: collapse;
-  border-spacing: 0;
+  background-image: none !important;
+  border: none !important;
+  border-collapse: collapse !important;
+  border-spacing: 0 !important;
   margin: inherit;
 }
 .xlv-frame .xlv-clues tr {
-  border: none;
+  background-image: none !important;
+  border: none !important;
   break-inside: avoid;
 }
 .xlv-frame .xlv-clues td {
-  border: none;
-  padding: 0 6px 4px 0;
+  background-image: none !important;
+  border: none !important;
+  padding: 0 6px 4px 0 !important;
   vertical-align: top;
+  white-space: normal !important;
 }
 .xlv-frame .xlv-clues td:first-child:not(.xlv-filler) {
+  background-image: none !important;
   box-sizing: content-box;
   font-weight: bold;
   max-width: 2ch;
@@ -8474,7 +8494,7 @@ function createPuzzle() {
   text-align: right;
   word-break: normal;
   word-wrap: normal;
-  white-space: nowrap;
+  white-space: nowrap !important;
 }
 .xlv-invisible {
   color: transparent;
@@ -8806,6 +8826,7 @@ function createPuzzle() {
 a.xlv-toggler:active,
 a.xlv-toggler:link,
 a.xlv-toggler:visited {
+  color: inherit !important;
   outline: none;
   text-decoration: none;
 }
