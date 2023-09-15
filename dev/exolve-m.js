@@ -284,8 +284,10 @@ function Exolve(puzzleSpec,
   if (window.matchMedia &&
       window.matchMedia('(prefers-color-scheme: dark)').matches) {
     this.colourScheme = this.darkColourScheme;
+    this.displayMode.value = 'dark';
   } else {
     this.colourScheme = this.lightColourScheme;
+    this.displayMode.value = 'light';
   }
   this.colouredElements = [];
 
