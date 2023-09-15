@@ -104,6 +104,7 @@ function Exolve(puzzleSpec,
   this.cellW = 0;
   this.cellH = 0;
   this.squareDim = 0;
+  this.topClueClearance = 0;
 
   this.credits = [];
   this.questionTexts = [];
@@ -233,7 +234,7 @@ function Exolve(puzzleSpec,
   this.fontFamily = '';
   this.fontSize = '';
 
-  this.lightColourScheme = {
+  this.lightColorScheme = {
     'active': 'mistyrose',
     'active-clue': 'mistyrose',
     'active-clue-text': 'black',
@@ -250,6 +251,8 @@ function Exolve(puzzleSpec,
     'currclue': 'white',
     'currclue-text': 'black',
     'def-underline': '#3eb0ff',
+    'exolve-bg': 'transparent',
+    'exolve-fg': 'black',
     'imp-text': 'darkgreen',
     'input': '#ffb6b4',
     'light-label': 'black',
@@ -267,29 +270,29 @@ function Exolve(puzzleSpec,
     'solution': 'dodgerblue',
     'solved': 'dodgerblue',
   }
-  this.darkColourScheme = {
-    ...this.lightColourScheme,
+  this.darkColorScheme = {
+    ...this.lightColorScheme,
     'active-clue': '#330066',
     'active-clue-text': 'white',
     'anno': 'lightgreen',
     'currclue': 'black',
     'currclue-text': 'white',
+    'exolve-bg': 'black',
+    'exolve-fg': 'white',
     'imp-text': 'lightgreen',
     'orphan': 'darkbrown',
     'small-button-hover': '#330066',
     'small-button-text': 'lightgreen',
-    'solution': 'lightblue',
-    'solved': 'lightblue',
+    'solution': 'lightgreen',
+    'solved': 'lightgreen',
   }
   if (window.matchMedia &&
       window.matchMedia('(prefers-color-scheme: dark)').matches) {
-    this.colourScheme = this.darkColourScheme;
-    this.displayMode.value = 'dark';
+    this.colorScheme = this.darkColorScheme;
   } else {
-    this.colourScheme = this.lightColourScheme;
-    this.displayMode.value = 'light';
+    this.colorScheme = this.lightColorScheme;
   }
-  this.colouredElements = [];
+  this.coloredElements = [];
 
   this.nextLine = 0;
   this.sectionLines = {};
@@ -568,7 +571,11 @@ Exolve.prototype.init = function() {
           <div id="${this.prefix}-grid-parent-centerer"
               class="xlv-grid-parent-centerer">
             <div id="${this.prefix}-curr-clue" class="xlv-curr-clue"
-                style="display:none"></div>
+                style="display:none">
+              <div id="${this.prefix}-curr-clue-inner"
+                  class="xlv-curr-clue-inner">
+              </div>
+            </div>
             <div id="${this.prefix}-grid-parent" class="xlv-grid-parent">
               <svg id="${this.prefix}-grid" class="xlv-grid"
                   zoomAndPan="disable"></svg>
@@ -903,7 +910,7 @@ Exolve.prototype.init = function() {
   if (this.setter) {
     this.setterElt.innerHTML = `<span id="${this.prefix}-setter-by"
       >${this.textLabels['setter-by']}</span> ${this.setter}`;
-    this.colouredElements.push([this.setterElt, 'color', 'imp-text']);
+    this.coloredElements.push([this.setterElt, 'color', 'imp-text']);
   } else {
     this.setterElt.style.display = 'none';
   }
@@ -946,12 +953,12 @@ Exolve.prototype.init = function() {
       this.prefix + '-grid-input-uarr');
   for (let e of [this.gridInputRarr, this.gridInputDarr,
                  this.gridInputLarr, this.gridInputUarr]) {
-    this.colouredElements.push([e, 'color', 'arrow']);
+    this.coloredElements.push([e, 'color', 'arrow']);
     e.style.fontSize = this.arrowSize + 'px';
   }
 
   this.gridInput = document.getElementById(this.prefix + '-grid-input');
-  this.colouredElements.push([this.gridInput, 'caretColor', 'caret']);
+  this.coloredElements.push([this.gridInput, 'caretColor', 'caret']);
 
   this.questions = document.getElementById(this.prefix + '-questions');
 
@@ -972,6 +979,8 @@ Exolve.prototype.init = function() {
   this.clearArea = document.getElementById(this.prefix + '-clear-area');
   this.gridParent = document.getElementById(this.prefix + '-grid-parent');
   this.currClue = document.getElementById(this.prefix + '-curr-clue');
+  this.currClueInner = document.getElementById(
+      this.prefix + '-curr-clue-inner');
   this.ninaGroup = document.getElementById(this.prefix + '-nina-group');
   this.colourGroup = document.getElementById(this.prefix + '-colour-group');
 
@@ -1027,8 +1036,8 @@ Exolve.prototype.init = function() {
 
   const cspans = document.getElementById(
       this.prefix + '-tools-msg').getElementsByClassName('xlv-colourable-span');
-  this.colouredElements.push([cspans[0], 'color', 'overwritten-start']);
-  this.colouredElements.push([cspans[1], 'color', 'light-text']);
+  this.coloredElements.push([cspans[0], 'color', 'overwritten-start']);
+  this.coloredElements.push([cspans[1], 'color', 'light-text']);
 
   const printPage = document.getElementById(this.prefix + '-print-page');
   printPage.addEventListener('click', this.printNow.bind(this, 'page'));
@@ -1084,12 +1093,14 @@ Exolve.prototype.init = function() {
       'click', this.togglePanel.bind(this, this.jotterToggler, this.jotterPanel));
 
   this.displayMode = document.getElementById(this.prefix + '-display-mode');
+  this.displayMode.value = (this.colorScheme == this.darkColorScheme) ?
+    'dark' : 'light';
   this.displayMode.addEventListener('change', this.displayModeChange.bind(this));
   document.getElementById(this.prefix + '-manage-storage').addEventListener(
     'click', this.manageStorage.bind(this));
 
   this.scratchPad = document.getElementById(this.prefix + '-scratchpad');
-  this.colouredElements.push([this.scratchPad, 'color', 'imp-text']);
+  this.coloredElements.push([this.scratchPad, 'color', 'imp-text']);
   document.getElementById(this.prefix + '-shuffle').addEventListener(
         'click', this.scratchPadShuffle.bind(this));
 
@@ -1458,7 +1469,7 @@ Exolve.prototype.redisplayQuestions = function() {
     if (!hideEnum) {
       answer.setAttributeNS(null, 'placeholder', enumParse.placeholder);
     }
-    this.colouredElements.push([answer, 'color', 'imp-text']);
+    this.coloredElements.push([answer, 'color', 'imp-text']);
     answer.setAttributeNS(null, 'maxlength',
                           '' + inputLen * this.langMaxCharCodes);
     answer.setAttributeNS(null, 'autocomplete', 'off');
@@ -1577,7 +1588,7 @@ Exolve.prototype.parseOption = function(s) {
       continue;
     }
     if (kv[0] == 'grid-background') {
-      this.colourScheme['background'] = kv[1];
+      this.lightColorScheme['background'] = kv[1];
       continue;
     }
     if (kv[0] == 'font-family') {
@@ -1588,11 +1599,19 @@ Exolve.prototype.parseOption = function(s) {
       this.fontSize = kv[1];
       continue;
     }
+    if (kv[0] == 'top-clue-clearance') {
+      this.topClueClearance = parseInt(kv[1]);
+      if (isNaN(this.topClueClearance) || this.topClueClearance < 0) {
+        this.throwErr(
+            'Unexpected val in exolve-option: top-clue-clearance: ' + kv[1]);
+      }
+      continue;
+    }
     if (kv[0].substr(0, 6) == 'color-' || kv[0].substr(0, 7) == 'colour-') {
-      let cs = this.lightColourScheme;
+      let cs = this.lightColorScheme;
       let key = kv[0].substr(kv[0].indexOf('-') + 1);
       if (key.startsWith('dark-')) {
-        cs = this.darkColourScheme;
+        cs = this.darkColorScheme;
         key = key.substr(5);
       }
       if (!cs[key]) {
@@ -3977,50 +3996,54 @@ Exolve.prototype.applyStyles = function() {
     this.frame.appendChild(customStyles);
   }
   customStyles.innerHTML = `
+    #${this.prefix}-frame {
+      background: ${this.colorScheme['exolve-bg']};
+      color: ${this.colorScheme['exolve-fg']};
+    }
     #${this.prefix}-frame .xlv-curr-clue {
       top: ${this.visTop > 0 ? (this.visTop + 'px') : 0};
     }
     #${this.prefix}-frame .xlv-anno-text {
-      color: ${this.colourScheme['anno']};
+      color: ${this.colorScheme['anno']};
     }
     #${this.prefix}-frame span.xlv-solved,
     #${this.prefix}-frame .xlv-solved td:first-child {
-      color: ${this.colourScheme['solved']};
+      color: ${this.colorScheme['solved']};
     }
     #${this.prefix}-frame .xlv-definition {
-      text-decoration-color: ${this.colourScheme['def-underline']};
+      text-decoration-color: ${this.colorScheme['def-underline']};
     }
     #${this.prefix}-frame .xlv-solution {
-      color: ${this.colourScheme['solution']};
+      color: ${this.colorScheme['solution']};
     }
     #${this.prefix}-status {
-      color: ${this.colourScheme['imp-text']};
+      color: ${this.colorScheme['imp-text']};
     }
     #${this.prefix}-frame .xlv-colourable-span {
-      background: ${this.colourScheme['cell']};
+      background: ${this.colorScheme['cell']};
     }
     #${this.prefix}-frame .xlv-button {
-      background: ${this.colourScheme['button']};
-      color: ${this.colourScheme['button-text']};
+      background: ${this.colorScheme['button']};
+      color: ${this.colorScheme['button-text']};
     }
     #${this.prefix}-frame .xlv-button:hover {
-      background: ${this.colourScheme['button-hover']};
+      background: ${this.colorScheme['button-hover']};
     }
     #${this.prefix}-frame .xlv-button:disabled {
       background: gray;
     }
     #${this.prefix}-frame .xlv-small-button {
-      background: ${this.colourScheme['small-button']};
-      color: ${this.colourScheme['small-button-text']};
+      background: ${this.colorScheme['small-button']};
+      color: ${this.colorScheme['small-button-text']};
     }
     #${this.prefix}-frame .xlv-small-button:hover {
-      background: ${this.colourScheme['small-button-hover']};
+      background: ${this.colorScheme['small-button-hover']};
     }
     @keyframes ${this.prefix}-overwritten-anim {
-      0% {fill: ${this.colourScheme['overwritten-start']}}
-      90% {fill: ${this.colourScheme['overwritten-end']}}
-      95% {fill: ${this.colourScheme['overwritten-start']}}
-      99% {fill: ${this.colourScheme['overwritten-end']}}
+      0% {fill: ${this.colorScheme['overwritten-start']}}
+      90% {fill: ${this.colorScheme['overwritten-end']}}
+      95% {fill: ${this.colorScheme['overwritten-start']}}
+      99% {fill: ${this.colorScheme['overwritten-end']}}
     }
     #${this.prefix}-frame .xlv-overwritten {
       animation-duration: ${this.hltOverwrittenMillis}ms;
@@ -4352,14 +4375,14 @@ Exolve.prototype.handleResize = function() {
   this.setColumnLayout();
 }
 
-Exolve.prototype.makeRect = function(x, y, w, h, colourSchemeKey) {
+Exolve.prototype.makeRect = function(x, y, w, h, colorSchemeKey) {
   const rect =
       document.createElementNS('http://www.w3.org/2000/svg', 'rect');
   rect.setAttributeNS(null, 'x', x);
   rect.setAttributeNS(null, 'y', y);
   rect.setAttributeNS(null, 'width', w);
   rect.setAttributeNS(null, 'height', h);
-  this.colouredElements.push([rect, 'fill', colourSchemeKey]);
+  this.coloredElements.push([rect, 'fill', colorSchemeKey]);
   return rect;
 }
 
@@ -4747,15 +4770,15 @@ Exolve.prototype.deactivateCurrCell = function() {
   for (const x of this.activeCells) {
     const gridCell = this.grid[x[0]][x[1]];
     const cellRect = gridCell.cellRect;
-    cellRect.style.fill = this.colourScheme['cell'];
+    cellRect.style.fill = this.colorScheme['cell'];
     if (!gridCell.prefill) {
-      gridCell.cellText.style.fill = this.colourScheme['light-text'];
+      gridCell.cellText.style.fill = this.colorScheme['light-text'];
     }
     if (gridCell.cellNum) {
-      gridCell.cellNum.style.fill = this.colourScheme['light-label'];
+      gridCell.cellNum.style.fill = this.colorScheme['light-label'];
     }
     if (gridCell.cellCircle) {
-      gridCell.cellCircle.style.stroke = this.colourScheme['circle'];
+      gridCell.cellCircle.style.stroke = this.colorScheme['circle'];
     }
   }
   this.activeCells = [];
@@ -4812,16 +4835,22 @@ Exolve.prototype.deactivateCurrClue = function() {
   this.revealButton.disabled = true;
 }
 
+/**
+ * Also resizes controls.
+ */
 Exolve.prototype.resizeCurrClueAndControls = function() {
   const bPos = this.frame.getBoundingClientRect();
   const gpPos = this.gridPanel.getBoundingClientRect();
   const width = Math.max(this.maxCurrClueWidth, gpPos.width);
   const widthPx = width + 'px';
   this.controlsEtc.style.width = widthPx;
-  const clearance = 4;
   this.currClue.style.width = widthPx;
-  this.currClue.style.maxHeight = (Math.max(
-      50, (gpPos.top - bPos.top) - clearance - this.visTop)) + 'px';
+  const maxHeight = Math.max(
+      50, (gpPos.top - bPos.top) - this.topClueClearance - this.visTop);
+  this.currClue.style.maxHeight = maxHeight + 'px';
+  const ciPos = this.currClueInner.getBoundingClientRect();
+  const minHeight = Math.min(maxHeight, ciPos.height + this.topClueClearance);
+  this.currClue.style.minHeight = minHeight + 'px';
   const cPos = this.currClue.getBoundingClientRect();
   this.currClue.style.marginTop = '-' + cPos.height + 'px';
 
@@ -4919,7 +4948,7 @@ Exolve.prototype.gnavToInner = function(cell, dir) {
   if (dgmlessSpan) {
     for (let rowcol of dgmlessSpan.cells) {
       this.grid[rowcol[0]][rowcol[1]].cellRect.style.fill =
-          this.colourScheme['active'];
+          this.colorScheme['active'];
       this.activeCells.push(rowcol);
     }
     if (!activeClueIndex) {
@@ -4932,7 +4961,7 @@ Exolve.prototype.gnavToInner = function(cell, dir) {
     for (let clueIndex of clueIndices) {
       for (let rowcol of this.clues[clueIndex].cells) {
         this.grid[rowcol[0]][rowcol[1]].cellRect.style.fill =
-            this.colourScheme['active'];
+            this.colorScheme['active'];
         if (!last || last[0] != rowcol[0] || last[1] != rowcol[1]) {
           this.activeCells.push(rowcol);
           last = rowcol;
@@ -4949,15 +4978,15 @@ Exolve.prototype.gnavToInner = function(cell, dir) {
     this.activeCells.push([this.currRow, this.currCol])
     activeClueIndex = this.lastOrphan
   }
-  gridCell.cellRect.style.fill = this.colourScheme['input'];
+  gridCell.cellRect.style.fill = this.colorScheme['input'];
   if (!gridCell.prefill) {
-    gridCell.cellText.style.fill = this.colourScheme['light-text-input'];
+    gridCell.cellText.style.fill = this.colorScheme['light-text-input'];
   }
   if (gridCell.cellNum) {
-    gridCell.cellNum.style.fill = this.colourScheme['light-label-input'];
+    gridCell.cellNum.style.fill = this.colorScheme['light-label-input'];
   }
   if (gridCell.cellCircle) {
-    gridCell.cellCircle.style.stroke = this.colourScheme['circle-input'];
+    gridCell.cellCircle.style.stroke = this.colorScheme['circle-input'];
   }
 
   if (activeClueIndex) {
@@ -5134,8 +5163,8 @@ Exolve.prototype.cnavToInner = function(activeClueIndex, grabFocus = false) {
   if (orphan) {
     this.lastOrphan = parentIndex
   }
-  let colour = orphan ? this.colourScheme['orphan'] :
-      this.colourScheme['active-clue'];
+  let colour = orphan ? this.colorScheme['orphan'] :
+      this.colorScheme['active-clue'];
   for (let clueIndex of clueIndices) {
     let theClue = this.clues[clueIndex]
     if (theClue.anno || theClue.solution || (orphan && theClue.cellsOfOrphan)) {
@@ -5145,14 +5174,14 @@ Exolve.prototype.cnavToInner = function(activeClueIndex, grabFocus = false) {
       continue
     }
     theClue.clueTR.style.background = colour;
-    theClue.clueTR.style.color = this.colourScheme['active-clue-text'];
+    theClue.clueTR.style.color = this.colorScheme['active-clue-text'];
     if (this.cluesPanelLines > 0) {
       this.scrollIfNeeded(theClue.clueTR)
     }
     this.activeClues.push(theClue.clueTR)
   }
   this.currClueIndex = activeClueIndex
-  this.currClue.innerHTML = this.getCurrClueButtons() +
+  this.currClueInner.innerHTML = this.getCurrClueButtons() +
     curr.fullDisplayLabel +
     `<span id="${this.prefix}-curr-clue-text"></span>`
   let clueSpan = document.getElementById(`${this.prefix}-curr-clue-text`)
@@ -5174,15 +5203,15 @@ Exolve.prototype.cnavToInner = function(activeClueIndex, grabFocus = false) {
     if (this.clues[parentIndex].placeholder) {
       placeholder = this.clues[parentIndex].placeholder
     }
-    this.addPlaceholderBlank(this.currClue, true, len, placeholder, parentIndex);
+    this.addPlaceholderBlank(this.currClueInner, true, len, placeholder, parentIndex);
     this.copyPlaceholderBlankToCurr(parentIndex)
     if (grabFocus && !this.usingGnav && parentIndex == activeClueIndex) {
       this.clues[parentIndex].placeholderBlank.focus();
     }
   }
-  this.currClue.style.background = orphan ?
-      this.colourScheme['orphan'] : this.colourScheme['currclue'];
-  this.currClue.style.color = this.colourScheme['currclue-text'];
+  this.currClueInner.style.background = orphan ?
+      this.colorScheme['orphan'] : this.colorScheme['currclue'];
+  this.currClueInner.style.color = this.colorScheme['currclue-text'];
   this.updateClueState(parentIndex, false, null)
   this.currClue.style.display = '';
   this.resizeCurrClueAndControls();
@@ -5392,9 +5421,9 @@ Exolve.prototype.addPlaceholderBlank = function(
   html = html + '</span>'
   elt.insertAdjacentHTML('beforeend', html)
   const incluefill = elt.lastElementChild.firstElementChild;
-  incluefill.style.color = this.colourScheme['solution'];
+  incluefill.style.color = this.colorScheme['solution'];
   if (!inCurr) {
-    this.colouredElements.push([incluefill, 'color', 'solution']);
+    this.coloredElements.push([incluefill, 'color', 'solution']);
   }
   incluefill.addEventListener('input',
       this.updateOrphanEntry.bind(this, clueIndex, inCurr));
@@ -6029,21 +6058,21 @@ Exolve.prototype.browserDisplayModeChange = function(ev) {
 }
 
 Exolve.prototype.displayModeChange = function() {
-  const colourScheme = this.displayMode.value == 'light' ?
-    this.lightColourScheme : this.darkColourScheme;
-  if (colourScheme == this.colourScheme) {
+  const colorScheme = this.displayMode.value == 'light' ?
+    this.lightColorScheme : this.darkColorScheme;
+  if (colorScheme == this.colorScheme) {
     return;
   }
-  this.colourScheme = colourScheme;
-  this.redoColourScheme();
+  this.colorScheme = colorScheme;
+  this.redoColorScheme();
 }
 
-Exolve.prototype.redoColourScheme = function() {
+Exolve.prototype.redoColorScheme = function() {
   const cccState = this.currCellOrClueState();
   this.deactivator();
   this.applyStyles();
-  for (const [elt, styleKey, colourSchemeKey] of this.colouredElements) {
-    elt.style[styleKey] = this.colourScheme[colourSchemeKey];
+  for (const [elt, styleKey, colorSchemeKey] of this.coloredElements) {
+    elt.style[styleKey] = this.colorScheme[colorSchemeKey];
   }
   this.restoreCellOrClueState(cccState);
 }
@@ -6087,10 +6116,10 @@ Exolve.prototype.displayGrid = function() {
       let cellClass = 'xlv-cell-text'
       if (gridCell.prefill) {
         letter = gridCell.solution
-        this.colouredElements.push([cellText, 'fill', 'prefill']);
+        this.coloredElements.push([cellText, 'fill', 'prefill']);
         cellClass = 'xlv-cell-text xlv-prefill';
       } else {
-        this.colouredElements.push([cellText, 'fill', 'light-text']);
+        this.coloredElements.push([cellText, 'fill', 'light-text']);
       }
       cellText.style.fontSize = this.letterSize + 'px'
       cellText.setAttributeNS(null, 'class', cellClass)
@@ -6118,7 +6147,7 @@ Exolve.prototype.displayGrid = function() {
             null, 'cy', this.cellTopPos(i,
             this.circleR + this.GRIDLINE + (this.cellH/2 - this.circleR)));
         cellCircle.setAttributeNS(null, 'class', 'xlv-cell-circle');
-        this.colouredElements.push([cellCircle, 'stroke', 'circle']);
+        this.coloredElements.push([cellCircle, 'stroke', 'circle']);
         cellCircle.setAttributeNS(null, 'r', this.circleR);
         cellGroup.appendChild(cellCircle)
         cellCircle.addEventListener('click', activator)
@@ -6134,7 +6163,7 @@ Exolve.prototype.displayGrid = function() {
         cellNum.setAttributeNS(
             null, 'y', this.cellTopPos(i, this.numberStartY));
         cellNum.setAttributeNS(null, 'class', 'xlv-cell-num');
-        this.colouredElements.push([cellNum, 'fill', 'light-label']);
+        this.coloredElements.push([cellNum, 'fill', 'light-label']);
         cellNum.style.fontSize = this.numberSize + 'px'
         const numText = gridCell.forcedClueLabel ?
             gridCell.forcedClueLabel : gridCell.startsClueLabel;
@@ -6301,7 +6330,7 @@ Exolve.prototype.addCellText = function(row, col, text,
   let yOff = atTop ? h : -this.NUMBER_START_X
   cellText.setAttributeNS(null, 'y', this.cellTopPos(yCol, yOff));
   cellText.textLength = w + 'px'
-  this.colouredElements.push([cellText, 'fill', 'light-label']);
+  this.coloredElements.push([cellText, 'fill', 'light-label']);
   cellText.style.fontSize = h + 'px'
   cellText.innerHTML = text;
   cellText.addEventListener('click', this.cellActivator.bind(this, row, col));
@@ -6838,7 +6867,7 @@ Exolve.prototype.revealCurr = function() {
     for (let rowcol of addCellsFromOrphanClue.cellsOfOrphan) {
       let gridCell = this.grid[rowcol[0]][rowcol[1]]
       if (!activeCellsSet[JSON.stringify(rowcol)]) {
-        gridCell.cellRect.style.fill = this.colourScheme['active']
+        gridCell.cellRect.style.fill = this.colorScheme['active']
         this.activeCells.push(rowcol)
       }
     }
@@ -8356,7 +8385,7 @@ Exolve.prototype.createPuzzle = function() {
   if (this.customizer) {
     this.customizer(this);
   }
-  this.redoColourScheme();
+  this.redoColorScheme();
 }
 
 /**
