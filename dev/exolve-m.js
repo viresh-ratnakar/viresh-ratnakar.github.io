@@ -3977,13 +3977,13 @@ Exolve.prototype.getSurroundingBG = function() {
 
 Exolve.prototype.maybeUseDarkMode = function() {
   const fgBrightness = this.brightness(getComputedStyle(this.frame).color);
-  if (fgBrightness < 200) {
+  if (fgBrightness < 155) {
     return;
   }
   if (!this.optionedColors['currclue']) {
     const bg = this.getSurroundingBG();
     const bgBrightness = this.brightness(bg);
-    if (bgBrightness < 100) {
+    if (bgBrightness < 75) {
       this.colorScheme['currclue'] = bg;
     } else {
       this.colorScheme['currclue'] = 'black';
@@ -7614,7 +7614,6 @@ Exolve.prototype.handleBeforePrint = function() {
     }
   }
 
-  const cccState = this.currCellOrClueState();
   this.printingChanges = {
     currRow: this.currRow, currCol: this.currCol,
     usingGnav: this.usingGnav, currClueIndex: this.currClueIndex,
