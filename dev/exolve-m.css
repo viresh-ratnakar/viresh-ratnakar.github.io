@@ -242,15 +242,12 @@ Version: Exolve v1.52 September 14, 2023
   font-weight: bold;
   margin: 0;
   overflow-y: auto;
-  padding: 0 !important;
+  padding: 2px 0 8px 0 !important;
   position: sticky;
   position: -webkit-sticky;
   text-align: left;
   word-wrap: break-word;
   z-index: 2;
-}
-.xlv-curr-clue-inner {
-  padding: 2px 0 8px 0 !important;
 }
 .xlv-curr-orphan,
 .xlv-curr-clue-label {
