@@ -4855,7 +4855,7 @@ Exolve.prototype.resizeCurrClueAndControls = function() {
   this.controlsEtc.style.width = widthPx;
   this.currClue.style.width = widthPx;
   const maxHeight = Math.max(
-      60, (gpPos.top - bPos.top) - this.topClueClearance - this.visTop);
+      80, (gpPos.top - bPos.top) - this.topClueClearance - this.visTop);
   this.currClue.style.maxHeight = maxHeight + 'px';
   const ciPos = this.currClueInner.getBoundingClientRect();
   const minHeight = Math.min(maxHeight, ciPos.height + this.topClueClearance);
