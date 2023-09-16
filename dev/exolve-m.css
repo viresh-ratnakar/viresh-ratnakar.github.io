@@ -239,7 +239,6 @@ Version: Exolve v1.52 September 14, 2023
   margin: 0 0 0 4px;
 }
 .xlv-curr-clue {
-  background-color: transparent;
   font-weight: bold;
   margin: 0;
   overflow-y: auto;
@@ -382,9 +381,6 @@ Version: Exolve v1.52 September 14, 2023
   border-width: 0;
   outline: none;
   opacity: 0.25;
-}
-.xlv-colourable-span {
-  font-weight: bold;
 }
 .xlv-status {
   margin: 2px 0 !important;
