@@ -3976,17 +3976,14 @@ Exolve.prototype.getSurroundingBG = function() {
 }
 
 Exolve.prototype.maybeUseDarkMode = function() {
-  const bg = this.getSurroundingBG();
-  const bgColor = this.brightness(bg);
-  const fgColor = this.brightness(getComputedStyle(this.frame).color);
-  if (fgColor < 200) {
-    console.log('Not dark mode');
+  const fgBrightness = this.brightness(getComputedStyle(this.frame).color);
+  if (fgBrightness < 200) {
     return;
   }
-  console.log('Dark mode! color = ' + fgColor);
   if (!this.optionedColors['currclue']) {
-    console.log('Considering bg color ' + bg + ' with brightness ' + bgColor);
-    if (bgColor < 100) {
+    const bg = this.getSurroundingBG();
+    const bgBrightness = this.brightness(bg);
+    if (bgBrightness < 100) {
       this.colorScheme['currclue'] = bg;
     } else {
       this.colorScheme['currclue'] = 'black';
