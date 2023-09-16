@@ -4854,8 +4854,11 @@ Exolve.prototype.resizeCurrClueAndControls = function() {
   const widthPx = width + 'px';
   this.controlsEtc.style.width = widthPx;
   this.currClue.style.width = widthPx;
-  const maxHeight = Math.max(
-      80, (gpPos.top - bPos.top) - this.topClueClearance - this.visTop);
+  /** 
+   * We can go from the top of the grid to the top of this.frame, leaving
+   * maybe 4 pixels (and any this.visTop) out.
+   */
+  const maxHeight = Math.max(80, (gpPos.top - bPos.top) - 4 - this.visTop);
   this.currClue.style.maxHeight = maxHeight + 'px';
   const ciPos = this.currClueInner.getBoundingClientRect();
   const minHeight = Math.min(maxHeight, ciPos.height + this.topClueClearance);
