@@ -24,7 +24,7 @@ SOFTWARE.
 The latest code and documentation for Exolve can be found at:
 https://github.com/viresh-ratnakar/exolve
 
-Version: Exolve v1.49 May 10, 2023
+Version: Exolve v1.54 September 17, 2023
 */
 
 function exolveFromPuzNextNull(buffer, offset) {
@@ -144,7 +144,10 @@ ${exolveGrid}
     offset = nextNull + 1;
   }
 
-  offset++;
+  nextNull = exolveFromPuzNextNull(buffer, offset);
+  let notes = decoder.decode(buffer.slice(offset, nextNull)).trim();
+  offset = nextNull + 1;
+
   const gext = 'GEXT';
   while (offset + 8 + numCells <= buffer.length) {
     if (buffer[offset] == gext.charCodeAt(0) &&
@@ -175,10 +178,16 @@ ${exolveGrid}
   if (!fname) {
     fname = 'unknown'
   }
+  let preamble = '';
+  if (notes) {
+    preamble = `
+  exolve-preamble:
+${notes}`;
+  }
   return `  exolve-begin
   exolve-width: ${width}
   exolve-height: ${height}
-  exolve-title: ${title}
+  exolve-title: ${title}${preamble}
   exolve-setter: ${setter}
   exolve-copyright: ${copyright}
   exolve-option: ignore-enum-mismatch

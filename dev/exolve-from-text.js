@@ -24,7 +24,7 @@ SOFTWARE.
 The latest code and documentation for Exolve can be found at:
 https://github.com/viresh-ratnakar/exolve
 
-Version: Exolve v1.49 May 10, 2023
+Version: Exolve v1.54 September 17, 2023
 */
 
 /**
@@ -106,7 +106,7 @@ exolveFromText = function(w, h, text, fname='') {
 
   const clueStartRE = /^\s*\d{1,2}(?!\d)([ ]*[,&][ ]*[aAdD][^ ]*)*/;
   const clueRE = /^\s*\d{1,2}(?!\d)([ ]*[,&][ ]*[aAdD][^ ]*)*.*\([0-9, '-]+\)/;
-  const childRE = /^\s*\d{1,2}(?!\d)\s*see /i;
+  const childRE = /^\s*\d{1,2}(?!\d)[\s\.:]*see /i;
   const wordsRE = /[a-zA-Z]+/;
   const copyrightRE = /^\s*(copyright|\(c\)|Ⓒ)/i;
   const titleAndSetterRE = /^\s*(.+)\sby\s(.+)/i; 
@@ -191,10 +191,25 @@ exolveFromText = function(w, h, text, fname='') {
  */
 exolveFromTextClean = function(s) {
   /**
+   * Normalize new-lines.
+   */
+  s = s.replace(/\r[\n]*/g, '\n');
+
+  /**
    * Strip out non-alphanumeric weird characters preceding a number and after
    * some leading space after a newline ("bullets" are often found here).
    */
   s = s.replace(/\n\s+[^\w"',\.\(\)-]*([1-9][0-9]*)/g, '\n $1');
+
+  /**
+   * Remove end-of-line hyphenations.
+   */
+  s = s.replace(/([a-z])-\n\s*([a-z])/g, '$1$2');
+
+  /**
+   * Insert spaces before enums, if missing.
+   */
+  s = s.replace(/([^\s])\(([1-9])/g, '$1 ($2');
 
   /**
    * Insert newlines between clues that got stitched together (a common

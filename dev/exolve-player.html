@@ -1,13 +1,20 @@
+<!--
+MIT License
+
+Copyright (c) 2023 Viresh Ratnakar
+
+See the full license notice in exolve-m.js.
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<link rel="stylesheet" type="text/css" href="exolve-m.css?v1.49"/>
-<script src="exolve-m.js?v1.49"></script>
-<script src="exolve-from-ipuz.js?v1.49"></script>
-<script src="exolve-from-puz.js?v1.49"></script>
-<script src="exolve-from-text.js?v1.49"></script>
+<link rel="stylesheet" type="text/css" href="exolve-m.css?v1.54"/>
+<script src="exolve-m.js?v1.54"></script>
+<script src="exolve-from-ipuz.js?v1.54"></script>
+<script src="exolve-from-puz.js?v1.54"></script>
+<script src="exolve-from-text.js?v1.54"></script>
 
 <style>
 .xlvp-wait {
@@ -214,6 +221,30 @@ let xlvpPuz = null;
 
 const xlvpStateKey = '42-xlvp-player-state';
 
+xlvpMaybeUseURL();
+
+function xlvpUseURL(url) {
+  if (!url) return;
+  fetch(url, {
+    mode: 'cors',
+    credentials: 'include',
+  }).then(response => response.arrayBuffer())
+  .then(result => {
+    xlvpShow(result, url);
+  }).catch(error => {
+    alert(error);
+  });
+}
+
+function xlvpMaybeUseURL() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const url = urlParams ? (urlParams.get('url') ?? '').trim() : '';
+  if (!url) {
+    return;
+  }
+  xlvpUseURL(url);
+}
+
 function xlvpSaveState() {
   const state = {
     'data': xlvpData,
@@ -342,8 +373,8 @@ function xlvpSave() {
     '<meta charset="utf-8"/>\n' +
     '<meta name="viewport" content="width=device-width, initial-scale=1"/>\n' +
     '<link rel="stylesheet" type="text/css" ' +
-    'href="https://viresh-ratnakar.github.io/exolve-m.css?v1.49"/>\n' +
-    '<script src="https://viresh-ratnakar.github.io/exolve-m.js?v1.49">' +
+    'href="https://viresh-ratnakar.github.io/exolve-m.css?v1.54"/>\n' +
+    '<script src="https://viresh-ratnakar.github.io/exolve-m.js?v1.54">' +
     '<\/script>\n' +
     '<\/head>\n' +
     '<body>\n' +

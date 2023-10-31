@@ -5,7 +5,7 @@ Copyright (c) 2019 Viresh Ratnakar
 
 See the full license notice in exolve-m.js.
 
-Version: Exolve v1.52 September 14, 2023
+Version: Exolve v1.54 September 17, 2023
 */
 
 @media (max-width: 500px) {
@@ -125,26 +125,28 @@ Version: Exolve v1.52 September 14, 2023
 .xlv-cell-circle {
   fill: rgba(0,0,0,0.0);
 }
-.xlv-frame .xlv-clues table {
-  background-image: none !important;
+.xlv-frame .xlv-clues-table {
   border: none !important;
   border-collapse: collapse !important;
   border-spacing: 0 !important;
   margin: inherit;
 }
-.xlv-frame .xlv-clues tr {
+.xlv-frame table,
+.xlv-frame td,
+.xlv-frame tr {
   background-image: none !important;
+}
+.xlv-frame .xlv-clues-table tr {
   border: none !important;
   break-inside: avoid;
 }
-.xlv-frame .xlv-clues td {
-  background-image: none !important;
+.xlv-frame .xlv-clues-table td {
   border: none !important;
   padding: 0 6px 4px 0 !important;
   vertical-align: top;
   white-space: normal !important;
 }
-.xlv-frame .xlv-clues td:first-child:not(.xlv-filler) {
+.xlv-frame .xlv-clues-table td:first-child:not(.xlv-filler) {
   background-image: none !important;
   box-sizing: content-box;
   font-weight: bold;
@@ -242,12 +244,15 @@ Version: Exolve v1.52 September 14, 2023
   font-weight: bold;
   margin: 0;
   overflow-y: auto;
-  padding: 2px 0 8px 0 !important;
+  padding: 0 !important;
   position: sticky;
   position: -webkit-sticky;
   text-align: left;
   word-wrap: break-word;
   z-index: 2;
+}
+.xlv-curr-clue-inner {
+  padding: 2px 0 8px 0 !important;
 }
 .xlv-curr-orphan,
 .xlv-curr-clue-label {
@@ -473,10 +478,6 @@ Version: Exolve v1.52 September 14, 2023
   height: auto;
   width: auto;
 }
-.xlv-print-settings table,
-.xlv-print-settings td {
-  background-image: none !important;
-}
 .xlv-print-settings td {
   white-space: normal;
 }
@@ -485,6 +486,7 @@ Version: Exolve v1.52 September 14, 2023
   float: right;
   margin: 0 0 4px 4px;
   padding: 0;
+  width: auto !important;
 }
 .xlv-qrcode-cta {
   font-family: monospace;
@@ -494,6 +496,7 @@ Version: Exolve v1.52 September 14, 2023
   text-align: center;
 }
 .xlv-qrcode-panel td {
+  padding: 0;
   vertical-align: middle;
 }
 .xlv-toggleable * {
