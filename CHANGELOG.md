@@ -1,6 +1,66 @@
 # Changelog
 
-### Minor Version: Exolve v1.51.2: September 13, 2023
+### Minor Version: Exolve v1.54.6: October 31, 2023
+
+- Add some more error reporting to exolve-embedder.js.
+
+### Minor Version: Exolve v1.54.5: October 3, 2023
+
+- Parse enums like (5 6) too.
+- In exolve-from-text, allow there to be a period or
+  colon after the clue number.
+
+### Minor Version: Exolve v1.54.4: October 2, 2023
+
+- Add an Inksaver option to printing.
+
+### Minor Version: Exolve v1.54.3: October 1, 2023
+
+- Allow the QR code to be printed at the bottom-right of the whole
+  puzzle (and make that the default option).
+- Styling tweaks: don't set styles for "table", make a class called
+  "xlv-clues-table" and use that.
+- Change the way darl-mode-only/light-mode-only colour options are
+  specified: colour-light-<name> conflicts with a few already existing
+  light-<name> options. Use "colour-light.<name>" and
+  "colour-dark.<name>" instead.
+
+### Minor Version: Exolve v1.54.2: September 26, 2023
+
+- Make exolve-from-text.js normalize a couple more common pdf-pasting flaws:
+  remove end-of-line hyphens, and insert missing spaces before enums.
+
+### Minor Version: Exolve v1.54.1: September 17, 2023
+
+- When exolve-option: color-name:c is specified, override both light/dark
+  mode colors. Override only ligh/dark mode if
+  exolve-option: color-light/dark=name:c is specified.
+
+### Version: Exolve v1.54: September 17, 2023
+
+- Tweak dark mode code: allow exolve-options to tweak the colour choices used
+  in dark mode, using options like
+  `exolve-option: colour-dark-active-clue:khaki`.
+- Move the code that sets the bg colour of the top clue to be the same as
+  that of the puzzle parent (if sufficiently contrastive). Now this is done
+  even in light mode. Add `exolve-option: no-smart-colouring` to suppress
+  this.
+- Do not fire a completion event when reloading from saved state.
+
+### Version: Exolve v1.53: September 15, 2023
+
+- Roll back the addition of explicit colours for 'active-clue-text'
+  and 'currclue-text'. Too complex, better to inherit. We do deal
+  better with dark-mode now, anyway.
+- If the text font color is sufficiently bright (>= 200), then
+  we enter dark-mode. We override a few colour choices in dark-mode.
+  But we do not tinker with any colour set explicitly with an exolve-option.
+- Introduce another div inside "curr-clue" called "curr-clue-inner". This
+  now allows us to let the user specify a small amount of pixel clearance
+  between the top of the grid and the bottom of the curr-clue.
+- Allow this clearance to be specified with exolve-option `top-clue-clearance`.
+
+### Version: Exolve v1.52: September 14, 2023
 
 - Add more CSS overrides to fight blog-styling, this time to counter
   CSS from "ghost" hosting.
@@ -8,9 +68,9 @@
   provided (eg, in American-style crosswords), unless the puzzle
   has diagramless cells.
 - Add colours explicitly for currclue-text and active-clue-text
-- Limit curr-clue width to be no more than
-  max(grid-panel-width, controls-panel-width) to avoid some
-  jumpy behaviour on small width displays.
+- Set curr-clue-width and control-panel-width to be the same
+  to avoid some jumpy behaviour on small width displays.
+- Tweaks to rendering of answers, scratchpad, links.
 
 ### Minor Version: Exolve v1.51.1: September 10, 2023
 
