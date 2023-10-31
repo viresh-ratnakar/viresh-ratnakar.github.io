@@ -44,7 +44,7 @@ class ExolveEmbedder {
     }).then(result => {
       finisher(result);
     }).catch(error => {
-      throw error;
+      this.showMessage(error.name + ': ' + error.message);
     });
   }
 
