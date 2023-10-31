@@ -228,8 +228,12 @@ function xlvpUseURL(url) {
   fetch(url, {
     mode: 'cors',
     credentials: 'include',
-  }).then(response => response.arrayBuffer())
-  .then(result => {
+  }).then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP error, status = ${response.status}`);
+    }
+    response.arrayBuffer();
+  }).then(result => {
     xlvpShow(result, url);
   }).catch(error => {
     alert(error);
