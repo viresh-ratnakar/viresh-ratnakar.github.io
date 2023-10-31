@@ -221,34 +221,6 @@ let xlvpPuz = null;
 
 const xlvpStateKey = '42-xlvp-player-state';
 
-xlvpMaybeUseURL();
-
-function xlvpUseURL(url) {
-  if (!url) return;
-  fetch(url, {
-    mode: 'cors',
-    credentials: 'include',
-  }).then(response => {
-    if (!response.ok) {
-      throw new Error(`HTTP error, status = ${response.status}`);
-    }
-    response.arrayBuffer();
-  }).then(result => {
-    xlvpShow(result, url);
-  }).catch(error => {
-    alert(error);
-  });
-}
-
-function xlvpMaybeUseURL() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const url = urlParams ? (urlParams.get('url') ?? '').trim() : '';
-  if (!url) {
-    return;
-  }
-  xlvpUseURL(url);
-}
-
 function xlvpSaveState() {
   const state = {
     'data': xlvpData,
