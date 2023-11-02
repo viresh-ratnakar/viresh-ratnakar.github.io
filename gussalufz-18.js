@@ -8,7 +8,7 @@ function hashCode(str) {
 let shuf = []
 
 function getCurrShuf() {
-  let allClueTRs = document.getElementsByTagName('tr')
+  let allClueTRs = puz.cluesContainer.getElementsByTagName('tr');
   let indexInAll = [0, 0, 0, 0, 0, 0, 0]
   for (let j = 0; j < shuf.length; j++) {
     let tr = shuf[j]
@@ -23,7 +23,7 @@ function getCurrShuf() {
 }
 
 function doShuf(shufIndex, dir) {
-  let allClueTRs = document.getElementsByTagName('tr')
+  let allClueTRs = puz.cluesContainer.getElementsByTagName('tr');
   let indexInAll = [0, 0, 0, 0, 0, 0, 0]
   let index = -1
   for (let j = 0; j < shuf.length; j++) {
@@ -65,7 +65,7 @@ function doShuf(shufIndex, dir) {
 }
 
 function setupShuffle() {
-  let allClueTRs = document.getElementsByTagName('tr');
+  let allClueTRs = puz.cluesContainer.getElementsByTagName('tr');
   allClueTRs[25].children[0].colSpan = 4
   for (let i = 33; i < 51; i++) {
     let tr = allClueTRs[i]
