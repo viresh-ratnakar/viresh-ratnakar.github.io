@@ -6258,8 +6258,7 @@ Exolve.prototype.cellLetterSize = function(entry) {
   if (!this.hasRebusCells || entry.length <= 1) {
     return this.letterSize + 'px';
   }
-
-  const AVAILABLE_WIDTH = this.cellW - 4;
+  const AVAILABLE_WIDTH = this.cellW - (2.5 * this.BAR_WIDTH);
   const width = this.measureTextWidth(entry);
 
   if (width <= AVAILABLE_WIDTH) {
