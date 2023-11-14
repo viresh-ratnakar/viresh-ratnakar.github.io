@@ -406,13 +406,14 @@ For example:
 ```
 
 If there are rebus cells, then the solver can enter multiple letters into a
-cell after double-clicking on it, or by pressing down the Control or Command
-or Shift key while entering a letter.
+cell after double-clicking on it, or by pressing down the Shift key while
+entering a letter. If a cell already has previously entered multiple letters
+then when you come to it again (by clicking on it or auto-advancing from
+an adjacent cell), you will be able to enter multiple letters into it.
 
-When multiple letters are entered into a cell in a crossword that has the
-`rebus-cells` option set, the font size of cell text is adjusted to try
-to fit all the letters. If you have some long rebus entries that do not fit
-the default cell size then you should use bigger cells, using
+When multiple letters are entered into a cell, the font size of cell text is
+adjusted to try to fit all the letters. If you have some long rebus entries
+that do not fit the default cell size then you should use bigger cells, using
 [`exolve-cell-size`](#exolve-cell-size).
 
 You cannot have rebus cells in crosswords that use languages with

@@ -207,7 +207,7 @@ function Exolve(puzzleSpec,
   this.multiLetter = false;
   this.multiLetterCellRow = -1;
   this.multiLetterCellCol = -1;
-  this.lastKeyMod = false;
+  this.lastKeyHadShift = false;
 
   this.numCellsToFill = 0;
   this.numCellsFilled = 0;
@@ -5775,7 +5775,7 @@ Exolve.prototype.fromNotesToGrid = function() {
 // For tab/shift-tab, ctrl-q, ctrl-Q, ctrl-B, ctrl-e
 Exolve.prototype.handleKeyDown = function(e) {
   let key = e.which || e.keyCode
-  this.lastKeyMod = e.metaKey || e.ctrlKey || e.shiftKey;
+  this.lastKeyHadShift = e.shiftKey;
   if (key == 9) {
     if (this.handleKeyUpInner(key, e.shiftKey)) {
       // Tab input got used already.
@@ -6019,7 +6019,7 @@ Exolve.prototype.expireOverwrite = function(gridCell) {
 /**
  * TODO
  */
-Exolve.prototype.toggleMultiLetterEntry = function() {
+Exolve.prototype.enableMultiLetterEntry = function() {
   if (!this.multiLetter) {
     return;
   }
@@ -6027,13 +6027,8 @@ Exolve.prototype.toggleMultiLetterEntry = function() {
   if (!gridCell || !gridCell.isLight) {
     return;
   }
-  if (this.multiLetterCellRow >= 0) {
-    this.multiLetterCellRow = -1;
-    this.multiLetterCellCol = -1;
-  } else {
-    this.multiLetterCellRow = this.currRow;
-    this.multiLetterCellCol = this.currCol;
-  }
+  this.multiLetterCellRow = this.currRow;
+  this.multiLetterCellCol = this.currCol;
 }
 
 /**
@@ -6043,19 +6038,19 @@ Exolve.prototype.checkMultiLetterMode = function(entry) {
   if (!this.multiLetter) {
     return false;
   }
-  const mRow = this.multiLetterCellRow;
-  const mCol = this.multiLetterCellCol;
+  if (this.lastKeyHadShift) {
+    return true;
+  }
+  if (this.currRow == this.multiLetterCellRow &&
+      this.currCol == this.multiLetterCellCol) {
+    return true;
+  }
+  if (entry.length > 1) {
+    return true;
+  }
   this.multiLetterCellRow = -1;
   this.multiLetterCellCol = -1;
-  if (this.lastKeyMod) {
-    return true;
-  }
-  if (this.currRow == mRow && this.currCol == mCol) {
-    this.multiLetterCellRow = mRow;
-    this.multiLetterCellCol = mCol;
-    return true;
-  }
-  return entry.length > 1;
+  return false;
 }
 
 Exolve.prototype.handleGridInput = function() {
@@ -6191,7 +6186,7 @@ Exolve.prototype.createListeners = function() {
   this.boundListeners['key-down'] = this.handleKeyDown.bind(this);
 
   this.boundListeners['grid-input'] = this.handleGridInput.bind(this);
-  this.boundListeners['grid-cell-dblclick'] = this.toggleMultiLetterEntry.bind(this);
+  this.boundListeners['grid-cell-dblclick'] = this.enableMultiLetterEntry.bind(this);
 
   this.boundListeners['grid-cell-click'] = this.toggleCurrDirAndActivate.bind(this);
 
