@@ -360,6 +360,9 @@ function Exolve(puzzleSpec,
              prefix.</li>
          <li><b>Spacebar:</b>
              Place/clear block in the current square if it's diagramless.</li>
+         <li><b>Double-click or Shift+Letter:</b>
+             If the puzzle has rebus cells, this is the way to enter
+             multiple letters into a single cell.</li>
        </ul>
        <p>
          Overwritten letters will briefly be coloured like
@@ -6245,10 +6248,10 @@ Exolve.prototype.recolourCells = function(scale=1) {
 }
 
 Exolve.prototype.cellLetterSize = function(entry) {
-  if (!this.hasRebusCells || entry.length <= 1) {
+  if (!this.hasRebusCells || entry.length <= 2) {
     return this.letterSize + 'px';
   }
-  return (6 + ((this.letterSize - 6) / entry.length)) + 'px';
+  return (6 + ((this.letterSize - 6) / (entry.length - 1))) + 'px';
 }
 
 Exolve.prototype.adjustRebusFonts = function() {
