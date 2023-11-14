@@ -969,6 +969,13 @@ Exolve.prototype.init = function() {
     e.style.color = this.colorScheme['arrow'];
     e.style.fontSize = this.arrowSize + 'px';
   }
+  if (this.hasRebusCells) {
+    /**
+     * Place rarr and larr at the same spots as darr and uarr respectively.
+     */
+    this.gridInputRarr.className = 'xlv-grid-input-darr';
+    this.gridInputLarr.className = 'xlv-grid-input-uarr';
+  }
 
   this.gridInput = document.getElementById(this.prefix + '-grid-input');
   this.gridInput.style.caretColor = this.colorScheme['caret'];
@@ -6248,10 +6255,32 @@ Exolve.prototype.recolourCells = function(scale=1) {
 }
 
 Exolve.prototype.cellLetterSize = function(entry) {
-  if (!this.hasRebusCells || entry.length <= 2) {
+  if (!this.hasRebusCells || entry.length <= 1) {
     return this.letterSize + 'px';
   }
-  return (6 + ((this.letterSize - 6) / (entry.length - 1))) + 'px';
+
+  const AVAILABLE_WIDTH = this.cellW - 4;
+  const width = this.measureTextWidth(entry);
+
+  if (width <= AVAILABLE_WIDTH) {
+    return this.letterSize + 'px';
+  }
+  const scaledSize = Math.max(6, this.letterSize * AVAILABLE_WIDTH / width);
+  return scaledSize + 'px';
+}
+
+/**
+ * Code and font size scaling idea contributed by DKMiller71.
+ */
+Exolve.prototype.measureTextWidth = function(entry) {
+  /**
+   * Re-use canvas object for better performance.
+   */
+  const canvas = this.canvas ?? (this.canvas = document.createElement("canvas"));
+  const context = canvas.getContext("2d");
+  context.font = getComputedStyle(this.gridParent).getPropertyValue("font");
+  const metrics = context.measureText(entry);
+  return metrics.width;
 }
 
 Exolve.prototype.adjustRebusFonts = function() {

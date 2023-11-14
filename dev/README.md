@@ -417,6 +417,10 @@ adjusted to try to fit all the letters. If you have some long rebus entries
 that do not fit the default cell size then you should use bigger cells, using
 [`exolve-cell-size`](#exolve-cell-size).
 
+If there are rebus cells, then the across-direction indicator arrow in the
+current cell is placed below the text intsead of to the right of it, to leave
+more space for the text.
+
 You cannot have rebus cells in crosswords that use languages with
 max-char-codes greater than one and in crosswords with diagramless cells (this
 allows us to keep the code simpler).
