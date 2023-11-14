@@ -2,7 +2,7 @@
 
 ## An Easily Configurable Interactive Crossword Solver
 
-### Version: Exolve v1.55 November 1, 2023
+### Version: Exolve v1.56 November 1?, 2023
 
 Exolve can help you create online interactively solvable crosswords (simple
 ones with blocks and/or bars as well as those that are jumbles or are
@@ -405,11 +405,12 @@ For example:
       M E T
 ```
 
-If there are rebus cells, then the solver can enter multiple letters into a
+If there are rebus cells, then you can enter multiple letters into any
 cell after double-clicking on it, or by pressing down the Shift key while
-entering a letter. If a cell already has previously entered multiple letters
+entering a letter. If a cell already has previously entered multiple letters,
 then when you come to it again (by clicking on it or auto-advancing from
-an adjacent cell), you will be able to enter multiple letters into it.
+an adjacent cell), you will be able to enter multiple letters into it (without
+having to use the Shift key or double-click).
 
 When multiple letters are entered into a cell, the font size of cell text is
 adjusted to try to fit all the letters. If you have some long rebus entries
