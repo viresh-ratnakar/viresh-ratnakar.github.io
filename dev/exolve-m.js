@@ -181,6 +181,7 @@ function Exolve(puzzleSpec,
   this.SEP_WIDTH = 2;
   this.SEP_WIDTH_BY2 = 1.5;
   this.NUMBER_START_X = 2;
+  this.MAX_REBUS_SIZE = 20;
 
   this.answersList = [];
   this.revelationList = [];
@@ -199,6 +200,14 @@ function Exolve(puzzleSpec,
   // Couple of vars to get long click on check/reveal to use just a cell.
   this.cellLightToggleTimer = null;
   this.cellNotLight = false;
+
+  /**
+   * Multi-char-entry related vars:
+   */
+  this.multiLetter = false;
+  this.multiLetterCellRow = -1;
+  this.multiLetterCellCol = -1;
+  this.lastKeyMod = false;
 
   this.numCellsToFill = 0;
   this.numCellsFilled = 0;
@@ -368,7 +377,8 @@ function Exolve(puzzleSpec,
         'adds a * prefix to the current clue\'s notes.</li><li>Hovering ' +
         'over a clue\'s notes shows the clue as a tooltip.</li>',
     'jotter': 'Jotter',
-    'jotter.hover': 'Show/hide a jotting pad that also lets you try out anagrams.',
+    'jotter.hover': 'Show/hide a jotting pad that also lets you try out anagrams and subtractions.',
+    'jotter-text.hover': 'You can shuffle letters by clicking above. If you enter something like [Alphabet - betas =] then it will be replaced by [lpha - s] (subtraction of common letters).',
     'maker-info': 'Exolve-maker info',
     'manage-storage': 'Manage local storage',
     'manage-storage.hover': 'View puzzle Ids for which state has been saved. ' +
@@ -493,6 +503,7 @@ function Exolve(puzzleSpec,
   this.language = '';
   this.languageScript = '';
   this.langMaxCharCodes = 1;
+  this.hasRebusCells = false;
   this.ignoreUnclued = false;
   this.ignoreEnumMismatch = false;
   this.showCellLevelButtons = false;
@@ -570,7 +581,7 @@ Exolve.prototype.init = function() {
               <div id="${this.prefix}-grid-input-wrapper"
                   class="xlv-grid-input-wrapper"
                   style="display:none;left:0;top:0"><input
-                      id="${this.prefix}-grid-input" type="text" maxlength="2"
+                      id="${this.prefix}-grid-input" type="text"
                       autocomplete="off" spellcheck="false"
                       class="xlv-grid-input xlv-cell-text"/></div>
               <div id="${this.prefix}-nina-group"
@@ -808,6 +819,7 @@ Exolve.prototype.init = function() {
                       >${this.textLabels['shuffle']}</span>
                   <textarea
                       id="${this.prefix}-scratchpad"
+                      title="${this.textLabels['jotter-text.hover']}"
                       class="xlv-textarea xlv-scratchpad"
                       spellcheck="false" rows="2"></textarea>
                 </p>
@@ -1093,6 +1105,7 @@ Exolve.prototype.init = function() {
   this.scratchPad.style.color = this.colorScheme['imp-text'];
   document.getElementById(this.prefix + '-shuffle').addEventListener(
         'click', this.scratchPadShuffle.bind(this));
+  this.scratchPad.addEventListener('input', this.scratchPadMath.bind(this));
 
   let info = 'Version: ' + this.VERSION + ', User Agent: ' +
       navigator.userAgent;
@@ -1109,15 +1122,19 @@ Exolve.prototype.init = function() {
     this.frame.lang = this.language;
     this.gridInput.lang = this.language;
     this.questions.lang = this.language;
-    this.gridInput.maxLength = '' + (2 * this.langMaxCharCodes);
   }
+  const maxlen = this.hasRebusCells ?
+                 this.MAX_REBUS_SIZE : (2 * this.langMaxCharCodes);
+  this.gridInput.maxLength = '' + maxlen;
 }
 
 Exolve.prototype.log = function(msg) {
   console.log('Exolve puzzle #' + this.index + ' [' + this.id + ']: ' + msg)
 }
 
-// The overall parser for the puzzle text.
+/**
+ * The overall parser for the puzzle text.
+ */
 Exolve.prototype.parseOverall = function() {
   this.specLines = []  // Blank lines are not included in this array.
   let rawLines = this.puzzleText.trim().split('\n');
@@ -1201,6 +1218,7 @@ Exolve.prototype.parseOverall = function() {
     }
     parsedSec = nextParsedSec;
   }
+  this.multiLetter = this.hasRebusCells || (this.langMaxCharCodes > 1);
   this.dirOrder = {}
   this.dirOrder['A'] = (this.sectionLines[
     this.layers3d > 1 ? '3d-across' : 'across'] || [0])[0];
@@ -1524,6 +1542,10 @@ Exolve.prototype.parseOption = function(s) {
     }
     if (spart == "print-completed-3cols") {
       this.printCompleted3Cols = true;
+      continue;
+    }
+    if (spart == "rebus-cells") {
+      this.hasRebusCells = true;
       continue;
     }
     if (spart == "ignore-unclued") {
@@ -1913,9 +1935,24 @@ Exolve.prototype.checkConsistency = function() {
   if (!this.hasNodirClues && !this.ignoreUnclued && noClueList) {
     this.showWarning("No clue(s) provided for: " + noClueList);
   }
+  if (this.hasRebusCells && (this.langMaxCharCodes > 1)) {
+    this.throwErr(
+        'Sorry, no rebus cells when the language has max-char-codes > 1.');
+  }
+  if (this.hasRebusCells && this.hasDgmlessCells) {
+    this.throwErr('Sorry, no rebus cells when there are diagramless cells.');
+  }
 }
 
 Exolve.prototype.caseCheck = function(c) {
+  if (c.length > 1 && this.hasRebusCells) {
+    for (const letter of c) {
+      if (!this.caseCheck(letter)) {
+        return false;
+      }
+    }
+    return true
+  }
   if (this.scriptRE) {
     if (this.scriptRE.test(c)) {
       return !this.scriptLowerCaseRE.test(c)
@@ -1928,15 +1965,19 @@ Exolve.prototype.caseCheck = function(c) {
   return false
 }
 
-// In this description, "alphabets" means A-Z or language-specific letters.
-// display chars: alphabets, ⬛, 0-9, chars allowed with allow-chars.
-// state chars: alphabets, '.', '0' and '?' (blanks), 1 (block in dgmless),
-//   chars allowed with allow-chars/allow-digits.
-// grid[i][j].solution and grid[i][j].currLetter are in "state char" space.
-// grid specified originally, consumed by parseGrid() either uses just '0'
-// and '.' or uses '.' and alphabets and '?' (and 0-9 if allow-digits and
-// any special characters from allow-chars).
-
+/**
+ * In this description, "alphabets" means A-Z or language-specific letters.
+ *
+ * display chars: alphabets, ⬛, 0-9, chars allowed with allow-chars.
+ * state chars: alphabets, '.', '0' and '?' (blanks), 1 (block in dgmless),
+ *   chars allowed with allow-chars/allow-digits.
+ *
+ * grid[i][j].solution and grid[i][j].currLetter are in "state char" space.
+ *
+ * The grid, as specified in the exolve-grid section and consumed by
+ * parseGrid(), either uses just '0' and '.' or uses '.' and alphabets and '?'
+ * (and 0-9 if allow-digits and any special characters from allow-chars).
+ */
 Exolve.prototype.isValidDisplayChar = function(c) {
   if (this.caseCheck(c)) {
     return true
@@ -1971,28 +2012,42 @@ Exolve.prototype.isValidGridChar = function(c) {
 
 Exolve.prototype.stateToDisplayChar = function(c) {
   if (c == '0' || c == '?') {
-    return ''
+    return '';
   }
   if (c == '1') {
-    return this.BLOCK_CHAR
+    return this.BLOCK_CHAR;
   }
   if (this.SPECIAL_DISPLAY_CHARS.hasOwnProperty(c)) {
     return this.SPECIAL_DISPLAY_CHARS[c];
   }
-  return c
+  if (this.hasRebusCells && c.length > 1) {
+    let out = '';
+    for (const letter of c) {
+      out += this.stateToDisplayChar(letter);
+    }
+    return out;
+  }
+  return c;
 }
 
 Exolve.prototype.displayToStateChar = function(c) {
   if (c == this.BLOCK_CHAR) {
-    return '1'
+    return '1';
   }
   if (this.SPECIAL_STATE_CHARS.hasOwnProperty(c)) {
     return this.SPECIAL_STATE_CHARS[c];
   }
   if (!this.isValidDisplayChar(c)) {
-    return '0'
+    return '0';
   }
-  return c
+  if (this.hasRebusCells && c.length > 1) {
+    let out = '';
+    for (const letter of c) {
+      out += this.displayToStateChar(letter);
+    }
+    return out;
+  }
+  return c;
 }
 
 Exolve.prototype.newGridCell = function(row, col, letter, escaped=false) {
@@ -2052,7 +2107,7 @@ Exolve.prototype.parseGrid = function() {
   for (let i = 0; i < this.gridHeight; i++) {
     this.grid[i] = new Array(this.gridWidth)
     let gridLine = this.specLines[i + gridFirstLine].trim().toUpperCase()
-    if (this.langMaxCharCodes == 1) {
+    if (!this.multiLetter) {
       gridLine = gridLine.replace(/\s/g, '')
     } else {
       gridLine = gridLine.replace(/\s+/g, ' ')
@@ -2061,9 +2116,10 @@ Exolve.prototype.parseGrid = function() {
     for (let j = 0; j < this.gridWidth; j++) {
       if (gridLineIndex >= gridLine.length) {
         let errmsg = 'Too few letters in the grid at row,col: ' + i + ',' + j
-        if (this.langMaxCharCodes > 1) {
+        if (this.multiLetter) {
           errmsg = errmsg + '. Note that grid letters must be separated by ' +
-            'spaces or decorators for languages that have compound characters';
+            'spaces or decorators for languages that have compound characters ' +
+            'or if there are rebus cells';
         }
         this.throwErr(errmsg)
       }
@@ -2073,7 +2129,7 @@ Exolve.prototype.parseGrid = function() {
         letter = gridLine.charAt(gridLineIndex++)
         escaped = true
       }
-      if (this.langMaxCharCodes > 1 && letter != '.' && letter != '0') {
+      if (this.multiLetter && letter != '.' && letter != '0') {
         let next = gridLineIndex
         while (next < gridLine.length &&
                !reNextChar.test(gridLine.charAt(next))) {
@@ -4518,7 +4574,7 @@ Exolve.prototype.getGridStateAndNumFilled = function(notifyIfComplete=true) {
         if (stateLetter == '?') {
           stateLetter = '0';
         }
-        if (this.langMaxCharCodes == 1) {
+        if (!this.multiLetter) {
           state = state + stateLetter;
         } else {
           state = state + stateLetter + '$';
@@ -4643,6 +4699,7 @@ Exolve.prototype.resetState = function() {
       }
     }
   }
+  this.adjustRebusFonts();
 }
 
 // Returns true upon success.
@@ -4661,7 +4718,7 @@ Exolve.prototype.parseState = function(state) {
       }
       let letter = ''
       letter = state.charAt(index++)
-      if (this.langMaxCharCodes > 1 && letter != '.') {
+      if (this.multiLetter && letter != '.') {
         let dollar = state.indexOf('$', index)
         if (dollar < 0) {
           this.log('Missing compound-char separator in saved state')
@@ -4705,11 +4762,11 @@ Exolve.prototype.parseState = function(state) {
       if (gridCell.isLight || gridCell.isDgmless) {
         console.assert(parsedState.length > 0, parsedState)
         gridCell.currLetter = parsedState.shift();
-        gridCell.textNode.nodeValue =
-            this.stateToDisplayChar(gridCell.currLetter)
+        gridCell.textNode.nodeValue = this.stateToDisplayChar(gridCell.currLetter);
       }
     }
   }
+  this.adjustRebusFonts();
   console.assert(parsedState.length == 0, parsedState)
 
   // Also try to recover answers to questions and orphan-fills.
@@ -5405,6 +5462,7 @@ Exolve.prototype.copyPlaceholderBlank = function(clueIndex) {
       }
     }
   }
+  this.adjustRebusFonts();
   if (index < this.activeCells.length) {
     // Advance to the next square.
     let x = this.activeCells[index]
@@ -5717,6 +5775,8 @@ Exolve.prototype.fromNotesToGrid = function() {
 // For tab/shift-tab, ctrl-q, ctrl-Q, ctrl-B, ctrl-e
 Exolve.prototype.handleKeyDown = function(e) {
   let key = e.which || e.keyCode
+  this.lastKeyMod = e.metaKey || e.ctrlKey || e.shiftKey;
+  console.log('lastKeyMod = ' + this.lastKeyMod);  // TODO
   if (key == 9) {
     if (this.handleKeyUpInner(key, e.shiftKey)) {
       // Tab input got used already.
@@ -5957,9 +6017,51 @@ Exolve.prototype.expireOverwrite = function(gridCell) {
   }
 }
 
+/**
+ * TODO
+ */
+Exolve.prototype.toggleMultiLetterEntry = function() {
+  if (!this.multiLetter) {
+    return;
+  }
+  const gridCell = this.currCell();
+  if (!gridCell || !gridCell.isLight) {
+    return;
+  }
+  if (this.multiLetterCellRow >= 0) {
+    this.multiLetterCellRow = -1;
+    this.multiLetterCellCol = -1;
+  } else {
+    this.multiLetterCellRow = this.currRow;
+    this.multiLetterCellCol = this.currCol;
+  }
+}
+
+/**
+ * Only called from handleGridInput()
+ */
+Exolve.prototype.checkMultiLetterMode = function(entry) {
+  if (!this.multiLetter) {
+    return false;
+  }
+  const mRow = this.multiLetterCellRow;
+  const mCol = this.multiLetterCellCol;
+  this.multiLetterCellRow = -1;
+  this.multiLetterCellCol = -1;
+  if (this.lastKeyMod) {
+    return true;
+  }
+  if (this.currRow == mRow && this.currCol == mCol) {
+    this.multiLetterCellRow = mRow;
+    this.multiLetterCellCol = mCol;
+    return true;
+  }
+  return entry.length > 1;
+}
+
 Exolve.prototype.handleGridInput = function() {
   this.usingGnav = true;
-  let gridCell = this.currCell();
+  const gridCell = this.currCell();
   if (!gridCell) {
     return;
   }
@@ -5968,15 +6070,19 @@ Exolve.prototype.handleGridInput = function() {
   }
   let newInput = this.gridInput.value;
   let currDisplayChar = this.stateToDisplayChar(gridCell.currLetter);
+  const multiLetterMode = this.checkMultiLetterMode(currDisplayChar);
   if (gridCell.currLetter != '0' && gridCell.currLetter != '?' &&
-      newInput != currDisplayChar && this.langMaxCharCodes == 1) {
+      newInput != currDisplayChar && !multiLetterMode) {
     // The "new" input may be before or after the old input.
     const index = newInput.indexOf(currDisplayChar);
     if (index == 0) {
       newInput = newInput.substr(1);
     }
   }
-  let displayChar = newInput.substr(0, this.langMaxCharCodes);
+  let displayChar = newInput.replace(/\s+/g, ' ');
+  if (!this.hasRebusCells) {
+    displayChar = newInput.substr(0, this.langMaxCharCodes);
+  }
   let wasSpace = displayChar == ' ';
   if (wasSpace) {
     if (gridCell.isDgmless) {
@@ -6005,6 +6111,11 @@ Exolve.prototype.handleGridInput = function() {
   gridCell.currLetter = stateChar;
   gridCell.textNode.nodeValue = displayChar;
   this.gridInput.value = displayChar;
+  if (this.hasRebusCells) {
+    const fontSize = this.cellLetterSize(displayChar);
+    gridCell.cellText.style.fontSize = fontSize;
+    this.gridInput.style.fontSize = fontSize;
+  }
   if (oldLetter == '1' || stateChar == '1') {;
     let gridCellSym = this.symCell(this.currRow, this.currCol);
     if (gridCellSym.isDgmless) {
@@ -6054,8 +6165,8 @@ Exolve.prototype.handleGridInput = function() {
 
   this.updateAndSaveState();
 
-  if (wasSpace ||
-      (this.isValidDisplayChar(displayChar) && this.langMaxCharCodes == 1)) {
+  if (!multiLetterMode &&
+      (wasSpace || this.isValidDisplayChar(displayChar))) {
     this.advanceCursor();
   }
 }
@@ -6081,8 +6192,9 @@ Exolve.prototype.createListeners = function() {
   this.boundListeners['key-down'] = this.handleKeyDown.bind(this);
 
   this.boundListeners['grid-input'] = this.handleGridInput.bind(this);
+  this.boundListeners['grid-cell-dblclick'] = this.toggleMultiLetterEntry.bind(this);
 
-  this.boundListeners['toggler'] = this.toggleCurrDirAndActivate.bind(this);
+  this.boundListeners['grid-cell-click'] = this.toggleCurrDirAndActivate.bind(this);
 
   this.boundListeners['deactivator'] = this.deactivator.bind(this)
   
@@ -6102,7 +6214,8 @@ Exolve.prototype.bindListeners = function() {
 
   this.gridInput.addEventListener('input', this.boundListeners['grid-input']);
 
-  this.gridInputWrapper.addEventListener('click', this.boundListeners['toggler']);
+  this.gridInputWrapper.addEventListener('click', this.boundListeners['grid-cell-click']);
+  this.gridInputWrapper.addEventListener('dblclick', this.boundListeners['grid-cell-dblclick']);
 
   const boundDeactivator = this.boundListeners['deactivator'];
   this.background.addEventListener('click', boundDeactivator);
@@ -6137,9 +6250,37 @@ Exolve.prototype.recolourCells = function(scale=1) {
   this.colourGroup.style.display = (this.colourfuls.length > 0) ? '' : 'none';
 }
 
+Exolve.prototype.cellLetterSize = function(entry) {
+  if (!this.hasRebusCells || entry.length <= 1) {
+    return this.letterSize + 'px';
+  }
+  return (6 + ((this.letterSize - 6) / entry.length)) + 'px';
+}
+
+Exolve.prototype.adjustRebusFonts = function() {
+  if (!this.hasRebusCells) {
+    return;
+  }
+  for (let i = 0; i < this.gridHeight; i++) {
+    for (let j = 0; j < this.gridWidth; j++) {
+      const gridCell = this.grid[i][j];
+      if (!gridCell.isLight) {
+        continue;
+      }
+      const displayChar = this.stateToDisplayChar(gridCell.currLetter);
+      const fontSize = this.cellLetterSize(displayChar);
+      gridCell.cellText.style.fontSize = fontSize;
+      if (this.atCurr(i, j)) {
+        this.gridInput.style.fontSize = fontSize;
+      }
+    }
+  }
+}
+
 Exolve.prototype.displayGrid = function() {
-  this.gridInput.style.fontSize = this.letterSize + 'px'
-  this.gridInputWrapper.style.fontSize = this.letterSize + 'px'
+  const fontSize = this.cellLetterSize('');
+  this.gridInput.style.fontSize = fontSize;
+  this.gridInputWrapper.style.fontSize = fontSize;
   this.numCellsToFill = 0
   this.numCellsPrefilled = 0
   for (let i = 0; i < this.gridHeight; i++) {
@@ -6181,7 +6322,7 @@ Exolve.prototype.displayGrid = function() {
       } else {
         cellText.style.fill = this.colorScheme['light-text']
       }
-      cellText.style.fontSize = this.letterSize + 'px'
+      cellText.style.fontSize = fontSize;
       cellText.setAttributeNS(null, 'class', cellClass)
 
       const text = document.createTextNode(letter);
@@ -6235,6 +6376,7 @@ Exolve.prototype.displayGrid = function() {
       this.svg.appendChild(cellGroup);
     }
   }
+  this.adjustRebusFonts();
 
   // Bars/word-ends to the right and under; hyphens.
   for (let i = 0; i < this.gridHeight; i++) {
@@ -6505,6 +6647,7 @@ Exolve.prototype.clearCell = function(row, col) {
       this.gridInput.value = '';
     }
   }
+  this.adjustRebusFonts();
   if (oldLetter == '1') {
     let gridSymCell = this.symCell(row, col);
     if (gridSymCell.isDgmless) {
@@ -6649,6 +6792,7 @@ Exolve.prototype.clearAll = function(conf=true) {
     this.refocus()
     return false
   }
+  const fontSize = this.cellLetterSize('');
   for (let row = 0; row < this.gridHeight; row++) {
     for (let col = 0; col < this.gridWidth; col++) {
       let gridCell = this.grid[row][col]
@@ -6665,6 +6809,7 @@ Exolve.prototype.clearAll = function(conf=true) {
       }
     }
   }
+  this.adjustRebusFonts();
   for (let a of this.answersList) {
     if (a.isq) {
       a.input.value = ''
@@ -6741,6 +6886,7 @@ Exolve.prototype.checkCurr = function() {
     }
   }
   let allCorrectNum = 0
+  const fontSize = this.cellLetterSize('');
   for (let x of this.activeCells) {
     let row = x[0]
     let col = x[1]
@@ -6767,6 +6913,7 @@ Exolve.prototype.checkCurr = function() {
       }
     }
   }
+  this.adjustRebusFonts();
   let neededAllCorrectNum = -1  // revealCurr() will not get triggered
   if (resetActiveCells) {
     if (this.activeCells.length > 0) {
@@ -6962,6 +7109,7 @@ Exolve.prototype.revealCurr = function() {
       }
     }
   }
+  this.adjustRebusFonts();
   this.updateActiveCluesState();
   if (this.currClueIndex && !this.cellNotLight) {
     this.updateClueState(this.currClueIndex, false, 'solved', true);
@@ -6999,6 +7147,7 @@ Exolve.prototype.revealAll = function(conf=true) {
       }
     }
   }
+  this.adjustRebusFonts();
   for (let a of this.answersList) {
     if (a.ans) {
       a.input.value = a.ans;
@@ -7059,6 +7208,62 @@ Exolve.prototype.scratchPadShuffle = function() {
     textArray[indices[i]] = toShuffle[i]
   }
   this.scratchPad.value = textArray.join('')
+}
+
+Exolve.prototype.scratchPadMath = function() {
+  const text = this.scratchPad.value.trim();
+  if (!text.endsWith('=')) {
+    return;
+  }
+  const parts = text.split('-');
+  if (parts.length != 2) {
+    return;
+  }
+  const a = parts[0].trim();
+  const b = parts[1].slice(0, parts[1].length - 1).trim();
+  if (!a || !b) {
+    return;
+  }
+  const letterCounter = (s) => {
+    counts = {};
+    for (const c of s) {
+      const cu = c.toUpperCase();
+      if (!this.isValidDisplayChar(cu)) {
+        continue;
+      }
+      counts[cu] = counts.hasOwnProperty(cu) ? counts[cu] + 1 : 1;
+    }
+    return counts;
+  };
+  countsB = letterCounter(b);
+  let aMod = '';
+  let bDel = '';
+  for (const c of a) {
+    const cu = c.toUpperCase();
+    if ((countsB[cu] ?? 0) > 0) {
+      bDel += c;
+      countsB[cu] -= 1;
+    } else {
+      aMod += c;
+    }
+  }
+  aMod = aMod.trim();
+  const bDelCounts = letterCounter(bDel);
+  let bMod = '';
+  for (const c of b) {
+    const cu = c.toUpperCase();
+    if ((bDelCounts[cu] ?? 0) > 0) {
+      bDelCounts[cu] -= 1;
+    } else {
+      bMod += c;
+    }
+  }
+  bMod = bMod.trim();
+  let result = aMod;
+  if (bMod) {
+    result += ' - ' + bMod;
+  }
+  this.scratchPad.value = result;
 }
 
 Exolve.prototype.submitSolution = function() {
