@@ -409,8 +409,15 @@ If there are rebus cells, then the solver can enter multiple letters into a
 cell after double-clicking on it, or by pressing down the Control or Command
 button while entering a letter.
 
+When multiple letters are entered into a cell in a crossword that has the
+`rebus-cells` option set, the font size of cell text is adjusted to try
+to fit all the letters. If you have some long rebus entries that do not fit
+the default cell size then you should use bigger cells, using
+[`exolve-cell-size`](#exolve-cell-size).
+
 You cannot have rebus cells in crosswords that use languages with
-max-char-codes greater than one (this allows us to keep the code simpler).
+max-char-codes greater than one and in crosswords with diagramless cells (this
+allows us to keep the code simpler).
 
 ### Some details about diagramless cells
 Note that "diagramlessness" only hides from the solver whether a square is
