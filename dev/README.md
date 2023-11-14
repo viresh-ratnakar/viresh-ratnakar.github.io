@@ -389,9 +389,10 @@ made up entirely of `0s`.
 
 ### Rebus cells
 
-If you want some the solution to include some cells that have multiple letters
-(aka "rebus cells"), then you have to use `exolve-option: rebus-cells` (and you
-*have* to separate grid solution entries with spaces as mentioned earlier).
+If you want the crossword solution to include some cells that have multiple
+letters (aka "rebus cells"), then you have to use `exolve-option: rebus-cells`
+(and you *have* to separate grid solution entries with spaces as mentioned
+earlier).
 
 For example:
 ```
@@ -407,6 +408,9 @@ For example:
 If there are rebus cells, then the solver can enter multiple letters into a
 cell after double-clicking on it, or by pressing down the Control or Command
 button while entering a letter.
+
+You cannot have rebus cells in crosswords that use languages with
+max-char-codes greater than one (this allows us to keep the code simpler).
 
 ### Some details about diagramless cells
 Note that "diagramlessness" only hides from the solver whether a square is
@@ -1385,7 +1389,7 @@ The list of currently supported options is as follows:
   This can be used to override properties for which there is no explicit
   dedicated option, such as `GRIDLINE`.
 - **`rebus-cells`** Allow multiple letters to be entered in cells. See
-  [`Rebus cells`](#rebus-cells) for details/
+  [`Rebus cells`](#rebus-cells) for details.
 - **`print-completed-3cols` and `print-incomplete-2cols`** These option
   override the default layout choices used for printing puzzles (and creating
   PDFs). By default, a completed puzzle is printed in 2 columns
