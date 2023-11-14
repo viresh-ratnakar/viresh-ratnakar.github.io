@@ -6038,18 +6038,18 @@ Exolve.prototype.checkMultiLetterMode = function(entry) {
   if (!this.multiLetter) {
     return false;
   }
-  if (this.lastKeyHadShift) {
-    return true;
-  }
-  if (this.currRow == this.multiLetterCellRow &&
-      this.currCol == this.multiLetterCellCol) {
-    return true;
-  }
-  if (entry.length > 1) {
-    return true;
-  }
+  const mRow = this.multiLetterCellRow;
+  const mCol = this.multiLetterCellCol;
   this.multiLetterCellRow = -1;
   this.multiLetterCellCol = -1;
+  if (this.lastKeyHadShift || entry.length > 1) {
+    return true;
+  }
+  if (this.currRow == mRow && this.currCol == mCol) {
+    this.multiLetterCellRow = mRow;
+    this.multiLetterCellCol = mCol;
+    return true;
+  }
   return false;
 }
 
@@ -6074,7 +6074,7 @@ Exolve.prototype.handleGridInput = function() {
     }
   }
   let displayChar = newInput.replace(/\s+/g, ' ');
-  if (!this.hasRebusCells) {
+  if (!this.hasRebusCells || !multiLetterMode) {
     displayChar = newInput.substr(0, this.langMaxCharCodes);
   }
   let wasSpace = displayChar == ' ';
