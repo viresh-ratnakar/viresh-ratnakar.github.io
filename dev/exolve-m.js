@@ -5776,7 +5776,6 @@ Exolve.prototype.fromNotesToGrid = function() {
 Exolve.prototype.handleKeyDown = function(e) {
   let key = e.which || e.keyCode
   this.lastKeyMod = e.metaKey || e.ctrlKey || e.shiftKey;
-  console.log('lastKeyMod = ' + this.lastKeyMod);  // TODO
   if (key == 9) {
     if (this.handleKeyUpInner(key, e.shiftKey)) {
       // Tab input got used already.
