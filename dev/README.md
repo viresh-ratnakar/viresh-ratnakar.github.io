@@ -407,7 +407,7 @@ For example:
 
 If there are rebus cells, then the solver can enter multiple letters into a
 cell after double-clicking on it, or by pressing down the Control or Command
-button while entering a letter.
+or Shift key while entering a letter.
 
 When multiple letters are entered into a cell in a crossword that has the
 `rebus-cells` option set, the font size of cell text is adjusted to try
@@ -1558,8 +1558,8 @@ of four characters). In these situations, you can specify
 to allow to go into a composite letter, at most. For Devanagari, the software
 already sets this to 4 (but you can override that if you specify a value
 here). When &lt;max-char-codes-per-letter&gt; is greater than 1, you can append
-to existing characters within a cell by pressing the Control or Command key,
-or by double-clicking in the cell.
+to existing characters within a cell by pressing the Control or Command or Shif
+ key, or by double-clicking in the cell.
 
 When you use a language other than English, you may also want to change the
 text displayed in various buttons etc. to that language. You can do that
