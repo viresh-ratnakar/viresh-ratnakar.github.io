@@ -5712,19 +5712,20 @@ Exolve.prototype.handleKeyUpInner = function(key, shift=false) {
     return true
   }
   if (key == 46) { // delete key
-    const gridCell = this.currCell()
+    const gridCell = this.currCell();
     if (gridCell && gridCell.isLight && !gridCell.prefill) {
-      this.clearCell(this.currRow, this.currCol)
-      this.updateAndSaveState()
+      this.clearCell(this.currRow, this.currCol);
+      this.updateActiveCluesState();
+      this.updateAndSaveState();
     }
-    return true
+    return true;
   }  
   if (key == 13) {
     // Enter
-    this.toggleCurrDirAndActivate()
+    this.toggleCurrDirAndActivate();
   } else if (key == 39) {
     // right arrow
-    let col = this.currCol + 1
+    let col = this.currCol + 1;
     while (col < this.gridWidth &&
            !this.grid[this.currRow][col].isLight &&
            !this.grid[this.currRow][col].isDgmless) {
@@ -5735,7 +5736,7 @@ Exolve.prototype.handleKeyUpInner = function(key, shift=false) {
     }
   } else if (key == 37) {
     // left arrow
-    let col = this.currCol - 1
+    let col = this.currCol - 1;
     while (col >= 0 &&
            !this.grid[this.currRow][col].isLight &&
            !this.grid[this.currRow][col].isDgmless) {
@@ -6701,7 +6702,7 @@ Exolve.prototype.clearCell = function(row, col) {
   }
 }
 
-// Returns a pair of numbers. The first number is  0 if not full, 1 if full,
+// Returns a pair of numbers. The first number is 0 if not full, 1 if full,
 // 2 if full entirely with prefills. The second number is the number of
 // full cells.
 Exolve.prototype.isFull = function(clueIndex) {
