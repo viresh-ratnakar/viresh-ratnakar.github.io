@@ -6037,7 +6037,9 @@ Exolve.prototype.expireOverwrite = function(gridCell) {
 }
 
 /**
- * TODO
+ * This is the handler for a double-click in a cell. It enables the entry of
+ * multiple letters into the current cell, but only if the crossword has rebus
+ * cells or is in a language that has multi-char letters.
  */
 Exolve.prototype.enableMultiLetterEntry = function() {
   if (!this.multiLetter) {
@@ -6052,7 +6054,9 @@ Exolve.prototype.enableMultiLetterEntry = function() {
 }
 
 /**
- * Only called from handleGridInput()
+ * Only called from handleGridInput(), this checks if
+ * multiple letters are to be allowed to be entered during the
+ * current entry of letters into a cell.
  */
 Exolve.prototype.checkMultiLetterMode = function(entry) {
   if (!this.multiLetter) {
@@ -6060,6 +6064,11 @@ Exolve.prototype.checkMultiLetterMode = function(entry) {
   }
   const mRow = this.multiLetterCellRow;
   const mCol = this.multiLetterCellCol;
+  /**
+   * If multi-letter-mode gets enabled for reasons other than the last
+   * dobule-click, or if that double-click was in some other cell, then clear
+   * away that double-click's state.
+   */
   this.multiLetterCellRow = -1;
   this.multiLetterCellCol = -1;
   if (this.lastKeyHadShift || entry.length > 1) {
