@@ -980,7 +980,25 @@ Examples:
 If you place just one underscore, then the actual displayed size of the blank
 will be determined using the enum. If you place more than one underscore, then
 the displayed size of the blank will equal the number of underscores that you
-have provided.
+have provided. You can have spaces between these underscores just to help you
+count them more easily.
+
+The placeholder blank, when empty, will show (as the light gray "placeholder"
+text that indicates a hint for what the solver needs to enter) the text pattern
+implied by the enum, such as "??? ??-??" for (3, 3-3). You can override this
+placeholfer text by specifying what should get displayed within square brackets,
+right after the last underscore. For example:
+```
+  exolve-down:
+    3 This will have 8 placeholder blanks showing "??? ??" instead of
+      "????" (4) _ _ _ _ _ _ _ _ [??? ??] Some anno.
+    3 For this piece of cake, we customize the placeholder text shown
+      in the placeholder blank to be "EAT ME" instead of "??? ??" (3,2) _[EAT ME]
+```
+
+The length of a placeholder blank (the number of letters that it can hold) will
+be the maximum of the number of underscores and the length of the gray placeholder
+text (from the enum or from the overridden text).
 
 Just like the placeholder blanks that appear in orphan clues, these forced
 placeholder blanks will also be accompanied by "copy-placeholder buttons"

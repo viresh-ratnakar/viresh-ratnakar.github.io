@@ -3066,6 +3066,7 @@ Exolve.prototype.parseInClueAnnos = function(clue) {
 // hyphenAfter[] (0-based indices)
 // wordEndAfter[] (0-based indices)
 // placeholder
+// placeholderForBlank
 // startCell optional, used in diagramless+unsolved and off-numeric labels
 // cells[] optionally filled, if all clue cells are specified in the clue
 // anno (the part after the enum, if present)
@@ -3388,6 +3389,11 @@ Exolve.prototype.parseAnno = function(anno, clueIndex) {
   }
   if (numBlanks > 0) {
     theClue.showBlanks = numBlanks;
+    let x = -1;
+    if (anno.startsWith('[') && ((x = anno.indexOf(']')) >= 1)) {
+      theClue.placeholderForBlank = anno.substring(1, x);
+      anno = anno.substr(x + 1).trim();
+    }
   }
   theClue.anno = anno;
 }
@@ -4366,11 +4372,14 @@ Exolve.prototype.displayClues = function() {
       let placeholder = '';
       let len = this.PLACEHOLDER_BLANK_LEN;
       if (theClue.placeholder) {
-        placeholder = theClue.placeholder;
+        placeholder = theClue.placeholder.replace(/\?/g, '·');
         len = placeholder.length;
       }
       if (theClue.showBlanks && theClue.showBlanks > 1) {
         len = theClue.showBlanks;
+      }
+      if (theClue.placeholderForBlank) {
+        placeholder = theClue.placeholderForBlank;
       }
       theClue.placeholderBlank =
           this.addPlaceholderBlank(clueCol, false, len, placeholder, clueIndex);
@@ -5354,7 +5363,7 @@ Exolve.prototype.cnavToInner = function(activeClueIndex, grabFocus = false) {
     let len = this.clues[parentIndex].placeholderBlank.size ||
               this.PLACEHOLDER_BLANK_LEN;
     if (this.clues[parentIndex].placeholder) {
-      placeholder = this.clues[parentIndex].placeholder
+      placeholder = this.clues[parentIndex].placeholder.replace(/\?/g, '·');
     }
     this.addPlaceholderBlank(this.currClueInner, true, len, placeholder, parentIndex);
     this.copyPlaceholderBlankToCurr(parentIndex)
@@ -5558,9 +5567,12 @@ Exolve.prototype.addPlaceholderBlank = function(
   if (inCurr) {
     html = html + ' id="' + this.CURR_PLACEHOLDER_BLANK_ID + '"'
   }
+  if (len < placeholder.length) {
+    len = placeholder.length;
+  }
   html = html + ' class="xlv-nobr">' +
-    '<input size="' + len + '" class="xlv-incluefill" placeholder="' +
-    placeholder.replace(/\?/g, '·') +
+    '<input size="' + len + '" + style="max-width:' + len + 'ch"' +
+    '" class="xlv-incluefill" placeholder="' + placeholder +
     '" type="text" ' +
     'title="' + this.textLabels['placeholder.hover'] + '" ' +
     'autocomplete="off" spellcheck="off"></input>'
