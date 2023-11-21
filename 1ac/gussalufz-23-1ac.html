@@ -34,8 +34,26 @@ const letters = [
   'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
 ];
 
-function decrypt(evt) {
+function decrypt(changed='') {
   const decoder = {};
+  if (changed) {
+    /* remove the new value of changed if it is in use somewhere else */
+    const value = document.getElementById(
+        `xlv-23-key-${changed}`).value.trim();
+    if (value) {
+      for (const letter of letters) {
+        if (letter == changed) {
+          continue;
+        }
+        const id = `xlv-23-key-${letter}`;
+        const select = document.getElementById(id);
+        if (select.value == value) {
+          select.value = '';
+          break;
+        }
+      }
+    }
+  }
   let keyToSave = '';
   const mapped = new Set;
   for (const letter of letters) {
@@ -62,14 +80,14 @@ function decrypt(evt) {
   for (const letter of letters) {
     const id = `xlv-23-key-${letter}`;
     const select = document.getElementById(id);
-    if (select.value.trim()) {
-      continue;
-    }
-    let html = '<option value="" selected></option>';
-    for (const val of unMapped) {
+    const value = select.value.trim();
+    const choices = value ? letters : unMapped;
+    let html = '<option value=""></option>';
+    for (const val of choices) {
       html += `<option value="${val}">${val}</option>`;
     }
     select.innerHTML = html;
+    select.value = value;
   }
 
   xlv.answersList[0].input.value = keyToSave;
@@ -164,7 +182,10 @@ function customizeExolve(puz) {
   for (const letter of letters) {
     const id = `xlv-23-key-${letter}`;
     const select = document.getElementById(id);
-    select.addEventListener('change', decrypt);
+    const handler = (evt) => {
+      decrypt(letter);
+    };
+    select.addEventListener('change', handler);
   }
 
   const reset = document.getElementById('xlv-23-reset');
