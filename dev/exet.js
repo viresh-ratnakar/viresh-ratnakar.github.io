@@ -24,7 +24,7 @@ SOFTWARE.
 The latest code and documentation for Exet can be found at:
 https://github.com/viresh-ratnakar/exet
 
-Current version: v0.86 May 13, 2023
+Current version: v0.89, November 25, 2023
 */
 
 function ExetModals() {
@@ -663,7 +663,7 @@ function ExetRev(id, title, revNum, revType, timestamp, details="") {
 };
 
 function Exet() {
-  this.version = 'v0.86 May 7, 2023';
+  this.version = 'v0.89, November 25, 2023';
   this.puz = null;
   this.prefix = '';
   this.suffix = '';
@@ -805,6 +805,10 @@ Exet.prototype.setPuzzle = function(puz) {
   }
   if (puz.hasNodirClues) {
     alert('Nodir clues not yet supported');
+    return;
+  }
+  if (puz.hasRebusCells) {
+    alert('Rebus cells are not supported');
     return;
   }
   if (puz.offNumClueIndices.length > 0) {
@@ -1036,6 +1040,7 @@ Exet.prototype.setPuzzle = function(puz) {
   this.hideExolveElement('print');
   this.hideExolveElement('webifi');
   this.hideExolveElement('notes');
+  this.hideExolveElement('jotter');
   this.hideExolveElement('report-bug');
   this.hideExolveElement('exolve-link');
   this.hideExolveElement('postscript');
@@ -1600,14 +1605,6 @@ Exet.prototype.makeExetTab = function() {
           <div class="xet-dropdown-item">
             Edit grid cell:
             <div class="xet-dropdown-submenu">
-              <div style="padding:10px"
-                  title="If you check this, then the next Toggle block/bar ` +
-                  `will not automatically do the same on the symmetric cell">
-                <input id="xet-asymmetry-ok" name="xet-asymmetry-ok"
-                  value="asymmetric" type="checkbox" style="margin:6px 0">
-                </input>
-                <i>Do not force symmetry with "Toggle block/bar"</i>
-              </div>
               <div class="xet-dropdown-subitem"
                   title="Toggle making this cell a block"
                   onclick="exet.handleKeyDown('.')">
@@ -1695,6 +1692,14 @@ Exet.prototype.makeExetTab = function() {
                 <input type="checkbox" id="xet-spellcheck"></input>
                 Spellcheck clues/annos
               </div>
+              <div style="padding:10px"
+                  title="If you check this, then 'Toggle block/bar' ` +
+                  `will not automatically enforce symmetry for this crossword">
+                <input id="xet-asymmetry-ok" name="xet-asymmetry-ok"
+                  value="asymmetric" type="checkbox">
+                </input>
+                <i>Allow asymmetry</i>
+              </div>
             </div>
           </div>
 
@@ -1706,10 +1711,23 @@ Exet.prototype.makeExetTab = function() {
         <div class="xet-dropdown-content xet-analysis" id="xet-analysis">
         </div>
       </li>
-      <li class="xet-dropdown">
+      <li class="xet-dropdown" style="float:right;">
+        <div class="xet-dropbtn" id="xet-about" title="Click to see notes, ` +
+            `notices, and pointers about Exet...">About <span
+            id='xet-outdated' style='display:none'>&#9888;</span></div>
+        <div class="xet-dropdown-content"
+            style="right:0;width:90ch;padding:8px;">
+          <div id="xet-outdated-message" style="display:none"></div>
+          <iframe id="xet-about-iframe" class="xet-iframe xet-section"
+              src="about-exet.html">
+          </iframe>
+        </div>
+      </li>
+      <li class="xet-dropdown" style="float:right">
         <div class="xet-dropbtn"
             title="Review usage tips">Tips</div>
-        <div class="xet-dropdown-content xet-tips" id="xet-tips">
+        <div class="xet-dropdown-content xet-tips" id="xet-tips"
+            style="right:0">
           <button id="xet-prev-tip" title="See previous tip"
               onclick="exet.navTip(-1)"
               class="xlv-small-button">Prev</button>
@@ -1721,19 +1739,6 @@ Exet.prototype.makeExetTab = function() {
               class="xlv-small-button">Next</button>
           <div class="xet-tip" id="xet-tip">
           </div>
-        </div>
-      </li>
-      <li class="xet-dropdown" style="float:right;">
-        <div class="xet-dropbtn" id="xet-about" title="Click to see notes, ` +
-            `notices, and pointers about Exet...">About <span
-            id='xet-outdated' style='display:none'>&#9888;</span></div>
-        <div class="xet-dropdown-content"
-            style="right:0;width:90ch;padding:8px;">
-          <div id="xet-outdated-message" style="display:none"></div>
-          <iframe id="xet-about-iframe" class="xet-iframe"
-              style="height:450px"
-              src="about-exet.html">
-          </iframe>
         </div>
       </li>
     </ul>
@@ -2027,10 +2032,10 @@ Exet.prototype.makeExetTab = function() {
   });
 
   const preamble = document.getElementById("xet-preamble")
-  const preambleText = document.getElementById("xet-preamble-text")
-  preambleText.value = this.preamble.innerHTML;
-  preambleText.addEventListener('input', e => {
-    const text = preambleText.value.trim()
+  this.preambleText = document.getElementById("xet-preamble-text")
+  this.preambleText.value = this.preamble.innerHTML;
+  this.preambleText.addEventListener('input', e => {
+    const text = exet.preambleText.value.trim()
     this.preamble.innerHTML = text
     this.preamble.style.display = text ? '' : 'none'
     exetRevManager.throttledSaveRev(exetRevManager.REV_METADATA_CHANGE)
@@ -2152,48 +2157,48 @@ Exet.prototype.addStat = function(dict, stat, details) {
 }
 
 Exet.prototype.essenceOfAnno = function(s) {
-  let out = ''
+  let out = '';
   for (let c of s) {
     if (c == '*') {
-      out += ' anagram '
+      out += ' anagram ';
     } else if (c == '.' || c == '!' || c == '?' || c == '+' || c == ':') {
-      out += ' '
+      out += ' ';
     } else {
-      out += c
+      out += c;
     }
   }
-  out = out.replace(/ [ ]*/g, ' ').trim()
+  out = out.replace(/ [ ]*/g, ' ').trim();
   // Remove words containing {}
-  out = out.replace(/[^ ]*{[^}]*}[^ ]*/g, ' ')
+  out = out.replace(/[^ ]*{[^}]*}[^ ]*/g, ' ');
   // Remove words containing ()
-  out = out.replace(/[^ ]*\([^)]*\)[^ ]*/g, ' ')
+  out = out.replace(/[^ ]*\([^)]*\)[^ ]*/g, ' ');
   // Remove words containing []
-  out = out.replace(/[^ ]*\[[^\]]*\][^ ]*/g, ' ')
+  out = out.replace(/[^ ]*\[[^\]]*\][^ ]*/g, ' ');
   // Remove parens
-  out = out.replace(/[\[\]}){(]/g, '')
+  out = out.replace(/[\[\]}){(]/g, '');
   // Remove ".."
-  out = out.replace(/"[^"]*"/g, ' ')
+  out = out.replace(/"[^"]*"/g, ' ');
   // Remove '..'
-  out = out.replace(/'[^']*'/g, ' ')
+  out = out.replace(/'[^']*'/g, ' ');
   // Remove words with 2 or more uppercase letters
-  out = out.replace(/[a-zA-Z'-]*[A-Z][a-zA-Z'-]*[A-Z][a-zA-Z'-]*/g, ' ')
+  out = out.replace(/[a-zA-Z'-]*[A-Z][a-zA-Z'-]*[A-Z][a-zA-Z'-]*/g, ' ');
   // Remove words containing <>
-  out = out.replace(/[^ ]*<[^ ]*>[^ ]*/g, ' ')
+  out = out.replace(/[^ ]*<[^ ]*>[^ ]*/g, ' ');
   // Remove words starting with -
-  out = out.replace(/ -[^ ]*/g, ' ')
+  out = out.replace(/ -[^ ]*/g, ' ');
   // Remove single-letter words
-  out = out.replace(/( [A-Za-z])+ /g, ' ')
-  out = out.replace(/^([A-Za-z] )+/g, ' ')
-  out = out.replace(/( [A-Za-z])+$/g, ' ')
+  out = out.replace(/( [A-Za-z])+ /g, ' ');
+  out = out.replace(/^([A-Za-z] )+/g, ' ');
+  out = out.replace(/( [A-Za-z])+$/g, ' ');
 
   if (s.match(/-[^ ]\+/) || s.match(/\+[^ ]-/)) {
-    out += ' substitution'
+    out += ' substitution';
   }
-  out = out.replace(/ [ ]*/g, ' ').trim().toLowerCase()
+  out = out.replace(/ [ ]*/g, ' ').trim().toLowerCase();
   if (!out) {
-    out = 'charade or other'
+    out = 'charade or other';
   }
-  return out
+  return out;
 }
 
 function ExetLightInfo() {
@@ -2398,76 +2403,76 @@ Exet.prototype.updateAnalysis = function(elt) {
 }
 
 Exet.prototype.plotStats = function(stats) {
-  let keys = Object.keys(stats)
-  let numeric = true
-  let totalCount = 0
+  let keys = Object.keys(stats);
+  let numeric = true;
+  let totalCount = 0;
   for (let key of keys) {
     if (isNaN(key)) {
-      numeric = false
+      numeric = false;
     }
-    totalCount += stats[key].count
+    totalCount += stats[key].count;
   }
   if (numeric) {
     keys.sort((a, b) => a - b);
   } else {
     keys.sort((a, b) => stats[b].count - stats[a].count);
   }
-  let min = Number.MAX_VALUE
-  let max = Number.MIN_VALUE
-  let count = 0
-  let distinct = 0
-  let sum = 0
-  let median = 0
-  let medianFound = false
-  let html = '<p>'
-  let maxv = 1
+  let min = Number.MAX_VALUE;
+  let max = Number.MIN_VALUE;
+  let count = 0;
+  let distinct = 0;
+  let sum = 0;
+  let median = 0;
+  let medianFound = false;
+  let html = '<p>';
+  let maxv = 1;
   for (let key of keys) {
-    let v = stats[key].count
-    count += v
-    if (v > 0) distinct++
-    if (v > maxv) maxv = v
+    let v = stats[key].count;
+    count += v;
+    if (v > 0) distinct++;
+    if (v > maxv) maxv = v;
     if (numeric) {
-      key = Number(key)
-      if (key > max) max = key
-      if (key < min) min = key
+      key = Number(key);
+      if (key > max) max = key;
+      if (key < min) min = key;
       sum += (key * v)
       if (!medianFound && count >= (totalCount / 2)) {
-        median = key
-        medianFound = true
+        median = key;
+        medianFound = true;
       }
     }
   }
   if (numeric) {
-    keys = Object.keys(stats)
+    keys = Object.keys(stats);
     keys.sort((a, b) => a - b);
   }
-  html += '<table>'
-  const BARMAX = 150
+  html += '<table class="xet-stats-table">';
+  const BARMAX = 150;
   for (let key of keys) {
-    html += '<tr>'
+    html += '<tr>';
     const ct = stats[key].count;
-    html += `<td style="text-align:right">${ct}</td><td>`
-    html += numeric ? ((ct == 1) ? 'count of' : 'counts of') : '&times;';
+    html += `<td style="text-align:right">${ct}</td><td>`;
+    html += numeric ? 'of' : '&times;';
     html += `</td><td>${key}</td>`;
     html += `<td><div class="xet-plotbar"
-            style="width:${BARMAX * stats[key].count / maxv}px"`
+            style="width:${BARMAX * stats[key].count / maxv}px"`;
     if (stats[key].details) {
-      html += ` title="${stats[key].details}"`
+      html += ` title="${stats[key].details}"`;
     }
-    html += '></div></td>'
-    html += '</tr>'
+    html += '></div></td>';
+    html += '</tr>';
   }
-  html += '</table>'
-  html += '</p>'
-  html += `<p class="xet-indent">Distinct values: ${distinct}`
+  html += '</table>';
+  html += '</p>';
+  html += `<p class="xet-indent">Distinct values: ${distinct}`;
   if (numeric && count > 0) {
     html += `
       <br>Range: ${min} - ${max}
       <br>Average: ${(sum / count).toFixed(1)}
-      <br>Median: ${median}`
+      <br>Median: ${median}`;
   }
   html += '</p>';
-  return html
+  return html;
 }
 
 Exet.prototype.selectAnalysis = function() {
@@ -2611,7 +2616,7 @@ Exet.prototype.indsTabNav = function() {
   this.loadIframe(this.indsIframe, url, this.indsUrl);
 }
 
-Exet.prototype.makeIndsTab = function(panelH) {
+Exet.prototype.makeIndsTab = function() {
   const inds = [
     {name: "Please select:", url: ""},
     {name: "separator"},
@@ -2659,8 +2664,8 @@ Exet.prototype.makeIndsTab = function(panelH) {
   html += `
   <a href="" target="_blank" id="xet-inds-choice-url"
       class="xet-blue xet-small"></a><br>
-  <iframe id="xet-inds-iframe" class="xet-iframe" src=""
-    style="height:${panelH}px" height="${panelH}"></iframe>
+  <iframe id="xet-inds-iframe" class="xet-iframe xet-section" src="">
+  </iframe>
   `;
   indsTab.content.innerHTML = html;
   this.indsIframe = document.getElementById('xet-inds-iframe');
@@ -2705,7 +2710,7 @@ Exet.prototype.researchTabNav = function() {
   this.loadIframe(this.researchIframe, url, this.researchUrl);
 }
 
-Exet.prototype.makeResearchTab = function(panelH) {
+Exet.prototype.makeResearchTab = function() {
   const researchTab = this.tabs["research"];
   researchTab.choices = exetConfig.researchTools;
   researchTab.currChoice = -1;  /** set by researchTabNav() */
@@ -2727,8 +2732,8 @@ Exet.prototype.makeResearchTab = function(panelH) {
   html = html + `
   <a href="" target="_blank" id="xet-research-choice-url"
       class="xet-blue xet-small"></a><br>
-  <iframe id="xet-research-iframe" class="xet-iframe" src=""
-    style="height:${panelH}px" height="${panelH}"></iframe>
+  <iframe id="xet-research-iframe" class="xet-iframe xet-section" src="">
+  </iframe>
   `;
   researchTab.content.innerHTML = html;
   this.researchIframe = document.getElementById('xet-research-iframe')
@@ -3251,7 +3256,7 @@ Exet.prototype.populateCompanag = function() {
     </div>
   </td>
   <td class="xet-td">
-    <div class="xet-anag-table">
+    <div class="xet-half-section">
       <table class="xet-table-midline">
         <tr>
           <td class="xet-td xet-cah" id="xet-cah-unused-anags">
@@ -3269,7 +3274,7 @@ Exet.prototype.populateCompanag = function() {
         </tr>
       </table>
     </div>
-  </td></tr>`;
+  </td></tr></table>`;
   this.caFodder = document.getElementById('xet-ca-fodder');
   this.caAnagram = document.getElementById('xet-ca-anagram');
   this.caExtra = document.getElementById('xet-ca-extra');
@@ -3285,55 +3290,33 @@ Exet.prototype.populateCompanag = function() {
 }
 
 Exet.prototype.populateFrame = function() {
-  let frameHTML = ''
-  frameHTML = frameHTML + '<div class="xet-tab">'
+  let frameHTML = '';
+  frameHTML = frameHTML + '<div class="xet-tab">';
   for (let id in this.tabs) {
-    let tab = this.tabs[id]
+    let tab = this.tabs[id];
     frameHTML = frameHTML +
-        `<button id="xet-${id}">${tab.display}</button>`
+        `<button id="xet-${id}">${tab.display}</button>`;
   }
-  frameHTML = frameHTML + '</div>'
+  frameHTML = frameHTML + '</div>';
 
-  const panelH = 500
-  const panelInnerH = 450
   for (let id in this.tabs) {
-    let tab = this.tabs[id]
-    frameHTML = frameHTML + `<div class="xet-tabcontent" id="xet-${id}-frame">`
+    let tab = this.tabs[id];
+    frameHTML = frameHTML + `<div class="xet-tab-content" id="xet-${id}-frame">`
     if (tab.sections.length > 0) {
-      // We show the first (presumably main) section in the left column,
-      // and stack up all the other sections in the right column.
-      let numRows = 1
-      let panelW = 900
-      let secondH = panelInnerH
-      if (tab.sections.length > 1) {
-        numRows = tab.sections.length - 1
-        panelW = 440
-      }
-      if (numRows > 1) {
-        secondH = 200
-      }
-      frameHTML = frameHTML + '<div class="xet-section"><table>'
+      console.assert(tab.sections.length <= 2);
+      const sectionClass = tab.sections.length > 1 ? 'xet-half-section' : 'xet-section';
+      frameHTML = frameHTML + `<div id="xet-${id}-sections"><table><tr>`;
       for (let i = 0; i < tab.sections.length; i++) {
-        let section = tab.sections[i]
-        if (i != 1) {
-          frameHTML = frameHTML + '<tr>'
-        }
-        let h = secondH
-        if (i == 0) {
-          frameHTML = frameHTML + `<td class="xet-td" rowspan="${numRows}">`
-          h = panelInnerH
-        } else {
-          frameHTML = frameHTML + '<td class="xet-td">'
-        }
+        let section = tab.sections[i];
+        frameHTML = frameHTML + '<td class="xet-td">';
         const titleHover = section.hover ? `title="${section.hover} "` : '';
         if (section.url) {
           frameHTML = frameHTML + `
             <div ${titleHover}class="xet-bold">${section.title || ''}</div>
             <a href="" target="_blank" id="xet-${id}-url-${i}"
                 class="xet-blue xet-small"></a><br>
-            <iframe class="xet-iframe" style="height:${h}px;width:${panelW}px;"
-               height="${h}" width="${panelW}px" id="xet-${id}-content-${i}">
-            </iframe>`
+            <iframe class="xet-iframe ${sectionClass}" id="xet-${id}-content-${i}">
+            </iframe>`;
         } else {
           let paramHtml = '';
           if (section.id != 'xet-companag') {
@@ -3349,25 +3332,18 @@ Exet.prototype.populateFrame = function() {
           frameHTML = frameHTML + `
             <div ${titleHover}class="xet-bold">${section.title || ''}</div>
             ${paramHtml}
-            <div id="${section.id}"
-              class="xet-panel"
-              style="height:${h}px;width:${panelW}px;">
+            <div id="${section.id}">
             </div>`
         }
-        if (i > 0 && i < tab.sections.length - 1) {
-          frameHTML = frameHTML + '<hr/><br>'
-        }
-        frameHTML = frameHTML + '</td>'
-        if (i > 0 || tab.sections.length == 1) {
-          frameHTML = frameHTML + '</tr>'
-        }
+        frameHTML = frameHTML + '</td>';
       }
       frameHTML = frameHTML + `
+        </tr>
         </table>
-        </div>`
+        </div>`;
     } else {
       frameHTML = frameHTML + `
-        <div class="xet-section" id="xet-${id}-content"></div>`
+        <div id="xet-${id}-content"></div>`
     }
     frameHTML = frameHTML + '</div>'
   }
@@ -3375,21 +3351,21 @@ Exet.prototype.populateFrame = function() {
 
   const ch = document.getElementById('xet-charades')
   ch.innerHTML = `
-    <div id="xet-charades-box" style="margin:16px 0;border:0">
+    <div id="xet-charades-box" class="xet-in-tab-scrollable xet-section">
     </div>
   `
   this.charades = document.getElementById('xet-charades-box')
 
   const eds = document.getElementById('xet-edits');
   eds.innerHTML = `
-    <div id="xet-edits-box" style="margin:16px 0;border:0">
+    <div id="xet-edits-box" class="xet-in-tab-scrollable xet-half-section">
     </div>
   `
   this.edits = document.getElementById('xet-edits-box');
 
   const sd = document.getElementById('xet-sounds');
   sd.innerHTML = `
-    <div id="xet-sounds-box" style="margin:16px 0;border:0">
+    <div id="xet-sounds-box" class="xet-in-tab-scrollable xet-half-section">
     </div>
   `
   this.sounds = document.getElementById('xet-sounds-box')
@@ -3426,9 +3402,9 @@ Exet.prototype.populateFrame = function() {
     }
   }
 
-  this.makeExetTab()
-  this.makeIndsTab(panelInnerH)
-  this.makeResearchTab(panelInnerH)
+  this.makeExetTab();
+  this.makeIndsTab();
+  this.makeResearchTab();
 }
 
 Exet.prototype.fileTitle = function() {
@@ -3718,7 +3694,10 @@ Exet.prototype.getDotPuz = function() {
       clueLens.push(offset - startOffset);
       buffer[offset++] = 0
     }
-    // Empty Notes section:
+    // If the puzzle has a preamble, set it as "Notes"
+    let notesOffset = offset;
+    offset = this.enc8859(this.preambleText.value, buffer, offset);
+    let notesLen = offset - notesOffset;
     buffer[offset++] = 0
 
     let gextOffset = -1
@@ -3754,9 +3733,11 @@ Exet.prototype.getDotPuz = function() {
       cksum = this.dotPuzCksum(
           buffer, copyrightOffset, copyrightLen + 1, cksum);
     }
-
     for (let i = 0; i < orderedClueIndices.length; i++) {
       cksum = this.dotPuzCksum(buffer, clueOffsets[i], clueLens[i], cksum);
+    }
+    if (notesLen > 0) {
+      cksum = this.dotPuzCksum(buffer, notesOffset, notesLen + 1, cksum);
     }
     this.dotPuzShort(buffer, 0x00, cksum);
 
@@ -4343,6 +4324,44 @@ Exet.prototype.updateFormat = function(inClue, text, modText,
   this.handleClueChange();
 }
 
+/**
+ * Resize the RHS, consisting of various iframes and the Exet panel,
+ * maximizing the use of the available height.
+ */
+Exet.prototype.resizeRHS = function() {
+  if (!this.customStyles) {
+    this.customStyles = document.createElement('style');
+    document.body.insertAdjacentElement('afterbegin', this.customStyles);
+  }
+  const windowH = this.puz.getViewportHeight();
+  const extraH = Math.max(0, windowH - 740);
+  const style = `
+    .xet-analysis {
+      height: ${440 + extraH}px;
+    }
+    .xet-in-tab-scrollable {
+      max-height: ${435 + extraH}px;
+    }
+    .xet-high-tall-box {
+      height: ${460 + extraH}px;
+    }
+    .xet-half-section,
+    .xet-section {
+      height: ${450 + extraH}px;
+    }
+    #xet-light-choices-box {
+      height: ${340 + extraH}px;
+    }
+    .xet-mid-tall-box {
+      height: ${325 + extraH}px;
+    }
+    .xet-tab-content {
+      height: ${500 + extraH}px;
+    }
+  `;
+  this.customStyles.innerHTML = style;
+}
+
 Exet.prototype.reposition = function() {
   this.title.className = 'xlv-title'
   this.setter.className = 'xlv-setter'
@@ -4381,6 +4400,8 @@ Exet.prototype.reposition = function() {
       preview.style.width = previewWidth + 'px';
     }
   }
+
+  this.resizeRHS();
 }
 
 Exet.prototype.lastTagOpener = function(s) {
@@ -4556,10 +4577,11 @@ Exet.prototype.makeClueEditable = function() {
   this.xetCurrClue.id = 'xet-curr-clue';
   this.xetCurrClue.style.width = this.puz.currClue.style.width;
   this.xetCurrClue.style.maxHeight = this.puz.currClue.style.maxHeight;
-  while (this.puz.currClue.children.length > 0) {
-    this.xetCurrClue.appendChild(this.puz.currClue.children[0]);
+  const currClueInner = this.puz.currClueInner ?? this.puz.currClue;
+  while (currClueInner.children.length > 0) {
+    this.xetCurrClue.appendChild(currClueInner.children[0]);
   }
-  this.puz.currClue.appendChild(this.xetCurrClue);
+  currClueInner.appendChild(this.xetCurrClue);
 
   const currClueText = document.getElementById(
       `${exet.puz.prefix}-curr-clue-text`)
@@ -4760,8 +4782,8 @@ Exet.prototype.makeClueEditable = function() {
   xetClue.addEventListener('keydown', formatShortcut)
   xetAnno.addEventListener('keydown', formatShortcut)
 
-  this.puz.resizeCurrClue()
-  this.reposition()
+  this.puz.resizeCurrClueAndControls();
+  this.reposition();
 }
 
 Exet.prototype.throttledClueChange = function() {
@@ -4864,7 +4886,7 @@ Exet.prototype.handleClueChange = function() {
   theClue.annoSpan.lastElementChild.innerHTML = theClue.anno;
   this.renderClue(theClue);
 
-  this.puz.resizeCurrClue();
+  this.puz.resizeCurrClueAndControls();
   this.reposition();
 
   this.restoreCursor();
