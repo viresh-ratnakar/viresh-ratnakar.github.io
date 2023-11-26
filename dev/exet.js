@@ -1718,7 +1718,7 @@ Exet.prototype.makeExetTab = function() {
         <div class="xet-dropdown-content"
             style="right:0;width:90ch;padding:8px;">
           <div id="xet-outdated-message" style="display:none"></div>
-          <iframe id="xet-about-iframe" class="xet-iframe xet-section"
+          <iframe id="xet-about-iframe" class="xet-about"
               src="about-exet.html">
           </iframe>
         </div>
@@ -4336,6 +4336,7 @@ Exet.prototype.resizeRHS = function() {
   const windowH = this.puz.getViewportHeight();
   const extraH = Math.max(0, windowH - 740);
   const style = `
+    .xet-about,
     .xet-analysis {
       height: ${440 + extraH}px;
     }
