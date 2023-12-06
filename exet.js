@@ -2447,7 +2447,7 @@ Exet.prototype.updateAnalysis = function(elt) {
     html += `<div><b>Substrings repeated in solution entries</b>:<br>${this.plotStats(
         info.substrings)}</div></td>`;
     html += `<td class="xet-td"><div><b>Word-lengths of set clues</b>:<br>${this.plotStats(
-        info.substrings)}</div>`;
+        info.clueLengths)}</div>`;
     html += `<div><b>Annotations provided in clues</b>: ${info.annos} (${(
           unparented > 0 ? 100*info.annos/unparented : 0).toFixed(2)}%)
               ${this.plotStats(info.annotations)}</div></td></tr>`;
