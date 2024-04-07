@@ -8,6 +8,14 @@
 </head>
 <body>
 <script>
+function customizeExolve(puz) {
+  if (window === window.parent) {
+    return;
+  }
+  /** In an iframe, remove title/setter unless printing */
+  document.getElementById(puz.prefix + '-title').classList.add('xlv-only-print');
+  document.getElementById(puz.prefix + '-setter').classList.add('xlv-only-print');
+}
 createExolve(`
 exolve-begin
   exolve-id: gussalufz-object-005
