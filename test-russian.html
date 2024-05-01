@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="stylesheet" type="text/css" href="exolve-m.css?v1.57"/>
+<script src="exolve-m.js?v1.57"></script>
+
+<title>Test-Russian</title>
+
+</head>
+<body>
+<script>
+createExolve(`
+======REPLACE WITH YOUR PUZZLE BELOW======
+
+exolve-begin
+  exolve-id: test-russian
+  exolve-title: Test-Russian
+  exolve-setter: Gussalufz
+  exolve-copyright: 2020 Viresh Ratnakar
+  exolve-width: 5
+  exolve-height: 5
+  exolve-language: ru Cyrillic
+  exolve-relabel:
+    across-label: через
+    down-label: вниз
+    clear: Очистить это
+    clear-all: Очистить все!
+    crossword-id: ID кроссворда
+  exolve-prelude:
+   Please use a suitable mechanism for entering Cyrillic letters,
+   such as Google Input Tools. This also test special chars (#@012)
+   coexisting with Russian.
+  exolve-option: allow-chars:#@012
+  exolve-grid:
+    АБВГД
+    Б.Б.Б
+    АБВГД
+    Г.Г.Г
+    АБВГД
+  exolve-across:
+    1 АБВГД (5)
+    4 АБВГД (5)
+    5 АБВГД (5)
+  exolve-down:
+    1 АБАГА (5)
+    2 ВБВГВ (5)
+    3 ДБДГД (5)
+exolve-end
+
+======REPLACE WITH YOUR PUZZLE ABOVE======
+`);
+</script>
+</body>
+</html>

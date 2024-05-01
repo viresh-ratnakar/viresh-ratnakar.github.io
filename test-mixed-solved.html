@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="stylesheet" type="text/css" href="exolve-m.css?v1.57"/>
+<script src="exolve-m.js?v1.57"></script>
+
+<title>Test-Mixed</title>
+
+</head>
+<body>
+<script>
+let puz = new Exolve(`
+======REPLACE WITH YOUR PUZZLE BELOW======
+
+exolve-begin
+  exolve-id: test-mixed
+  exolve-title: Test-Mixed
+  exolve-setter: Gussalufz
+  exolve-copyright: 2020 Viresh Ratnakar
+  exolve-width: 15
+  exolve-height: 15
+  exolve-grid:
+        O!@N!LY.PAPAL.E*D*I*T*
+        B!.E...T.T...*E*.*R*
+        O!UTDOOR.OBSC*U*R*E*
+        I!.T.V.I.M.H.*C*.*F*
+        S!KELETAL.HERETO
+        T!.R.R...I.N...I
+        S!UBSIDIES.ANNUL
+        ..O.N.L.I.N.E..
+        SEXED.LASTINGLY
+        Y...U.S...G.L.A
+        NICELY.SATANISM
+        A*.*H*.*G.J.B.N.G.M
+        P*L*A*C*EBO.OBSCENE
+        S*.*O*.*..L.V...E.R
+        E*L*S*E*.STEEP.ASKS
+  exolve-nina: a14 c14 g14 i14 m14 o14
+  exolve-nina: c8 e8 g8 i8 k8 m8
+  exolve-nina: a2 c2 g2 i2 m2 o2
+  exolve-nina: h15 h11 h9 h7 h5 h1
+  exolve-nina: 3a 4d
+  exolve-option: no-auto-solution-in-anno no-nina-button
+  exolve-option: color-solution:red color-def-underline:blue
+
+  exolve-question: What is the hidden message? (6,6,6,6) BETTER ONLINE SOLVER PLEASE
+  exolve-option: hide-inferred-numbers
+  exolve-question: That quirky poet? (1,1,8) [lowercase-ok] e e cummings
+  exolve-question: Question with enum not shown (?)* [lowercase-ok] Blah blah
+  exolve-option: clues-panel-lines:10
+  exolve-option: add-extraction-slots
+
+  exolve-across:
+    #a15 1 Only (4) ONLY. Some anno.
+    #c6r15 3 Papal (5)
+    6 Edit (4) [l15 m15 n15 o15]
+    9,31 Outdoor steep (7,5)
+    11 ~{No-enum-present}~ Onscure
+    20 No-enum-shown Sexed (5)*
+    21 No-enum-with-? Lastingly (?)* Dummy anno
+    23 A poem <br> to test that br <br/> tags get rendered correctly in <br></br> the clues list as well as the curr clue, Nicely (6)
+    25 &ldquo;Satanism&rdquo; (8)
+    28 Placebo (7) [a3 b3 c3 d3 e3 f3 g3] Anno for placebo.
+    29 Obscene (7)
+    30 Else (4) [ELSE]
+    31 See 9.
+    32 Asks (4)
+  exolve-down:
+    1 Oboists (7)
+    #r15c3 2 Letterbox (9)
+    4 Atria (5)
+    5 Atom and a long clue that goes on to the next line, just so that we can see how vertical alignment looks (4)
+    7 Deuce (5)
+    8 Trefoil (7)
+    10 Overindulge (11)
+	--- Down (contd.)
+    12 Shenanigans (11)
+    15 Isis (4) ISIS.
+    17 Ills (4)
+    19 Negligees (9) Cryptic def.
+    20 Synapse (7)
+    24 Chaos (5)
+  exolve-nodir: Nodirs
+    [A] CHECK "clear/reveal this" enabled Subsidies (9) [16a] [SUBSIDIES]. Some bogus anno. But should not see SUBSIDIES duplicated at the head of the anno, testing no-auto-solution-in-anno
+    [B] Annul (3,2) [k9 l9 m9 n9 o9] Anno for annul.
+    [C] Skeletal (4-4) [13a]
+    [d, p, q] Hereto (6) [HERETO]
+    [E, F, G] Yammers (7)
+    [j, t, l] Another [6]
+    [&#128274;, &#128274;, &#128274;] Jolt (4)
+    [&#128273;] Above (5)
+exolve-end
+
+======REPLACE WITH YOUR PUZZLE ABOVE======
+`, '', null, true, 0, 0, true);
+</script>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="stylesheet" type="text/css" href="exolve-m.css?v1.57"/>
+<script src="exolve-m.js?v1.57"></script>
+
+<script>
+function customizeExolve(p) {
+  let c = p.addCellText(0, 1, '@', 12, 10, true, false)
+  c = p.addCellText(0, 3, '①', 16, 14, true, true)
+  c.style.stroke = 'blue'
+  c = p.addCellText(1, 0, '*', 18, 10, false, true)
+  c = p.addCellText(1, 2, '&alpha;', 12, 8, false, false)
+  p.activateCell(0,0)
+
+  p.background.setAttributeNS(null, 'fill', 'red')
+  let expectedVars = [
+    'p.currRow',
+    'p.currCol',
+    'p.currClueIndex',
+    'p.gridInput',
+    'p.gridWidth',
+    'p.gridHeight',
+    'p.numCellsFilled',
+    'p.numCellsToFill',
+    'p.offsetLeft',
+    'p.offsetTop',
+    'p.svg',
+    'p.GRIDLINE',
+    'p.squareDim',
+    'p.circleR',
+    'p.questions',
+    'p.answersList',
+    'p.id',
+    'p.clearAllButton',
+    'p.clearButton',
+    'p.submitButton',
+    'p.gridInput',
+    'p.gridInputWrapper',
+    'p.allClueIndices',
+  ]
+  for (let v of expectedVars) {
+    eval('console.log("' + v + ' = " + ' + v + ')')
+    if (eval(v) == null) {
+      console.log('Could not find variable: ' + v)
+      return
+    }
+  }
+  let expectedFunctions = [
+    'p.deactivateCurrCell',
+    'p.activateCell',
+    'p.advanceCursor',
+    'p.updateAndSaveState',
+    'p.updateDisplayAndGetState',
+    'p.showNinas',
+    'p.hideNinas',
+    'p.checkCurr',
+    'p.checkAll',
+    'p.revealCurr',
+    'p.revealAll',
+    'p.clearCurr',
+    'p.clearAll',
+    'p.parseState',
+    'p.updateClueState',
+  ]
+  for (let f of expectedFunctions) {
+    eval('console.log("func ' + f + ' = " + (' + f + '!= null))')
+    if (eval(f) == null) {
+      console.log('Could not find function: ' + f)
+      return
+    }
+  }
+  let expectedIds = [
+    'xlv1-clear',
+    'xlv1-clear-all',
+    'xlv1-check',
+    'xlv1-check-all',
+    'xlv1-reveal',
+    'xlv1-reveal-all',
+    'xlv1-setter-by',
+    'xlv1-squares-filled',
+    'xlv1-ninas',
+    'xlv1-submit',
+    'xlv1-across-label',
+    'xlv1-down-label',
+    'xlv1-saving',
+    'xlv1-controls-etc',
+    'xlv1-button-row-1',
+    'xlv1-button-row-2',
+    'xlv1-saving',
+    'xlv1-small-print',
+    'xlv1-grid-parent',
+  ]
+  for (let id of expectedIds) {
+    let elt = document.getElementById(id)
+    if (!elt) {
+      console.log('Could not find element for id: ' + id)
+      return
+    }
+  }
+  p.background.setAttributeNS(null, 'fill', 'green');
+  p.background.style.fill = 'green';
+}
+</script>
+
+<title>Test-Customize-Puzzle</title>
+
+</head>
+<body>
+<script>
+createExolve(`
+======REPLACE WITH YOUR PUZZLE BELOW======
+
+exolve-begin
+  exolve-id: test-customize-puzzle
+  exolve-title: Test-Customize-Puzzle
+  exolve-setter: Viresh Ratnakar
+  exolve-copyright: 2020 Viresh Ratnakar
+  exolve-width: 5
+  exolve-height: 5
+  exolve-grid:
+    00000
+    0.0.0
+    00000
+    0.0.0
+    00000
+  exolve-prelude:
+    <center>
+    If grid does not turn green, examine js console for errors.
+    </center>
+  exolve-across:
+    1 TODO (5)
+    4 TODO (5)
+    5 TODO (5)
+  exolve-down:
+    1 TODO (5)
+    2 TODO (5)
+    3 TODO (5)
+exolve-end
+
+======REPLACE WITH YOUR PUZZLE ABOVE======
+`);
+</script>
+</body>
+</html>

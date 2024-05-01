@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<title>Test-15x15</title>
+
+</head>
+<body>
+  1-Text
+  <span>2-Span</span>
+  3-Text 
+  <div id="exolve"></div>
+  <div>4-Div</div>
+  5-Text
+  <div>6-Div</div>
+  7-Text
+
+<link rel="stylesheet" type="text/css" href="exolve-m.css?v1.57"/>
+<script src="exolve-m.js?v1.57"></script>
+<script>
+createExolve(`
+======REPLACE WITH YOUR PUZZLE BELOW======
+
+exolve-begin
+  exolve-id: test-print-only-crossword
+  exolve-title: Test-Print-Only-Crossword <span class="xlv-only-print">(This text is only shown in printing)</span>
+  exolve-setter: Gussalufz
+  exolve-width: 15
+  exolve-height: 15
+  exolve-reversals: a11-o11 a7-a1
+  exolve-grid:
+    000000000000000
+    0.0.0.0.0.0.0.0
+    000000000000000
+    0.0.0.0.0.0.0.0
+    000000000000000
+    0.0.0.0.0.0.0.0
+    000000000000000
+    ..0.0.0.0.0.0..
+    000000000000000
+    0.0.0.0.0.0.0.0
+    000000000000000
+    0.0.0.0.0.0.0.0
+    000000000000000
+    0.0.0.0.0.0.0.0
+    000000000000000
+  exolve-across:
+    1 Some clue at 1 across (9'1-2,2.1.)
+    9,15 Tsfb jflkdsf sdfh, adhk akjds dsfl dfjdlkfjf sfjlkdjfa ajlj! (15,15)
+    10 REVERSED! Psnbfdsfds sdfjlk? (15)
+    11 Tytu wqh qwhqjwhq qwhqkwhjq qwhkq qkwhjqkwj kjwkqj qwjkqjwq qkwjkqjw qwjqkwj (15)
+    12,14,16,6 Linked kahd akjd akjha sdhajkdh dhjdhk ahd adjh (15,15,15,15)
+    14 See 12.
+    15 See 1A.
+    16 See 12.
+  exolve-down:
+    1 Rbsf jhfskjdh dhfdsjh? (4-2,1)
+    2 Gghjad ahdkj adh (15)
+    3 Clue with enum that implies hyphens and dashes, but they are suppressed using trickery (<span>7,5-3</span>) (15)* Anno here...
+    4 Kjkajd ajdk adhyg (15)
+    5 Ugsjs sjhsfksd sfj kjfksdjfksdj ksj (15)
+    6 See 12A.
+    7 Test that (50) last (10) enum is used (15)
+    8 But also [this should not confuse] that (7) [TESTING] Annos can have enums like (10) buried in them too.
+   13 w wqkpq qkpwpqkw qkwpqkwpq (3) wqkpqkwp kpqwlkpq qkwpq No anno after sqbracs (7) []
+   16 REVERSED! Qew ewewew wejwekj (6) jojownbsnk sdnksdnknsdsd (7) [] Junk anno (8)
+exolve-end
+
+======REPLACE WITH YOUR PUZZLE ABOVE======
+`);
+</script>
+</body>
+</html>
