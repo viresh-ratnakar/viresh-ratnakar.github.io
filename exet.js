@@ -3048,7 +3048,8 @@ Exet.prototype.updateCharades = function(fodder) {
 }
 
 Exet.prototype.addDeletionCharades = function() {
-  const wordsMinuses = exetLexicon.getSupersetAnagrams(this.charadeFodder, 100, 6, 2);
+  const wordsMinuses = exetLexicon.getSupersetAnagrams(
+      this.charadeFodder, 1000, 6, 2);
   const words = [];
   const minuses = [];
   const scores = [];
@@ -3117,7 +3118,7 @@ Exet.prototype.updateCharadesPartial = function(work=100, sleep=50) {
       /**
        * The Containments tab already shows full containments.
        * Here, we show containments that begin after the beginning or
-       * end after the ending.
+       * end before the ending.
        */
       for (let c1 = 0; c1 < this.charadeParts - 2; c1++) {
         for (let c2 = c1 + 2; c2 < this.charadeParts; c2++) {
