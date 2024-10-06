@@ -5961,6 +5961,7 @@ Exet.prototype.initAutofill = function() {
       beamWidth: 64,
       beam: new ExetDher(64),
       step: 0,
+      numCells: this.puz.gridWidth * this.puz.gridHeight,
       running: false,
       throttledTimer: null,
       lag: 200,
@@ -6117,6 +6118,11 @@ Exet.prototype.refreshAutofill = function() {
   this.autofill.pangramConstrSpan.style.display =
       this.autofill.pangramAll ? 'none' : '';
   this.autofill.isPangram.style.display = 'none';
+
+  if (this.autofill.step > (this.autofill.numCells * 3)) {
+    console.log('Autofill seems to be stuck in a loop, quitting it.');
+    return null;
+  }
 
   const candidate = this.autofill.beam.peep(true);
   if (!candidate) {
