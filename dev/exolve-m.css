@@ -5,7 +5,7 @@ Copyright (c) 2019 Viresh Ratnakar
 
 See the full license notice in exolve-m.js.
 
-Version: Exolve v1.57 November 19, 2023
+Version: Exolve v1.59 December 20, 2024
 */
 
 @media (max-width: 500px) {
@@ -345,6 +345,7 @@ Version: Exolve v1.57 November 19, 2023
   outline: none;
   text-align: center;
   text-decoration: none;
+  width: inherit;
 }
 .xlv-frame:focus {
   border: none;
@@ -371,6 +372,7 @@ Version: Exolve v1.57 November 19, 2023
   text-align: center;
   text-decoration: none;
   text-shadow: none;
+  width: inherit;
 }
 .xlv-small-button:hover {
   cursor: pointer;
@@ -525,6 +527,9 @@ Version: Exolve v1.57 November 19, 2023
 .xlv-qrcode-panel td {
   padding: 0;
   vertical-align: middle;
+}
+.xlv-url-qrcodes-table td {
+  padding-left: 2em;
 }
 .xlv-toggleable * {
   background-color: transparent;

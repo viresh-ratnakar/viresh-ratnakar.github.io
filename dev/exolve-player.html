@@ -10,11 +10,11 @@ See the full license notice in exolve-m.js.
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<link rel="stylesheet" type="text/css" href="exolve-m.css?v1.57"/>
-<script src="exolve-m.js?v1.57"></script>
-<script src="exolve-from-ipuz.js?v1.57"></script>
-<script src="exolve-from-puz.js?v1.57"></script>
-<script src="exolve-from-text.js?v1.57"></script>
+<link rel="stylesheet" type="text/css" href="exolve-m.css?v1.59"/>
+<script src="exolve-m.js?v1.59"></script>
+<script src="exolve-from-ipuz.js?v1.59"></script>
+<script src="exolve-from-puz.js?v1.59"></script>
+<script src="exolve-from-text.js?v1.59"></script>
 
 <style>
 .xlvp-wait {
@@ -315,6 +315,24 @@ function xlvpShowExolveInner(specs, converted, hideChooser) {
 
   try {
     xlvpPuz = new Exolve(data, 'xlvp-frame', null, false);
+    /**
+     * If there are warnings, then when they are dismissed, we update and save
+     * xlvData to add the options to persist ignoring them.
+     */
+    if (xlvpPuz.optionsForWarningFixes.length > 0) {
+      const b = document.getElementById(xlvpPuz.prefix + '-dismiss-warnings')
+      b.title = 'Click to dismiss warnings persistently (appropriate options ' +
+                'will be added to the Exolve specs for this crossword)';
+      b.addEventListener('click', (evt) => { 
+        const end = xlvpData.indexOf('exolve-end');
+        console.assert(end >= 0);
+        const noWarningsSpecs = xlvpData.substring(0, end) +
+                                'exolve-option: ' +
+                                xlvpPuz.optionsForWarningFixes.join(' ') +
+                                '\nexolve-end'; 
+        xlvpShowExolve(noWarningsSpecs, converted, hideChooser);
+      });
+    }
   } catch (err) {
     console.log(err);
     console.log('new Exolve() failed');
@@ -349,8 +367,8 @@ function xlvpSave() {
     '<meta charset="utf-8"/>\n' +
     '<meta name="viewport" content="width=device-width, initial-scale=1"/>\n' +
     '<link rel="stylesheet" type="text/css" ' +
-    'href="https://viresh-ratnakar.github.io/exolve-m.css?v1.57"/>\n' +
-    '<script src="https://viresh-ratnakar.github.io/exolve-m.js?v1.57">' +
+    'href="https://viresh-ratnakar.github.io/exolve-m.css?v1.59"/>\n' +
+    '<script src="https://viresh-ratnakar.github.io/exolve-m.js?v1.59">' +
     '<\/script>\n' +
     '<\/head>\n' +
     '<body>\n' +
@@ -534,7 +552,6 @@ function xlvpHandleFromTextMessage(message) {
   exolve-begin
     exolve-width: ${saved.w}
     exolve-height: ${saved.h}
-    exolve-option: ignore-unclued ignore-enum-mismatch
     exolve-grid:
       ${matches[i].gridSpecLines}
   exolve-end`;
