@@ -24,7 +24,7 @@ SOFTWARE.
 The latest code and documentation for Exet can be found at:
 https://github.com/viresh-ratnakar/exet
 
-Current version: v0.89, November 25, 2023
+Current version: v0.94, October 6, 2024
 */
 
 function ExetModals() {
@@ -65,37 +65,40 @@ ExetModals.prototype.hide = function() {
 }
 
 function ExetRevManager() {
-  this.REV_LOADED_FROM_FILE = 1
-  this.REV_CREATED_BLANK = 2
-  this.REV_CREATED_AUTOBLOCK = 3
-  this.REV_JUMPED_TO_REV = 10
-  this.REV_GRID_CHANGE = 20
-  this.REV_LIGHT_REVERSAL = 24
-  this.REV_AUTOFILL_GRIDFILL_CHANGE = 28
-  this.REV_GRIDFILL_CHANGE = 30
-  this.REV_ENUM_CHANGE = 40
-  this.REV_CLUE_CHANGE = 50
-  this.REV_METADATA_CHANGE = 60
-  this.REV_PREFLEX_CHANGE = 70
-  this.REV_OPTIONS_CHANGE = 80
+  this.REV_LOADED_FROM_FILE = 1;
+  this.REV_CREATED_BLANK = 2;
+  this.REV_CREATED_AUTOBLOCK = 3;
+  this.REV_JUMPED_TO_REV = 10;
+  this.REV_GRID_CHANGE = 20;
+  this.REV_LIGHT_REVERSAL = 24;
+  this.REV_AUTOFILL_GRIDFILL_CHANGE = 28;
+  this.REV_GRIDFILL_CHANGE = 30;
+  this.REV_ENUM_CHANGE = 40;
+  this.REV_CLUE_CHANGE = 50;
+  this.REV_METADATA_CHANGE = 60;
+  this.REV_FILL_OPTIONS_CHANGE = 65;
+  this.REV_PREFLEX_CHANGE = 70;
+  this.REV_OPTIONS_CHANGE = 80;
 
-  this.revMsgs = {}
-  this.revMsgs[this.REV_LOADED_FROM_FILE] = "Loaded from a file"
-  this.revMsgs[this.REV_CREATED_BLANK] = "Created a blank grid"
+  this.revMsgs = {};
+  this.revMsgs[this.REV_LOADED_FROM_FILE] = "Loaded from a file";
+  this.revMsgs[this.REV_CREATED_BLANK] = "Created a blank grid";
   this.revMsgs[this.REV_CREATED_AUTOBLOCK] = "Created a blank grid " +
-      "with automagic blocks"
-  this.revMsgs[this.REV_JUMPED_TO_REV] = "Jumped to a previous revision"
-  this.revMsgs[this.REV_GRID_CHANGE] = "Grid change"
-  this.revMsgs[this.REV_LIGHT_REVERSAL] = "Light reversal"
+      "with automagic blocks";
+  this.revMsgs[this.REV_JUMPED_TO_REV] = "Jumped to a previous revision";
+  this.revMsgs[this.REV_GRID_CHANGE] = "Grid change";
+  this.revMsgs[this.REV_LIGHT_REVERSAL] = "Light reversal";
   this.revMsgs[this.REV_AUTOFILL_GRIDFILL_CHANGE] = "Autofilled grid-fill " +
-      "change"
-  this.revMsgs[this.REV_GRIDFILL_CHANGE] = "Grid-fill change"
-  this.revMsgs[this.REV_ENUM_CHANGE] = "Enum change"
-  this.revMsgs[this.REV_CLUE_CHANGE] = "Clue or anno change"
-  this.revMsgs[this.REV_METADATA_CHANGE] = "Metadata change"
+      "change";
+  this.revMsgs[this.REV_GRIDFILL_CHANGE] = "Grid-fill change";
+  this.revMsgs[this.REV_ENUM_CHANGE] = "Enum change";
+  this.revMsgs[this.REV_CLUE_CHANGE] = "Clue or anno change";
+  this.revMsgs[this.REV_METADATA_CHANGE] = "Metadata change";
+  this.revMsgs[this.REV_FILL_OPTIONS_CHANGE] = "Change in options " +
+      "for suggested fills";
   this.revMsgs[this.REV_PREFLEX_CHANGE] = "Change in the list of or options " +
-      "for preferred words"
-  this.revMsgs[this.REV_OPTIONS_CHANGE] = "Crossword options change"
+      "for preferred words";
+  this.revMsgs[this.REV_OPTIONS_CHANGE] = "Crossword options change";
 
   /* State for throttled revision-saving */
   this.throttleRevTimer = null;
@@ -451,20 +454,20 @@ ExetRevManager.prototype.saveLocal = function(k, v) {
 
 ExetRevManager.prototype.saveRev = function(revType, details="") {
   if (!exet || !exet.puz || !exet.puz.id) {
-    console.log('Cannot save revision when there is no puzzle!')
-    return
+    console.log('Cannot save revision when there is no puzzle!');
+    return;
   }
-  let stored = window.localStorage.getItem(exet.puz.id)
+  let stored = window.localStorage.getItem(exet.puz.id);
   if (!stored) {
     stored = {
       id: exet.puz.id,
       maxRevNum: 0,
       revs: []
-    }
+    };
   } else {
-    stored = JSON.parse(stored)
+    stored = JSON.parse(stored);
   }
-  let exolve = exet.getExolve()
+  let exolve = exet.getExolve();
   if (stored.revs.length > 0) {
     let lastRev = stored.revs[stored.revs.length - 1]
     if (lastRev.exolve == exolve &&
@@ -475,29 +478,31 @@ ExetRevManager.prototype.saveRev = function(revType, details="") {
         lastRev.unpreflex &&
         JSON.stringify(lastRev.unpreflex) == JSON.stringify(exet.unpreflex) &&
         lastRev.noProperNouns == exet.noProperNouns &&
+        lastRev.noStemDupes == exet.noStemDupes &&
         lastRev.tryReversals == exet.tryReversals &&
         lastRev.minpop == exet.minpop &&
         lastRev.asymOK == exet.asymOK) {
-      return
+      return;
     }
   }
   stored.maxRevNum++;
   let exetRev = new ExetRev(exet.puz.id, (exet.puz.title ? exet.puz.title : ''),
-                            stored.maxRevNum, revType, Date.now(), details)
-  exetRev.maxRevNum = stored.maxRevNum
-  exetRev.prefix = exet.prefix
-  exetRev.suffix = exet.suffix
-  exetRev.exolve = exolve
-  exetRev.scratchPad = exet.puz.scratchPad.value
-  exetRev.navState = [exet.puz.currDir, exet.puz.currRow, exet.puz.currCol]
-  exetRev.preflex = exet.preflex
-  exetRev.unpreflex = exet.unpreflex
-  exetRev.noProperNouns = exet.noProperNouns
-  exetRev.asymOK = exet.asymOK
-  exetRev.tryReversals = exet.tryReversals
-  exetRev.minpop = exet.minpop
-  stored.revs.push(exetRev)
-  this.saveLocal(exet.puz.id, JSON.stringify(stored))
+                            stored.maxRevNum, revType, Date.now(), details);
+  exetRev.maxRevNum = stored.maxRevNum;
+  exetRev.prefix = exet.prefix;
+  exetRev.suffix = exet.suffix;
+  exetRev.exolve = exolve;
+  exetRev.scratchPad = exet.puz.scratchPad.value;
+  exetRev.navState = [exet.puz.currDir, exet.puz.currRow, exet.puz.currCol];
+  exetRev.preflex = exet.preflex;
+  exetRev.unpreflex = exet.unpreflex;
+  exetRev.noProperNouns = exet.noProperNouns;
+  exetRev.noStemDupes = exet.noStemDupes;
+  exetRev.asymOK = exet.asymOK;
+  exetRev.tryReversals = exet.tryReversals;
+  exetRev.minpop = exet.minpop;
+  stored.revs.push(exetRev);
+  this.saveLocal(exet.puz.id, JSON.stringify(stored));
 };
 
 ExetRevManager.prototype.throttledSaveRev = function(revType, details="") {
@@ -663,7 +668,7 @@ function ExetRev(id, title, revNum, revType, timestamp, details="") {
 };
 
 function Exet() {
-  this.version = 'v0.89, November 25, 2023';
+  this.version = 'v0.94, October 6, 2024';
   this.puz = null;
   this.prefix = '';
   this.suffix = '';
@@ -672,6 +677,7 @@ function Exet() {
   this.preflexInUse = {};
   this.unpreflex = {};
   this.noProperNouns = false;
+  this.noStemDupes = exetLexicon.hasOwnProperty('stems');
   this.asymOK = false;
   this.tryReversals = false;
   this.DEFAULT_MINPOP = exetConfig.defaultPopularity;
@@ -978,25 +984,28 @@ Exet.prototype.setPuzzle = function(puz) {
     },
     {
       id: "wordplay1",
-      display: "Anagrams",
-      hover: "Anagrams, composite anagrams",
+      display: "Anagrams/()",
+      hover: "Anagrams, composite anagrams, containments",
       sections: [
         {id: "xet-companag", maker: this.makeCAParam,
-         title: "Anagrams and composite/extended anagrams",
-         hover: "You can unblur the detailed help text by hovering your cursor over it",},
+         title: "Anagrams, composite/extended anagrams",},
+        {id: "xet-containments", maker: this.makeCharadeParam,
+         title: "Containments"},
       ],
     },
     {
       id: "wordplay2",
-      display: "Charades",
-      hover: "Charades, including anagrams, reversals, containers",
-      sections: [{id: "xet-charades", maker: this.makeCharadeParam,
-                  title: "Charades, including anagrams, reversals, containers"}],
+      display: "Charades/-",
+      hover: "Charades, anagrammed deletions",
+      sections: [
+        {id: "xet-charades", maker: this.makeCharadeParam,
+         title: "Charades, anagrammed deletions"},
+      ],
     },
     {
       id: "wordplay3",
       display: "Edits, Sounds",
-      hover: "Edits (deletions, insertions, and substitutions), " +
+      hover: "Edits (small substitutions, insertions, deletions), " +
              "Homophones, Spoonerisms",
       sections: [
         {id: "xet-edits", maker: this.makeCharadeParam,
@@ -1547,10 +1556,15 @@ Exet.prototype.makeExetTab = function() {
                     `of undesired fills by clicking on the 'Set fill ` +
                     `exclusions' button. You can restrict fills by a ` +
                     `popularity cutoff, and allow/disallow proper ` +
-                    `nouns and reversals from the Exet tab.">
+                    `nouns, stem-dupes, and reversals from the Exet tab.">
                   Proper nouns: <span
                     id="xet-autofill-proper-nouns">${this.noProperNouns ?
                           "disallowed" : "allowed"}</span>&nbsp;
+                  <div style="padding:4px"></div>
+                  Stem dupes: <span
+                    id="xet-autofill-stem-dupes">${this.noStemDupes ?
+                          "disallowed" : "allowed"}</span>&nbsp;
+                  <div style="padding:4px"></div>
                   Undesired fills: <span
                       id="xet-autofill-unpreflex-total">${Object.keys(
                           this.unpreflex).length}</span>
@@ -1653,6 +1667,20 @@ Exet.prototype.makeExetTab = function() {
             </div>
           </div>
 
+          <div class="xet-dropdown-item" onclick="exet.puz.clearCurr()">
+             Clear current light (Ctrl-q)
+          </div>
+
+          <div class="xet-dropdown-item" onclick="exet.puz.clearAll()">
+             Clear all the lights! (Ctrl-Q)
+          </div>
+
+          <div class="xet-dropdown-item"
+               title="Reverse the orientation of the currently active light. If it's part of a linked group of clues, the linked group will get broken up."
+               onclick="exet.reverseLight()">
+             Reverse current light
+          </div>
+
           <div class="xet-dropdown-item">
             Add/edit special sections:
             <div class="xet-dropdown-submenu">
@@ -1673,16 +1701,6 @@ Exet.prototype.makeExetTab = function() {
                Other Exolve sections
               </div>
             </div>
-          </div>
-
-          <div class="xet-dropdown-item"
-               title="Reverse the orientation of the currently active light. If it's part of a linked group of clues, the linked group will get broken up."
-               onclick="exet.reverseLight()">
-             Reverse current light
-          </div>
-
-          <div class="xet-dropdown-item" onclick="exet.puz.clearAll()">
-             Clear all the lights! (Ctrl-Q)
           </div>
 
           <div class="xet-dropdown-item">
@@ -1751,13 +1769,18 @@ Exet.prototype.makeExetTab = function() {
 
   <div class="xet-controls-row xet-panel xet-high-tall-box">
     <div class="xet-controls-col" style="position:relative">
-      <div>
+      <div class="xet-fills-heading">
         <span style="font-weight:bold" title="Please note that any lexicon ` +
             `in use by this software is inevitably likely to have some ` +
-            `errors and omissions.">Choose grid-fill</span>
+            `errors and omissions.">Choose grid-fill:</span>
         <button class="xlv-small-button" style="padding:5px 4px"
-            title="Keyboard shortcut: Ctrl-q"
-            onclick="exet.puz.clearCurr()">Clear light</button>
+            title="Click to see grid-fill possibilities from web sources of words and phrases"
+            id="xet-show-web-fills">Web sources
+          <div class="xet-web-fills-panel"
+              title="Click anywhere outside this box to dismiss it"
+              id="xet-web-fills-panel" style="display:none">
+          </div>
+        </button>
       </div>
       <div class="xet-choices-box" id="xet-light-choices-box">
         <table id="xet-light-choices"
@@ -1821,17 +1844,37 @@ Exet.prototype.makeExetTab = function() {
                 this.indexMinPop - 1).toLocaleString()}</span> out of
             ${Number(exetLexicon.startLen - 1).toLocaleString()} words/phrases
             <br>
-            <br>
-            <b title="If checked, this excludes proper nouns from ` +
-                `fill suggestions">No proper nouns:</b>
-            <input id="xet-no-proper-nouns" name="xet-no-proper-nouns"
-                value="no-proper-nouns" type="checkbox">
-            </input>
-            <b title="If checked, this allows trying reversals of unfilled ` +
-                `lights, when finding fill suggestions">Try reversals:</b>
-            <input id="xet-try-reversals" name="xet-try-reversals"
-                value="try-reversals" type="checkbox">
-            </input>
+            <table>
+            <tr>
+              <td>
+                <b title="If checked, this excludes proper nouns from ` +
+                    `fill suggestions">No proper nouns:</b>
+                <input id="xet-no-proper-nouns" name="xet-no-proper-nouns"
+                    value="no-proper-nouns" type="checkbox">
+                </input>
+              </td>
+              <td>
+                <b title="If checked, this allows trying reversals of unfilled ` +
+                    `lights, when finding fill suggestions">Try reversals:</b>
+                <input id="xet-try-reversals" name="xet-try-reversals"
+                    value="try-reversals" type="checkbox">
+                </input>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <b title="If checked, this excludes word choices that have ` +
+                    `the same stemmed forms as any other entries (e.g., if ` +
+                    `SWIM is picked, then SWIMS will not be considered)">` +
+                    `No stem-dupes:</b>
+                <input id="xet-no-stem-dupes" name="xet-no-stem-dupes"
+                    value="no-stem-dupes" type="checkbox">
+                </input>
+              </td>
+              <td>
+              </td>
+            </tr>
+            </table>
           </div>
         </div>
         <div id="xet-scratch-pad" class="xet-scratch-pad">
@@ -1914,12 +1957,22 @@ Exet.prototype.makeExetTab = function() {
   this.tip = document.getElementById("xet-tip")
   this.setRandomTip();
 
-  this.lChoices = document.getElementById("xet-light-choices")
-  this.lRejects = document.getElementById("xet-light-rejects")
-  this.preflexUsed = document.getElementById("xet-preflex-used")
-  this.preflexSize = document.getElementById("xet-preflex-size")
-  this.preflexEditor = document.getElementById("xet-preflex-editor")
-  this.preflexInput = document.getElementById("xet-preflex-input")
+  this.lChoices = document.getElementById("xet-light-choices");
+  this.lRejects = document.getElementById("xet-light-rejects");
+  this.preflexUsed = document.getElementById("xet-preflex-used");
+  this.preflexSize = document.getElementById("xet-preflex-size");
+  this.preflexEditor = document.getElementById("xet-preflex-editor");
+  this.preflexInput = document.getElementById("xet-preflex-input");
+  this.webFillsPanel = document.getElementById("xet-web-fills-panel");
+  this.showWebFillsButton = document.getElementById("xet-show-web-fills");
+  if (!exetConfig.webFills || exetConfig.webFills.length == 0) {
+    this.showWebFillsButton.style.display = 'none';
+  } else {
+    this.showWebFillsButton.addEventListener('click', e=> {
+      exet.showWebFills();
+      e.stopPropagation()
+    });
+  }
   /* populate with existing preflex */
   let preflexText = '';
   for (let p of this.preflex) {
@@ -1929,38 +1982,50 @@ Exet.prototype.makeExetTab = function() {
   this.preflexInput.innerHTML = preflexText.trim();
   document.getElementById("xet-edit-preflex").addEventListener('click', e=> {
     exet.updatePreflex();
-    exetModals.showModal(exet.preflexEditor)
-    e.stopPropagation()
-  })
-  this.unpreflexSize = document.getElementById("xet-unpreflex-size")
-  this.unpreflexEditor = document.getElementById("xet-unpreflex-editor")
-  this.unpreflexInput = document.getElementById("xet-unpreflex-input")
-  this.renderUnpreflex()
+    exetModals.showModal(exet.preflexEditor);
+    e.stopPropagation();
+  });
+  this.unpreflexSize = document.getElementById("xet-unpreflex-size");
+  this.unpreflexEditor = document.getElementById("xet-unpreflex-editor");
+  this.unpreflexInput = document.getElementById("xet-unpreflex-input");
+  this.renderUnpreflex();
   document.getElementById("xet-edit-unpreflex").addEventListener('click', e=> {
-    exetModals.showModal(exet.unpreflexEditor)
-    e.stopPropagation()
-  })
-  this.minpopInclSpan = document.getElementById("xet-minpop-incl")
-  this.minpopInput = document.getElementById("xet-minpop")
-  this.minpopInput.value = this.minpop
+    exetModals.showModal(exet.unpreflexEditor);
+    e.stopPropagation();
+  });
+  this.minpopInclSpan = document.getElementById("xet-minpop-incl");
+  this.minpopInput = document.getElementById("xet-minpop");
+  this.minpopInput.value = this.minpop;
   this.minpopInput.addEventListener('change', e => {
     if (isNaN(this.minpopInput.value) ||
         this.minpopInput.value < 0 || this.minpopInput.value >= 100) {
-      this.minpopInput.value = this.minpop
-      return
+      this.minpopInput.value = this.minpop;
+      return;
     }
-    this.setMinPop(this.minpopInput.value)
-    this.minpopInclSpan.innerText = Number(this.indexMinPop - 1).toLocaleString()
-    this.resetViability()
-    exetRevManager.throttledSaveRev(exetRevManager.REV_PREFLEX_CHANGE)
-  })
-  this.noProperNounsInput = document.getElementById("xet-no-proper-nouns")
-  this.noProperNounsInput.checked = this.noProperNouns
+    this.setMinPop(this.minpopInput.value);
+    this.minpopInclSpan.innerText = Number(this.indexMinPop - 1).toLocaleString();
+    this.resetViability();
+    exetRevManager.throttledSaveRev(exetRevManager.REV_FILL_OPTIONS_CHANGE);
+  });
+  this.noProperNounsInput = document.getElementById("xet-no-proper-nouns");
+  this.noProperNounsInput.checked = this.noProperNouns;
   this.noProperNounsInput.addEventListener('change', e => {
-    this.noProperNouns = this.noProperNounsInput.checked
-    this.resetViability()
-    exetRevManager.throttledSaveRev(exetRevManager.REV_PREFLEX_CHANGE)
-  })
+    this.noProperNouns = this.noProperNounsInput.checked;
+    this.resetViability();
+    exetRevManager.throttledSaveRev(exetRevManager.REV_FILL_OPTIONS_CHANGE);
+  });
+  this.noStemDupesInput = document.getElementById("xet-no-stem-dupes");
+  this.noStemDupesInput.checked = this.noStemDupes;
+  if (exetLexicon.hasOwnProperty('stems')) {
+    this.noStemDupesInput.addEventListener('change', e => {
+      this.noStemDupes = this.noStemDupesInput.checked;
+      this.resetViability();
+      exetRevManager.throttledSaveRev(exetRevManager.REV_FILL_OPTIONS_CHANGE);
+    });
+  } else {
+    this.noStemDupesInput.disabled = true;
+    this.noStemDupesInput.title = 'We do not yet have stemming data for this language';
+  }
   if (exetLexicon.script != 'Latin') {
     this.noProperNounsInput.disabled = true;
     this.noProperNounsInput.title = 'Proper-noun filtering is only available for Latin currently';
@@ -2206,6 +2271,7 @@ function ExetLightInfo() {
   this.filled = 0
   this.lengths = {}
   this.clueLengths = {}
+  this.substrings = {}
   this.popularities = {}
   this.letters = {}
   for (let c of exetLexicon.letters) {
@@ -2218,143 +2284,222 @@ function ExetLightInfo() {
   this.annotations = {}
 }
 
+Exet.prototype.getSubstrings = function(s) {
+  const letters = exetLexicon.letterString(s);
+  const substrings = new Set;
+  for (let len = 3; len <= letters.length; len++) {
+    const end = letters.length - len;
+    for (let start = 0; start <= end; start++) {
+      substrings.add(letters.substr(start, len));
+    }
+  }
+  return substrings;
+}
+
+/**
+ * Remove "subsumed" substrings from the histogram.
+ */
+Exet.prototype.trimSubsumedSubstrings = function(substrings) {
+  const toDelete = [];
+  const keys = Object.keys(substrings);
+  for (const sub of keys) {
+    let subsumed = false;
+    for (const sup of keys) {
+      if (sup.length <= sub.length ||
+          substrings[sub].count != substrings[sup].count ||
+          sup.indexOf(sub) < 0) {
+        continue;
+      }
+      subsumed = true;
+      break;
+    }
+    if (subsumed) {
+      toDelete.push(sub);
+      continue;
+    }
+  }
+  for (const sub of toDelete) {
+    delete substrings[sub];
+  }
+}
+
 Exet.prototype.getLightInfos = function() {
-  let infos = {
+  const infos = {
     All: new ExetLightInfo(),
     Across: new ExetLightInfo(),
     Down: new ExetLightInfo(),
     Other: new ExetLightInfo(),
-  }
-  let allInfo = infos['All']
-  let aInfo = infos['Across']
-  let dInfo = infos['Down']
-  let oInfo = infos['Other']
-  for (let ci in this.puz.clues) {
-    let theClue = this.puz.clues[ci]
-    let dirInfo = theClue.dir == 'A' ? aInfo : (theClue.dir == 'D' ?
-                                                dInfo : oInfo)
-    allInfo.lights++
-    dirInfo.lights++
+  };
+  const allInfo = infos['All'];
+  const aInfo = infos['Across'];
+  const dInfo = infos['Down'];
+  const oInfo = infos['Other'];
+  for (const ci in this.puz.clues) {
+    const theClue = this.puz.clues[ci];
+    const dirInfo = theClue.dir == 'A' ?
+      aInfo : (theClue.dir == 'D' ?  dInfo : oInfo);
+    allInfo.lights++;
+    dirInfo.lights++;
     if (theClue.parentClueIndex) {
-      allInfo.ischild++
-      dirInfo.ischild++
-      continue
+      allInfo.ischild++;
+      dirInfo.ischild++;
+      continue;
     }
-    let label = theClue.label + theClue.dir.toLowerCase()
+    let label = theClue.label + theClue.dir.toLowerCase();
     if (theClue.solution && theClue.solution.indexOf('?') < 0) {
-      allInfo.filled += 1
-      dirInfo.filled += 1
-      let lexl = exetLexicon.lexicon.length
-      let index = lexl
-      let fillClue = this.fillState.clues[ci]
+      allInfo.filled += 1;
+      dirInfo.filled += 1;
+      const lexl = exetLexicon.lexicon.length;
+      let index = lexl;
       let solText = theClue.solution;
+      const fillClue = this.fillState.clues[ci];
       if (fillClue && fillClue.lChoices.length == 1) {
-        index = fillClue.lChoices[0]
+        index = fillClue.lChoices[0];
         solText = exetLexicon.getLex(index);
       }
-      let pop = 5 * Math.round(20 * (lexl - index) / lexl)
+      let pop = 5 * Math.round(20 * (lexl - index) / lexl);
       label += ': ' + solText;
-      this.addStat(allInfo.popularities, pop, label)
-      this.addStat(dirInfo.popularities, pop, label)
-    }
-    this.addStat(allInfo.lengths, theClue.enumLen, label)
-    this.addStat(dirInfo.lengths, theClue.enumLen, label)
-    let depunctClue = exetLexicon.depunct(theClue.clue)
-    if (depunctClue && !this.isDraftClue(theClue.clue)) {
-      allInfo.set += 1
-      dirInfo.set += 1
-      let words = depunctClue.split(' ')
-      for (let word of words) {
-        this.addStat(allInfo.words, word, label)
-        this.addStat(dirInfo.words, word, label)
+      this.addStat(allInfo.popularities, pop, label);
+      this.addStat(dirInfo.popularities, pop, label);
+      const substrings = this.getSubstrings(solText);
+      for (const substring of substrings) {
+        this.addStat(allInfo.substrings, substring, label);
+        this.addStat(dirInfo.substrings, substring, label);
       }
-      this.addStat(allInfo.clueLengths, words.length, label)
-      this.addStat(dirInfo.clueLengths, words.length, label)
+    }
+    this.addStat(allInfo.lengths, theClue.enumLen, label);
+    this.addStat(dirInfo.lengths, theClue.enumLen, label);
+    let depunctClue = exetLexicon.depunct(theClue.clue, true /* forDeduping */);
+    if (depunctClue && !this.isDraftClue(theClue.clue)) {
+      allInfo.set += 1;
+      dirInfo.set += 1;
+      const labelAndClue = label + ' [' + depunctClue + ']';
+      let words = depunctClue.split(' ');
+      for (let word of words) {
+        const stem = exetLexicon.stem(word).toLowerCase();
+        this.addStat(allInfo.words, stem, labelAndClue);
+        this.addStat(dirInfo.words, stem, labelAndClue);
+      }
+      this.addStat(allInfo.clueLengths, words.length, label);
+      this.addStat(dirInfo.clueLengths, words.length, label);
     }
     if (theClue.anno) {
-      allInfo.annos += 1
-      dirInfo.annos += 1
-      let anno = this.essenceOfAnno(theClue.anno)
+      allInfo.annos += 1;
+      dirInfo.annos += 1;
+      let anno = this.essenceOfAnno(theClue.anno);
       if (anno) {
-        this.addStat(allInfo.annotations, anno, label)
-        this.addStat(dirInfo.annotations, anno, label)
+        this.addStat(allInfo.annotations, anno, label);
+        this.addStat(dirInfo.annotations, anno, label);
       }
     }
   }
-  // In *.words, retain only those that have count > 1
-  for (let key of Object.keys(infos)) {
-    let info = infos[key]
-    for (let word of Object.keys(info.words)) {
-      if (info.words[word].count <= 1) delete info.words[word]
+  // In *.words and *.substrings, retain only those that have count > 1
+  for (const key of Object.keys(infos)) {
+    const info = infos[key]
+    for (const word of Object.keys(info.words)) {
+      if (info.words[word].count <= 1) {
+        delete info.words[word];
+      }
     }
+    for (const substring of Object.keys(info.substrings)) {
+      if (info.substrings[substring].count <= 1) {
+        delete info.substrings[substring];
+      }
+    }
+    this.trimSubsumedSubstrings(info.substrings);
   }
-  let grid = this.puz.grid
-  let w = this.puz.gridWidth
-  let h = this.puz.gridHeight
+  const grid = this.puz.grid;
+  const w = this.puz.gridWidth;
+  const h = this.puz.gridHeight;
   for (let i = 0; i < h; i++) {
     for (let j = 0; j < w; j++) {
-      let gridCell = grid[i][j]
-      if (!gridCell.isLight || gridCell.solution == '?') continue
-      let rowcol = 'row-' + (h - i) + ',' + 'col-' + (j + 1)
-      this.addStat(allInfo.letters, gridCell.solution, rowcol)
+      const gridCell = grid[i][j];
+      if (!gridCell.isLight || gridCell.solution == '?') continue;
+      const rowcol = 'row-' + (h - i) + ',' + 'col-' + (j + 1);
+      this.addStat(allInfo.letters, gridCell.solution, rowcol);
       if (gridCell.acrossClueLabel) {
-        this.addStat(aInfo.letters, gridCell.solution, rowcol)
+        this.addStat(aInfo.letters, gridCell.solution, rowcol);
       }
       if (gridCell.downClueLabel) {
-        this.addStat(dInfo.letters, gridCell.solution, rowcol)
+        this.addStat(dInfo.letters, gridCell.solution, rowcol);
       }
       if (gridCell.z3dClueLabel) {
-        this.addStat(dInfo.letters, gridCell.solution, rowcol)
+        this.addStat(dInfo.letters, gridCell.solution, rowcol);
       }
     }
   }
   if (oInfo.lights == 0) {
-    delete infos['Other']
+    delete infos['Other'];
   }
-  return infos
+  return infos;
 }
 
 Exet.prototype.updateAnalysis = function(elt) {
-  let html = '<p><b>Grid</b></p><p><ul>'
-  const grid = this.puz.grid
-  const w = this.puz.gridWidth
-  const h = this.puz.gridHeight
-  const layers3d = this.puz.layers3d
-  html = html + `<li>${w*h} cells, dimensions: ${w} &times; ${h}</li>`
-  if (!this.gridConnected(grid, w, h, layers3d)) {
-    html += '<li class="xet-red"><i>Does not have all light cells connected</i></li>'
+  const grid = this.puz.grid;
+  const w = this.puz.gridWidth;
+  const h = this.puz.gridHeight;
+  const layers3d = this.puz.layers3d;
+
+  const analysis = new ExetAnalysis(grid, w, h, layers3d);
+
+  let html = '<p><b>Grid</b></p><p><ul>';
+  html = html + `<li>${w*h} cells, dimensions: ${w} &times; ${h}</li>`;
+
+  const isConnected = analysis.isConnected();
+  if (!isConnected) {
+    html += '<li class="xet-red"><i>Does not have all light cells connected</i></li>';
   } else {
-    html += '<li>All light cells are connected</li>'
+    html += '<li>All light cells are connected</li>';
   }
-  if (!this.gridSymmetric(grid, w, h)) {
-    html += '<li class="xet-red"><i>Not symmetric</i></li>'
+  if (!analysis.isSymmetric()) {
+    html += '<li class="xet-red"><i>Not symmetric</i></li>';
   } else {
-    html += '<li>Symmetric</li>'
+    html += '<li>Symmetric</li>';
   }
-  let numBlocks = this.gridNumBlocks(grid, w, h)
+  let numBlocks = analysis.numBlocks();
   if (numBlocks > 0) {
     html += `<li>${numBlocks} (${(numBlocks * 100 /
-          (w * h)).toFixed(2)}%) blocked cells</li>`
+          (w * h)).toFixed(2)}%) blocked cells</li>`;
   } else {
-    html += '<li>No blocked cells</li>'
+    html += '<li>No blocked cells</li>';
   }
-  let numBars = this.gridNumBars(grid, w, h)
+  let numBars = analysis.numBars();
   if (numBars > 0) {
-    html += `<li>${numBars} bars</li>`
+    html += `<li>${numBars} bars</li>`;
   } else {
-    html += '<li>No bars</li>'
+    html += '<li>No bars</li>';
   }
-  if (this.gridUnchequeredOK(grid, w, h, false)) {
-    html += '<li>Every light cell is checked</li>'
-  } else  if (this.gridChequeredOK(grid, w, h, false, false)) {
-    html += '<li>No consecutive unches</li>'
-    if (!this.gridChequeredOK(grid, w, h, false, true)) {
-      html += '<li class="xet-red"><i>Some lights shorter than 9 letters have &gt;50% unches</i></li>'
+  if (analysis.unchequeredOK(false)) {
+    html += '<li>Every light cell is checked</li>';
+  } else  if (analysis.chequeredOK(false, false)) {
+    html += '<li>No consecutive unches</li>';
+    if (!analysis.chequeredOK(false, true)) {
+      html += '<li class="xet-red"><i>Some lights shorter than 9 letters have &gt;50% unches</i></li>';
     }
   } else {
-    html += '<li class="xet-red"><i>Has consecutive unches</i></li>'
+    html += '<li class="xet-red"><i>Has consecutive unches</i></li>';
   }
-  html += '</ul></p>'
+
+  const throughCuts = analysis.minThroughCuts();
+  if (numBars == 0 && isConnected && layers3d == 1) {
+    /** Display through-cut sizes */
+    html += '<li>Smallest "through cuts" found (hover over the lists to see ' +
+            'the squares highlighted in the grid):\n<ul>\n';
+    for (let d = 0; d < 2; d++) {
+      const cells = throughCuts[d];
+      const  orientation = (d == 0) ? 'Vertical' : 'Horizontal';
+      const cellNames = [];
+      for (const cell of cells) {
+        cellNames.push(`r${h - cell[0]}c${cell[1] + 1}`);
+      }
+      html += '<li class="xet-through-cut" id="xet-through-cut-' + d + '">' +
+              orientation + ': (' + cells.length + ' squares): [' +
+              cellNames.join(' ') + ']</li>\n';
+    }
+    html += '</ul></li>\n';
+  }
+
+  html += '</ul></p>';
 
   let lightInfos = this.getLightInfos()
   html += `<p><select name="xet-analysis-select"
@@ -2389,8 +2534,12 @@ Exet.prototype.updateAnalysis = function(elt) {
                   this.plotStats(info.popularities, 5)}</div</td>`;
     html += `<td class="xet-td"><b>Letters used</b>:<br>
               ${this.plotStats(info.letters)}</td></tr>`;
-    html += `<tr><td class="xet-td"><b>Words repeated in set clues</b>:<br>${this.plotStats(
-        info.words)}</td>`;
+    html += `<tr><td class="xet-td"><div
+               title="The most popular word form is shown for the words that have a common stem"><b>Word
+               stems repeated in set clues</b>:<br>${this.plotStats(
+        info.words)}</di>`;
+    html += `<div><b>Substrings repeated in solution entries</b>:<br>${this.plotStats(
+        info.substrings)}</div></td>`;
     html += `<td class="xet-td"><div><b>Word-lengths of set clues</b>:<br>${this.plotStats(
         info.clueLengths)}</div>`;
     html += `<div><b>Annotations provided in clues</b>: ${info.annos} (${(
@@ -2398,8 +2547,39 @@ Exet.prototype.updateAnalysis = function(elt) {
               ${this.plotStats(info.annotations)}</div></td></tr>`;
     html += '</table></div>';
   }
-  elt.innerHTML = html
-  this.selectAnalysis()
+  elt.innerHTML = html;
+
+  /** Set up highlighting of through cuts */
+  for (let d = 0; d < 2; d++) {
+    const elt = document.getElementById('xet-through-cut-' + d);
+    if (!elt) continue;
+    elt.addEventListener('mouseover', (e) => {
+      for (const cell of throughCuts[d]) {
+        const div = this.puz.makeCellDiv(cell[0], cell[1], 'purple');
+        div.classList.add('xet-through-cut-cell');
+        this.puz.gridParent.appendChild(div);
+        const scissors = this.puz.addCellText(
+            cell[0], cell[1], '&#9988;', 16, 10, false);
+        scissors.classList.add('xet-through-cut-cell');
+      }
+      this.puz.colourGroup.style.display = 'none';
+      this.puz.ninaGroup.style.display = 'none';
+    });
+    elt.addEventListener('mouseout', (e) => {
+      const elts = this.puz.gridParent.getElementsByClassName(
+          'xet-through-cut-cell');
+      const nonLiveList = [];
+      for (let i = 0; i < elts.length; i++) {
+        nonLiveList.push(elts[i]);
+      }
+      for (const elt of nonLiveList) {
+        elt.remove();
+      }
+      this.puz.colourGroup.style.display = '';
+      this.puz.ninaGroup.style.display = '';
+    });
+  }
+  this.selectAnalysis();
 }
 
 Exet.prototype.plotStats = function(stats) {
@@ -2692,13 +2872,16 @@ Exet.prototype.researchTabNav = function() {
       choiceIndex >= researchTab.choices.length) {
     return;
   }
-  const words = researchTab.choices[choiceIndex].needsClueWords ?
-                this.currClueWordsList() : researchTab.words;
+  const choice = researchTab.choices[choiceIndex];
+  let words = choice.needsClueWords ?
+              this.currClueWordsList() : researchTab.words;
+  if (choice.noPunct) {
+    words = exetLexicon.lcLetterString(words);
+  }
   if (choiceIndex == researchTab.currChoice &&
       researchTab.savedWords == words) {
     return;
   }
-  const choice = researchTab.choices[choiceIndex];
   const url = choice.url + words + (choice.suffix || '');
   if (choice.newTab) {
     this.researchSelect.value = researchTab.currChoice;
@@ -2739,6 +2922,86 @@ Exet.prototype.makeResearchTab = function() {
   this.researchIframe = document.getElementById('xet-research-iframe')
   this.researchSelect = document.getElementById('xet-research-select')
   this.researchUrl = document.getElementById('xet-research-choice-url')
+}
+
+Exet.prototype.makeWebFillsPanel = function() {
+  const webFills = exetConfig.webFills;
+  if (!webFills || webFills.length == 0) {
+    return;
+  }
+  const names = [];
+  let html = `
+    <div>
+      <b>Web grid-fill source:</b> <select id="xet-web-fills-menu"></select>
+      <div class="xet-web-fills-caveat">
+        Caveat: Some web sources are more likely to include weird
+        fill choices that would generally be considered unacceptable.
+      </div>
+    </div>
+    <br>
+    <div id="xet-web-fills-content">
+  `;
+  for (const wf of webFills) {
+    names.push(wf.name);
+    html += `
+      <div id="xet-web-fill-${wf.id}-frame" style="display:none">
+        <a href="" target="_blank" id="xet-web-fill-${wf.id}-url"
+          class="xet-blue xet-small"></a><br>
+        <iframe class="xet-web-fills-iframe" id="xet-web-fill-${wf.id}-content">
+        </iframe>
+      </div>
+    `;
+  }
+  html += '<div>';
+  this.webFillsPanel.innerHTML = html;
+  this.showWebFillsButton.title += ': ' + names.join(', ');
+
+  this.webFillsMenu = document.getElementById('xet-web-fills-menu');
+  this.webFillsChoice = 0;
+  let index = 0;
+
+  for (const wf of webFills) {
+    wf.frame = document.getElementById(`xet-web-fill-${wf.id}-frame`)
+    wf.content = document.getElementById(`xet-web-fill-${wf.id}-content`)
+    wf.urldisp = document.getElementById(`xet-web-fill-${wf.id}-url`)
+    if (typeof wf.maker == 'string') {
+      wf.maker = this.getNamedMaker(wf.maker);
+    }
+    this.webFillsMenu.insertAdjacentHTML('beforeend', `
+        <option value="${index}">${wf.name}</option>`);
+    index++;
+  }
+  this.webFillsMenu.addEventListener(
+      'change', this.webFillsMenuSelect.bind(this));
+}
+
+Exet.prototype.webFillsMenuSelect = function() {
+  const webFills = exetConfig.webFills;
+  const newChoice = this.webFillsMenu.value;
+  if (newChoice != this.webFillsChoice) {
+    const wf = webFills[this.webFillsChoice];
+    wf.frame.style.display = 'none';
+    this.webFillsChoice = newChoice;
+  }
+  const wf = webFills[this.webFillsChoice];
+  wf.frame.style.display = '';
+  let theClue = this.currClue();
+  const words = theClue ? theClue.solution : '';
+  const wordParam = wf.maker.call(this, words);
+  if (!wf.param || wf.param != wordParam) {
+    wf.param = wordParam;
+    const url = wf.url + wordParam;
+    this.loadIframe(wf.content, url, wf.urldisp);
+  }
+}
+
+Exet.prototype.showWebFills = function() {
+  const webFills = exetConfig.webFills;
+  if (!webFills || webFills.length == 0) {
+    return;
+  }
+  this.webFillsMenuSelect();
+  exetModals.showModal(exet.webFillsPanel)
 }
 
 /**
@@ -2823,18 +3086,56 @@ Exet.prototype.updateCharades = function(fodder) {
   if (this.throttledCharadeTimer) {
     clearTimeout(this.throttledCharadeTimer);
   }
-  this.throttledCharadeTimer = null
-  this.charadeCandidates = []
-  this.charadeParts = 1;
+  this.throttledCharadeTimer = null;
+  this.charadeCandidates = [];
+  this.charadeParts = 2;  /* 1-part is already seen in Anagrams */
   this.charadeSplits = null;
   this.charadeSplitIndex = 0;
+  this.charadeDeletionsAdded = false;
   this.charadeFodder = exetLexicon.lettersOf(fodder);
-  this.charadeMax = Math.min(this.charadeFodder.length, 4)
-  this.updateCharadesPartial()
+  this.charadeMax = Math.min(this.charadeFodder.length, 4);
+  this.updateCharadesPartial();
+}
+
+Exet.prototype.addDeletionCharades = function() {
+  const wordsMinuses = exetLexicon.getSupersetAnagrams(
+      this.charadeFodder, 1000, 6, 2);
+  const words = [];
+  const minuses = [];
+  const scores = [];
+  for (const wm of wordsMinuses) {
+    const word = exetLexicon.lexicon[wm[0]];
+    words.push(word);
+    const dispDiffAnags = exetLexicon.displayAnagrams(wm[1], wm[2]);
+    let diffAnagsStr = dispDiffAnags.join(', ');
+    if (dispDiffAnags.length > 1) {
+      diffAnagsStr = '<span class="xet-blue">[</span>' + diffAnagsStr +
+                     '<span class="xet-blue">]</span>';
+    }
+    minuses.push(diffAnagsStr);
+    /**
+     * High score to put all deletions on top of other charades, for
+     * convenience. Shorter deletions are shown first.
+     */
+    scores.push(100 - wm[1].length);
+  }
+  for (let i = 0; i < words.length; i++) {
+    const charadeStruct = {
+      charade: '<span class="xet-blue">*</span>(' + words[i] +
+               ' <span class="xet-blue">minus</span> ' +
+               minuses[i] + ')',
+      score: scores[i],
+    }
+    this.charadeCandidates.push(charadeStruct);
+  }
+  this.charadeDeletionsAdded = true;
 }
 
 Exet.prototype.updateCharadesPartial = function(work=100, sleep=50) {
   let startTS = Date.now()
+  if (!this.charadeDeletionsAdded) {
+    this.addDeletionCharades();
+  }
   while (this.charadeParts <= this.charadeMax) {
     if (!this.charadeSplits) {
       this.charadeSplits = this.getAllSplits(
@@ -2847,25 +3148,12 @@ Exet.prototype.updateCharadesPartial = function(work=100, sleep=50) {
       for (let part of split) {
         let possible = '';
         let score = 0;
-        let choices = exetLexicon.getAnagrams(part, 6, false);
+        const choices = exetLexicon.displayAnagrams(
+            part, exetLexicon.getAnagrams(part, 6, false));
         if (choices.length > 0) {
+          possible = choices.join(', ');
           const partLetters = exetLexicon.lettersOf(part);
           score = partLetters.length;
-          let rpart = '';
-          if (partLetters.length > 1) {
-            rpart = partLetters.slice().reverse().join('');
-          }
-          for (let choice of choices) {
-            if (possible) possible = possible + ', ';
-            let key = exetLexicon.letterString(choice);
-            if (key == part) {
-              possible = possible + choice;
-            } else if (key == rpart) {
-              possible = possible + choice + '<span class="xet-blue"><<</span>';
-            } else {
-              possible = possible + choice + '<span class="xet-blue">*</span>';
-            }
-          }
           if (choices.length > 1) {
             possible = '<span class="xet-blue">[</span>' + possible +
                        '<span class="xet-blue">]</span>';
@@ -2877,8 +3165,16 @@ Exet.prototype.updateCharadesPartial = function(work=100, sleep=50) {
         continue;
       }
       this.pushCharadeCandidate(viable);
+      /**
+       * The Containments tab already shows full containments.
+       * Here, we show containments that begin after the beginning or
+       * end before the ending.
+       */
       for (let c1 = 0; c1 < this.charadeParts - 2; c1++) {
         for (let c2 = c1 + 2; c2 < this.charadeParts; c2++) {
+          if (c1 == 0 && c2 == (this.charadeParts - 1)) {
+            continue;
+          }
           // Everything else must be viable
           let ok = true;
           for (let i = 0; i < this.charadeParts; i++) {
@@ -2891,23 +3187,11 @@ Exet.prototype.updateCharadesPartial = function(work=100, sleep=50) {
             continue;
           }
           const container = split[c1] + (split[c2]);
-          const choices = exetLexicon.getAnagrams(container, 5, true)
+          const choices = exetLexicon.displayAnagrams(
+              container, exetLexicon.getAnagrams(container, 5, true));
           if (choices.length > 0) {
+            let possible = choices.join(', ');
             const containerParts = exetLexicon.lettersOf(container);
-            let rcontainer = containerParts.slice().reverse().join('');
-            let possible = '';
-            for (let choice of choices) {
-              if (possible) possible = possible + ', ';
-              let key = exetLexicon.letterString(choice);
-              if (key == container) {
-                possible = possible + choice;
-              } else if (key == rcontainer) {
-                possible = possible + choice +
-                           '<span class="xet-blue"><<</span>';
-              } else {
-                possible = possible + choice + '<span class="xet-blue">*</span>';
-              }
-            }
             if (choices.length > 1) {
               possible = '<span class="xet-blue">[</span>' + possible +
                          '<span class="xet-blue">]</span>';
@@ -2935,11 +3219,10 @@ Exet.prototype.updateCharadesPartial = function(work=100, sleep=50) {
     }
   }
   let candidates = this.charadeCandidates.sort((a, b) => b.score - a.score);
-  let html = '<table class="xet-wordplay-choices">'
+  let html = '<table class="xet-wordplay-choices xet-gray-bordered-rows">'
   for (let candidate of candidates) {
     html = html + `
       <tr>
-        <td><span style="color:gray">[${candidate.score.toFixed(1)}]</span></td>
         <td>${candidate.charade}</td>
       </tr>`;
   }
@@ -3132,161 +3415,150 @@ Exet.prototype.updateSounds = function(fodder) {
 }
 
 Exet.prototype.updateCA = function() {
-  const fodder = exetLexicon.lcLettersOf(this.caFodder.value).sort();
-  const anagram = exetLexicon.lcLettersOf(this.caAnagram.value).sort();
-  let f = 0;
-  let a = 0;
-  const extra = [];
-  const unused = [];
-  while (f < fodder.length && a < anagram.length) {
-    if (fodder[f] == anagram[a]) {
-      f++;
-      a++;
-    } else if (fodder[f] < anagram[a]) {
-      unused.push(fodder[f++]);
-    } else {
-      extra.push(anagram[a++]);
-    }
-  }
-  while (f < fodder.length) {
-    unused.push(fodder[f++]);
-  }
-  while (a < anagram.length) {
-    extra.push(anagram[a++]);
-  }
-  extraS = extra.join('');
+  const fodderLetters = exetLexicon.lettersOf(this.caFodder.value);
+  const fodderHist = exetLexicon.letterHist(fodderLetters);
+  const anagramLetters = exetLexicon.lettersOf(this.caAnagram.value);
+  const anagramHist = exetLexicon.letterHist(anagramLetters);
 
-  const emptyDraft = anagram.length == 0;
-  if (emptyDraft) {
-    this.cahExtra.style.visibility = 'hidden';
-    this.cahUnused.style.visibility = 'hidden';
-    this.caExtra.style.visibility = 'hidden';
-    this.caUnused.style.visibility = 'hidden';
-    this.cahExtraAnags.style.visibility = 'hidden';
-    this.cahUnusedAnags.title = 'Anagrams of Fodder';
-    this.caExtraAnags.style.display = 'none';
-  } else {
-    this.cahExtra.style.visibility = 'visible';
-    this.cahUnused.style.visibility = 'visible';
-    this.caExtra.style.visibility = 'visible';
-    this.caUnused.style.visibility = 'visible';
-    this.cahExtraAnags.style.visibility = 'visible';
-    this.cahUnusedAnags.title = 'Anagrams of Fodder, excluding letters in Draft';
-    this.caExtraAnags.style.display = '';
-  }
+  const faHist = exetLexicon.letterHistSub(fodderHist, anagramHist, false);
+  const afHist = exetLexicon.letterHistSub(anagramHist, fodderHist, false);
 
+  const unused = exetLexicon.lettersXHist(fodderLetters, faHist);
+  const unusedS = unused.join('');
+  const extra = exetLexicon.lettersXHist(anagramLetters, afHist);
+  const extraS = extra.join('');
+  this.caUnused.innerText = unusedS;
   this.caExtra.innerText = extraS;
+
   let html = '<table>\n';
   let maxAnags = extra.length < 8 ? 400 : (extra.length < 10 ? 200 : 100);
-  let extraAnags = exetLexicon.getAnagrams(extraS, maxAnags);
-  for (let choice of extraAnags) {
-    html = html + `
+  const extraAnags = exetLexicon.displayAnagrams(
+      extraS, exetLexicon.getAnagrams(extraS, maxAnags));
+  for (const choice of extraAnags) {
+    html += `
       <tr><td>${choice}</td></tr>`;
   }
   html += '\n</table>';
   this.caExtraAnags.innerHTML = html;
 
-  unusedS = unused.join('');
-  this.caUnused.innerText = unusedS;
   html = '<table>\n';
   maxAnags = unused.length < 8 ? 400 : (unused.length < 10 ? 200 : 100);
-  let unusedAnags = exetLexicon.getAnagrams(unusedS, maxAnags);
-  for (let choice of unusedAnags) {
-    html = html + `
+  const unusedAnags = exetLexicon.displayAnagrams(
+      unusedS, exetLexicon.getAnagrams(unusedS, maxAnags));
+  for (const choice of unusedAnags) {
+    html += `
       <tr><td>${choice}</td></tr>`;
   }
   html += '\n</table>';
   this.caUnusedAnags.innerHTML = html;
 }
 
+Exet.prototype.updateContainments = function(fodder) {
+  const fodderLetters = exetLexicon.lettersOf(fodder);
+  const splits = this.getAllSplits(fodderLetters, 3);
+  /* Sort the splits to bring more even balance up top */
+  splits.sort((a, b) =>
+      Math.abs(a[0].length + a[2].length - a[1].length) -
+      Math.abs(b[0].length + b[2].length - b[1].length));
+
+  const results = [];
+  let html = `
+    <table class="xet-wordplay-choices xet-table-midline">
+  `;
+  let num = 0;
+  for (const split of splits) {
+    const outer = split[0] + split[2];
+    const outerAnagrams = exetLexicon.displayAnagrams(
+        outer, exetLexicon.getAnagrams(outer, 10 + outer.length, true));
+    if (outerAnagrams.length == 0) continue;
+    const inner = split[1];
+    const innerAnagrams = exetLexicon.displayAnagrams(
+        inner, exetLexicon.getAnagrams(inner, 10 + inner.length, true));
+    if (innerAnagrams.length == 0) continue;
+
+    if (num > 0) {
+      html += '\n<tr><td colspan="3"><hr></td></tr>';
+    }
+    num++;
+    const min = Math.min(outerAnagrams.length, innerAnagrams.length);
+    const max = Math.max(outerAnagrams.length, innerAnagrams.length);
+    for (let i = 0; i < min; i++) {
+      html += `
+        <tr><td>${outerAnagrams[i]}</td>
+        <td>${(i == 0) ? '<span class="xet-blue">around</span>' : ''}</td>
+        <td>${innerAnagrams[i]}</td></tr>`;
+    }
+    for (let i = min; i < outerAnagrams.length; i++) {
+      html += `
+        <tr><td>${outerAnagrams[i]}</td><td></td><td></td></tr>`;
+    }
+    for (let i = min; i < innerAnagrams.length; i++) {
+      html += `
+        <tr><td></td><td></td><td>${innerAnagrams[i]}</td></tr>`;
+    }
+  }
+  html += '</table>';
+  this.containments.innerHTML = html;
+}
+
 Exet.prototype.populateCompanag = function() {
-  const ca = document.getElementById('xet-companag');
-  ca.className = 'xet-companag';
+  const ca = document.getElementById('xet-companag-box');
   ca.innerHTML = `
-  <table width="100%">
-  <tr><td class="xet-td">
+  <div>
     <table class="xet-table-midline">
       <tr>
-        <td class="xet-td xet-cah">Fodder:</td>
-        <td class="xet-td xet-cah">Anagram draft:</td>
-      </tr>
-      <tr>
-        <td class="xet-td"><input type="text"
-           class="xlv-answer xet-companag-text" id='xet-ca-fodder'></input></td>
-        <td class="xet-td"><input type="text"
-          title="Enter a phrase that's only roughly an anagram of ` +
+        <td><div style="min-width:100px"></div></td>
+        <td class="xet-td xet-cah">Draft anagram:
+          <br>
+          <input type="text"
+            title="Enter a phrase that's only roughly an anagram of ` +
             `some of the letters in the fodder"
-          class="xlv-answer xet-companag-text" id='xet-ca-anagram'></input></td>
+          class="xlv-answer xet-companag-text" id='xet-ca-anagram'></input>
+        </td>
+      </tr>
+        <td class="xet-td"><u><span id="xet-ca-unused"></span></u></td>
+        <td class="xet-td"><u><span id="xet-ca-extra"></span></u></td>
+      <tr>
       </tr>
       <tr>
-        <td></td><td></td>
-      </tr>
-      <tr>
-        <td class="xet-td xet-cah" id="xet-cah-extra">Extras (Draft minus Fodder)</td>
-        <td class="xet-td xet-cah" id="xet-cah-unused">Fodder (minus Draft)</td>
-      </tr>
-      <tr>
-        <td class="xet-td xet-companag-text"
-            id='xet-ca-extra'></td>
-        <td class="xet-td xet-companag-text"
-            id='xet-ca-unused'></td>
+        <td class="xet-td">
+          <div id="xet-ca-unused-anags"></div>
+        </td>
+        <td class="xet-td" >
+          <div>
+            <div id="xet-ca-extra-anags">
+            </div>
+            <div class="xet-anag-help">
+              <details>
+                <summary>Help</summary>
+                <ul>
+                <li>When the "Draft anagram" field is left blank, you can
+                see anagrams of the fodder in the first column.
+                </li>
+                <li>
+                If you enter something in the "Draft anagram" field, then
+                anagrams of fodder <i>excluding</i> the letters in
+                "Draft anagram" are shown in the first column.
+                </li>
+                <li>
+                Anagrams of any extra letters in "Draft anagram" (that are
+                not there in the fodder) are shown in this second column.
+                </li>
+                </ul>
+              </details>
+            </div>
+          </div>
+        </td>
       </tr>
     </table>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <br>
-    <div class="xet-anag-help">
-    <ul>
-    <li>When the "Anagram draft" field is left blank, you can
-    see anagrams of whatever is entered in the "Fodder" field.
-    </li>
-    <li>
-    If you enter something in the "Anagram draft" field, then
-    anagrams of "Fodder" <i>excluding</i> the letters in "Draft"
-    are shown under the "Fodder*" heading.
-    </li>
-    <li>
-    Anagrams of any extra letters in Draft (that are not there in
-    Fodder) are shown under the "Extras*" heading.
-    </li>
-    </ul>
-    </div>
-  </td>
-  <td class="xet-td">
-    <div class="xet-half-section">
-      <table class="xet-table-midline">
-        <tr>
-          <td class="xet-td xet-cah" id="xet-cah-unused-anags">
-            Fodder*
-          </td>
-          <td class="xet-td xet-cah" id="xet-cah-extra-anags">
-            Extras*
-          </td>
-        </tr>
-        <tr>
-          <td class="xet-td" id="xet-ca-unused-anags">
-          </td>
-          <td class="xet-td" id="xet-ca-extra-anags">
-          </td>
-        </tr>
-      </table>
-    </div>
-  </td></tr></table>`;
-  this.caFodder = document.getElementById('xet-ca-fodder');
+  </div>`;
+  this.caFodder = document.getElementById('xet-companag-param');
   this.caAnagram = document.getElementById('xet-ca-anagram');
-  this.caExtra = document.getElementById('xet-ca-extra');
-  this.caUnused = document.getElementById('xet-ca-unused');
-  this.cahExtra = document.getElementById('xet-cah-extra');
-  this.cahUnused = document.getElementById('xet-cah-unused');
-  this.caFodder.addEventListener('input', this.updateCA.bind(this));
   this.caAnagram.addEventListener('input', this.updateCA.bind(this));
-  this.caExtraAnags = document.getElementById('xet-ca-extra-anags');
+  this.caUnused = document.getElementById('xet-ca-unused');
   this.caUnusedAnags = document.getElementById('xet-ca-unused-anags');
-  this.cahExtraAnags = document.getElementById('xet-cah-extra-anags');
-  this.cahUnusedAnags = document.getElementById('xet-cah-unused-anags');
+  this.caExtraAnags = document.getElementById('xet-ca-extra-anags');
+  this.caExtra = document.getElementById('xet-ca-extra');
 }
 
 Exet.prototype.populateFrame = function() {
@@ -3305,7 +3577,7 @@ Exet.prototype.populateFrame = function() {
     if (tab.sections.length > 0) {
       console.assert(tab.sections.length <= 2);
       const sectionClass = tab.sections.length > 1 ? 'xet-half-section' : 'xet-section';
-      frameHTML = frameHTML + `<div id="xet-${id}-sections"><table><tr>`;
+      frameHTML += `<div id="xet-${id}-sections"><table class="xet-sections"><tr>`;
       for (let i = 0; i < tab.sections.length; i++) {
         let section = tab.sections[i];
         frameHTML = frameHTML + '<td class="xet-td">';
@@ -3318,9 +3590,7 @@ Exet.prototype.populateFrame = function() {
             <iframe class="xet-iframe ${sectionClass}" id="xet-${id}-content-${i}">
             </iframe>`;
         } else {
-          let paramHtml = '';
-          if (section.id != 'xet-companag') {
-            paramHtml = `
+          const paramHtml = `
             <br>
             <input id="${section.id}-param" class="xlv-answer"
               size="32" type="text"
@@ -3328,11 +3598,13 @@ Exet.prototype.populateFrame = function() {
               placeholder="Press <Esc> to reset from grid">
             </input>
             `;
-          }
           frameHTML = frameHTML + `
             <div ${titleHover}class="xet-bold">${section.title || ''}</div>
             ${paramHtml}
             <div id="${section.id}">
+              <div id="${section.id}-box"
+                class="xet-in-tab-scrollable ${sectionClass}">
+              </div>
             </div>`
         }
         frameHTML = frameHTML + '</td>';
@@ -3349,26 +3621,10 @@ Exet.prototype.populateFrame = function() {
   }
   this.frame.innerHTML = frameHTML
 
-  const ch = document.getElementById('xet-charades')
-  ch.innerHTML = `
-    <div id="xet-charades-box" class="xet-in-tab-scrollable xet-section">
-    </div>
-  `
   this.charades = document.getElementById('xet-charades-box')
-
-  const eds = document.getElementById('xet-edits');
-  eds.innerHTML = `
-    <div id="xet-edits-box" class="xet-in-tab-scrollable xet-half-section">
-    </div>
-  `
   this.edits = document.getElementById('xet-edits-box');
-
-  const sd = document.getElementById('xet-sounds');
-  sd.innerHTML = `
-    <div id="xet-sounds-box" class="xet-in-tab-scrollable xet-half-section">
-    </div>
-  `
   this.sounds = document.getElementById('xet-sounds-box')
+  this.containments = document.getElementById('xet-containments-box')
 
   this.populateCompanag()
 
@@ -3392,6 +3648,7 @@ Exet.prototype.populateFrame = function() {
               }
             });
           }
+          section.content = document.getElementById(`${section.id}-box`)
           continue;
         }
         section.content = document.getElementById(`xet-${id}-content-${i}`)
@@ -3405,6 +3662,7 @@ Exet.prototype.populateFrame = function() {
   this.makeExetTab();
   this.makeIndsTab();
   this.makeResearchTab();
+  this.makeWebFillsPanel();
 }
 
 Exet.prototype.fileTitle = function() {
@@ -3890,6 +4148,21 @@ Exet.prototype.nutrRevHiddenParam = function(s) {
          '"' + sL[last] + 'A"A*';
 }
 
+/** Nutrimatic-specific maker for finding grid-fills */
+Exet.prototype.nutrFillParam = function(s) {
+  return s.toLowerCase().replace(/\?/g, 'A');
+}
+
+/** Qat-specific maker for finding grid-fills */
+Exet.prototype.qatFillParam = function(s) {
+  return s.toLowerCase().replace(/\?/g, '.');
+}
+
+/** Onelook-specific maker for finding grid-fills */
+Exet.prototype.onelookFillParam = function(s) {
+  return s.toLowerCase();
+}
+
 Exet.prototype.getNamedMaker = function(name) {
   if (!name) {
     return this.makeCAParam;
@@ -3901,6 +4174,12 @@ Exet.prototype.getNamedMaker = function(name) {
     return this.nutrAlternationParam;
   } else if (name == 'Nutrimatic-RevAlternation') {
     return this.nutrRevAlternationParam;
+  } else if (name == 'Nutrimatic-Fill') {
+    return this.nutrFillParam;
+  } else if (name == 'Qat-Fill') {
+    return this.qatFillParam;
+  } else if (name == 'Onelook-Fill') {
+    return this.onelookFillParam;
   } else {
     console.log('Unknown parameter function maker name: ' + name);
     return this.makeCAParam;
@@ -3981,7 +4260,9 @@ Exet.prototype.handleTabClick = function(id) {
       }
       continue;
     }
+    let newLight = true;
     if (section.param == wordParam) {
+      newLight = false;
       if (section.paramInput && section.paramInput.value != wordParam) {
         wordParam = section.paramInput.value;
       } else {
@@ -4000,9 +4281,12 @@ Exet.prototype.handleTabClick = function(id) {
       this.updateEdits(wordParam);
     } else if (section.id == 'xet-sounds') {
       this.updateSounds(wordParam);
+    } else if (section.id == 'xet-containments') {
+      this.updateContainments(wordParam);
     } else if (section.id == 'xet-companag') {
-      this.caFodder.value = wordParam;
-      this.caAnagram.value = '';
+      if (newLight) {
+        this.caAnagram.value = '';
+      }
       this.updateCA();
     }
   }
@@ -4635,6 +4919,10 @@ Exet.prototype.makeClueEditable = function() {
     Break linked clues
     `;
   this.linking.style.display = 'none';
+  const oldLinking = document.getElementById('xet-linking')
+  if (oldLinking) {
+    oldLinking.remove()
+  }
   this.puz.currClue.appendChild(this.linking)
   document.getElementById("xet-add-linked").addEventListener(
       'click', this.addLinkedClue.bind(this));
@@ -4884,7 +5172,9 @@ Exet.prototype.handleClueChange = function() {
 
   this.stripInputLF(currClueAnno);
   theClue.anno = currClueAnno.innerText;
-  theClue.annoSpan.lastElementChild.innerHTML = theClue.anno;
+  if (theClue.annoSpan.lastElementChild) {
+    theClue.annoSpan.lastElementChild.innerHTML = theClue.anno;
+  }
   this.renderClue(theClue);
 
   this.puz.resizeCurrClueAndControls();
@@ -4909,289 +5199,6 @@ Exet.prototype.handleClueChange = function() {
   exetRevManager.throttledSaveRev(exetRevManager.REV_CLUE_CHANGE);
 }
 
-Exet.prototype.gridAcrossSpans = function(grid, w, row) {
-  let spans = []
-  let start = -1
-  let len = 0
-  for (let j = 0; j < w; j++) {
-    if (grid[row][j].isLight) {
-      if (start >= 0 && j > 0 && grid[row][j-1].isLight &&
-          !grid[row][j-1].hasBarAfter) {
-        len++
-      } else {
-        if (len > 1) {
-          spans.push([start, len])
-        }
-        start = j
-        len = 1
-      }
-    } else {
-      if (len > 1) {
-        spans.push([start, len])
-      }
-      start = -1
-      len = 0
-    }
-  }
-  if (len > 1) {
-    spans.push([start, len])
-  }
-  return spans;
-}
-
-Exet.prototype.gridDownSpans = function(grid, h, col) {
-  let spans = []
-  let start = -1
-  let len = 0
-  for (let i = 0; i < h; i++) {
-    if (grid[i][col].isLight) {
-      if (start >= 0 && i > 0 && grid[i-1][col].isLight &&
-          !grid[i-1][col].hasBarUnder) {
-        len++
-      } else {
-        if (len > 1) {
-          spans.push([start, len])
-        }
-        start = i
-        len = 1
-      }
-    } else {
-      if (len > 1) {
-        spans.push([start, len])
-      }
-      start = -1
-      len = 0
-    }
-  }
-  if (len > 1) {
-    spans.push([start, len])
-  }
-  return spans;
-}
-
-Exet.prototype.gridSymmetric = function(grid, w, h) {
-  for (let i = 0; i < h; i++) {
-    for (let j = 0; j < w; j++) {
-      let symi = h - 1 - i
-      let symj = w - 1 - j
-      if (grid[i][j].isLight != grid[symi][symj].isLight) {
-        return false
-      }
-      if (!grid[i][j].isLight) continue
-      if (symj > 0 &&
-          grid[i][j].hasBarAfter != grid[symi][symj - 1].hasBarAfter) {
-        return false
-      }
-      if (symi > 0 &&
-          grid[i][j].hasBarUnder != grid[symi - 1][symj].hasBarUnder) {
-        return false
-      }
-    }
-  }
-  return true
-}
-
-Exet.prototype.gridNumBlocks = function(grid, w, h) {
-  let count = 0
-  for (let i = 0; i < h; i++) {
-    for (let j = 0; j < w; j++) {
-      if (!grid[i][j].isLight) {
-        count++
-      }
-    }
-  }
-  return count
-}
-
-Exet.prototype.gridNumBars = function(grid, w, h) {
-  let count = 0
-  for (let i = 0; i < h; i++) {
-    for (let j = 0; j < w; j++) {
-      if (!grid[i][j].isLight) {
-        continue
-      }
-      if (j < w - 1 && grid[i][j].hasBarAfter) {
-        count++
-      }
-      if (i < h - 1 && grid[i][j].hasBarUnder) {
-        count++
-      }
-    }
-  }
-  return count
-}
-
-Exet.prototype.gridChequeredOK = function(
-      grid, w, h, checkSpanLen=true, checkUnchFrac=true) {
-  let crossers = new Array(h)
-  for (let i = 0; i < h; i++) {
-    crossers[i] = new Array(w)
-    for (let j = 0; j < w; j++) {
-      crossers[i][j] = 0
-      if (!grid[i][j].isLight) {
-        continue
-      }
-      if ((j > 0 && grid[i][j-1].isLight && !grid[i][j-1].hasBarAfter) ||
-          (j < w - 1 && grid[i][j+1].isLight && !grid[i][j].hasBarAfter)) {
-        crossers[i][j]++
-      }
-      if ((i > 0 && grid[i-1][j].isLight && !grid[i-1][j].hasBarUnder) ||
-          (i < h - 1 && grid[i+1][j].isLight && !grid[i][j].hasBarUnder)) {
-        crossers[i][j]++
-      }
-      if (crossers[i][j] == 1 &&
-          ((j > 0 && crossers[i][j-1] == 1 && !grid[i][j-1].hasBarAfter) ||
-           (i > 0 && crossers[i-1][j] == 1 && !grid[i-1][j].hasBarUnder))) {
-        return false
-      }
-    }
-  }
-  const minSpan = 4
-  for (let i = 0; i < h; i++) {
-    let spans = this.gridAcrossSpans(grid, w, i)
-    for (let span of spans) {
-      if (checkSpanLen && span[1] < minSpan) {
-        return false
-      }
-      let numChecked = 0
-      let numUnches = 0
-      for (let j = span[0]; j < span[0] + span[1]; j++) {
-        if (crossers[i][j] < 2) numUnches++
-        else numChecked++
-      }
-      if (numUnches > numChecked + 1) {
-        return false
-      }
-      if (checkUnchFrac && numUnches == numChecked + 1 && numUnches < 5) {
-        return false
-      }
-    }
-  }
-  for (let j = 0; j < w; j++) {
-    let spans = this.gridDownSpans(grid, h, j)
-    for (let span of spans) {
-      if (checkSpanLen && span[1] < minSpan) {
-        return false
-      }
-      let numChecked = 0
-      let numUnches = 0
-      for (let i = span[0]; i < span[0] + span[1]; i++) {
-        if (crossers[i][j] < 2) numUnches++
-        else numChecked++
-      }
-      if (numUnches > numChecked + 1) {
-        return false
-      }
-      if (checkUnchFrac && numUnches == numChecked + 1 && numUnches < 5) {
-        return false
-      }
-    }
-  }
-  return true
-}
-
-Exet.prototype.gridUnchequeredOK = function(grid, w, h, checkSpanLen=true) {
-  let crossers = new Array(h)
-  for (let i = 0; i < h; i++) {
-    crossers[i] = new Array(w)
-    for (let j = 0; j < w; j++) {
-      crossers[i][j] = 0
-      if (!grid[i][j].isLight) {
-        continue
-      }
-      if ((j > 0 && grid[i][j-1].isLight && !grid[i][j-1].hasBarAfter) ||
-          (j < w - 1 && grid[i][j+1].isLight && !grid[i][j].hasBarAfter)) {
-        crossers[i][j]++
-      }
-      if ((i > 0 && grid[i-1][j].isLight && !grid[i-1][j].hasBarUnder) ||
-          (i < h - 1 && grid[i+1][j].isLight && !grid[i][j].hasBarUnder)) {
-        crossers[i][j]++
-      }
-      if (crossers[i][j] < 2) {
-        return false
-      }
-    }
-  }
-  if (!checkSpanLen) {
-    return true
-  }
-  const minSpan = 3
-  for (let i = 0; i < h; i++) {
-    let spans = this.gridAcrossSpans(grid, w, i)
-    for (let span of spans) {
-      if (span[1] < minSpan) {
-        return false
-      }
-    }
-  }
-  for (let j = 0; j < w; j++) {
-    let spans = this.gridDownSpans(grid, h, j)
-    for (let span of spans) {
-      if (span[1] < minSpan) {
-        return false
-      }
-    }
-  }
-  return true
-}
-
-Exet.prototype.gridConnected = function(grid, w, h, layers3d) {
-  let cells = []
-  let visited = new Array(h)
-  for (let i = 0; i < h; i++) {
-    visited[i] = new Array(w)
-    for (let j = 0; j < w; j++) {
-      visited[i][j] = false
-      if (grid[i][j].isLight) {
-        cells.push([i,j])
-      }
-    }
-  }
-  if (cells.length == 0) return false
-  let reachable = [cells[0]]
-  visited[cells[0][0]][cells[0][1]] = true
-  let x = 0
-  const lh = h / layers3d;
-  while (x < reachable.length) {
-    let r = reachable[x][0]
-    let c = reachable[x][1]
-    x++
-    if (c > 0 && grid[r][c-1].isLight && !grid[r][c-1].hasBarAfter &&
-        !visited[r][c-1]) {
-      visited[r][c-1] = true
-      reachable.push([r,c-1])
-    }
-    if (c < w - 1 && grid[r][c+1].isLight && !grid[r][c].hasBarAfter &&
-        !visited[r][c+1]) {
-      visited[r][c+1] = true
-      reachable.push([r,c+1])
-    }
-    if (r > 0 && grid[r-1][c].isLight && !grid[r-1][c].hasBarUnder &&
-        !visited[r-1][c]) {
-      visited[r-1][c] = true
-      reachable.push([r-1,c])
-    }
-    if (r < h - 1 && grid[r+1][c].isLight && !grid[r][c].hasBarUnder &&
-        !visited[r+1][c]) {
-      visited[r+1][c] = true
-      reachable.push([r+1,c])
-    }
-    if (layers3d > 1) {
-      const prevR = r - lh;
-      if (prevR >= 0 && grid[prevR][c].isLight && !visited[prevR][c]) {
-        visited[prevR][c] = true
-        reachable.push([prevR,c])
-      }
-      const nextR = r + lh;
-      if (nextR < h && grid[nextR][c].isLight && !visited[nextR][c]) {
-        visited[nextR][c] = true
-        reachable.push([nextR,c])
-      }
-    }
-  }
-  return reachable.length == cells.length
-}
-
 // Return < 0 if randomness suggests picking nothing.
 Exet.prototype.randomIndex = function(candidates) {
   if (candidates.length <= 0 || Math.random() > 0.85) return -1
@@ -5202,79 +5209,82 @@ Exet.prototype.randomIndex = function(candidates) {
 }
 
 Exet.prototype.automagicBlocksInner = function(chequered, showAlerts=true) {
-  const minSpan = chequered ? 4 : 3
-  let grid = this.puz.grid
-  let w = this.puz.gridWidth
-  let wby2 = Math.ceil(w / 2)
-  let h = this.puz.gridHeight
-  let hby2 = Math.ceil(h / 2)
-  let layers3d = this.puz.layers3d
-  let numCandidates = 0
-  let numChanges = 0
-  let rowcols = []
-  let minwhby2 = Math.min(wby2, hby2)
+  const minSpan = chequered ? 4 : 3;
+  let grid = this.puz.grid;
+  let w = this.puz.gridWidth;
+  let wby2 = Math.ceil(w / 2);
+  let h = this.puz.gridHeight;
+  let hby2 = Math.ceil(h / 2);
+  let layers3d = this.puz.layers3d;
+
+  const analysis = new ExetAnalysis(grid, w, h, layers3d);
+
+  let numCandidates = 0;
+  let numChanges = 0;
+  let rowcols = [];
+  let minwhby2 = Math.min(wby2, hby2);
   for (let x = 0; x < minwhby2; x++) {
-    rowcols.push(["row", x])
-    rowcols.push(["col", x])
+    rowcols.push(["row", x]);
+    rowcols.push(["col", x]);
   }
   for (let i = minwhby2 + 1; i < hby2; i++) {
-    rowcols.push(["row", i])
+    rowcols.push(["row", i]);
   }
   for (let j = minwhby2 + 1; j < wby2; j++) {
-    rowcols.push(["col", j])
+    rowcols.push(["col", j]);
   }
   for (rc of rowcols) {
-    let k1 = rc[1]
-    let isRow = (rc[0] == "row")
-    let symk1 = w - 1 - k1
+    let k1 = rc[1];
+    let isRow = (rc[0] == "row");
+    let symk1 = w - 1 - k1;
     if (isRow) {
-      symk1 = h - 1 - k1
+      symk1 = h - 1 - k1;
     }
-    let spans = isRow ? this.gridAcrossSpans(grid, w, k1) :
-                this.gridDownSpans(grid, h, k1)
-    let candidates = []
+    const spans = isRow ? analysis.acrossSpans(k1) : analysis.downSpans(k1);
+    let candidates = [];
     for (let span of spans) {
       for (let x = minSpan; x < span[1] - minSpan; x++) {
-        let k2 = span[0] + x
-        let symk2 = h - 1 - k2
+        let k2 = span[0] + x;
+        let symk2 = h - 1 - k2;
         if (isRow) {
-          symk2 = w - 1 - k2
+          symk2 = w - 1 - k2;
         }
-        let gridCell = isRow ? grid[k1][k2] : grid[k2][k1]
-        let gridSymCell = isRow ? grid[symk1][symk2] : grid[symk2][symk1]
+        const gridCell = isRow ? grid[k1][k2] : grid[k2][k1];
+        const gridSymCell = isRow ? grid[symk1][symk2] : grid[symk2][symk1];
         if (gridCell.solution != '?' || gridSymCell.solution != '?') {
-          continue
+          continue;
         }
-        gridCell.isLight = false
-        gridSymCell.isLight = false
-        if (this.gridConnected(grid, w, h, layers3d) &&
-            ((chequered && this.gridChequeredOK(grid, w, h)) ||
-             (!chequered && this.gridUnchequeredOK(grid, w, h)))) {
-          candidates.push(k2)
+        gridCell.isLight = false;
+        gridSymCell.isLight = false;
+        if (analysis.isConnected() &&
+            ((chequered && analysis.chequeredOK()) ||
+             (!chequered && analysis.unchequeredOK())) &&
+            analysis.throughCutsBigEnough()) {
+          candidates.push(k2);
         }
-        gridCell.isLight = true
-        gridSymCell.isLight = true
+        gridCell.isLight = true;
+        gridSymCell.isLight = true;
       }
     }
     if (candidates.length == 0) {
-      continue
+      continue;
     }
-    numCandidates += candidates.length
-    let randIndex = this.randomIndex(candidates)
+    numCandidates += candidates.length;
+    let randIndex = this.randomIndex(candidates);
     if (randIndex < 0) {
       // We randomly chose not to make a change
-      continue
+      continue;
     }
-    let k2 = candidates[randIndex]
-    let symk2 = h - 1 - k2
+    let k2 = candidates[randIndex];
+    let symk2 = h - 1 - k2;
     if (isRow) {
-      symk2 = w - 1 - k2
+      symk2 = w - 1 - k2;
     }
-    let gridCell = isRow ? grid[k1][k2] : grid[k2][k1]
-    let gridSymCell = isRow ? grid[symk1][symk2] : grid[symk2][symk1]
-    gridCell.isLight = false
-    gridSymCell.isLight = false
-    numChanges += 2
+    const gridCell = isRow ? grid[k1][k2] : grid[k2][k1];
+    const gridSymCell = isRow ? grid[symk1][symk2] : grid[symk2][symk1];
+    gridCell.isLight = false;
+    gridSymCell.isLight = false;
+    numChanges += 2;
   }
   if (numChanges > 0) {
     this.killInvalidatedClues();
@@ -5282,10 +5292,10 @@ Exet.prototype.automagicBlocksInner = function(chequered, showAlerts=true) {
     if (showAlerts) {
       if (numCandidates == 0) {
         alert('Add automagic blocks: found no further candidate cells ' +
-              'for turning into blocks')
+              'for turning into blocks');
       } else {
         alert('Add automagic blocks: found some candidate cells for ' +
-              'turning into blocks, but random numbers favoured no changes')
+              'turning into blocks, but random numbers favoured no changes');
       }
     }
   }
@@ -5293,185 +5303,48 @@ Exet.prototype.automagicBlocksInner = function(chequered, showAlerts=true) {
 }
 
 Exet.prototype.automagicBlocks = function(showAlerts=true) {
-  const grid = this.puz.grid
-  const w = this.puz.gridWidth
-  const h = this.puz.gridHeight
-  const layers3d = this.puz.layers3d
-  if (this.gridNumBars(grid, w, h) > 0) {
+  const grid = this.puz.grid;
+  const w = this.puz.gridWidth;
+  const h = this.puz.gridHeight;
+  const layers3d = this.puz.layers3d;
+  const analysis = new ExetAnalysis(grid, w, h, layers3d);
+  if (analysis.numBars() > 0) {
     if (showAlerts) {
       alert('Cannot add automagic blocks when the grid has barred cells');
     }
-    return false
+    return false;
   }
   if (this.puz.layers3d > 1) {
     if (showAlerts) {
       alert('Cannot add automagic blocks when the crossword has lights other than across/down');
     }
-    return false
+    return false;
   }
-  if (!this.gridConnected(grid, w, h, layers3d)) {
+  if (!analysis.isConnected()) {
     if (showAlerts) {
       alert('Cannot add automagic blocks when the grid cells are not ' +
             'fully connected');
     }
-    return false
+    return false;
   }
-  if (!this.gridSymmetric(grid, w, h)) {
+  if (!analysis.isSymmetric()) {
     if (showAlerts) {
       alert('Cannot add automagic blocks when the grid is not fully symmetric');
     }
-    return false
+    return false;
   }
-  if (this.gridUnchequeredOK(grid, w, h)) {
-    return this.automagicBlocksInner(false, showAlerts)
-  } else  if (this.gridChequeredOK(grid, w, h)) {
-    return this.automagicBlocksInner(true, showAlerts)
+  if (analysis.unchequeredOK()) {
+    return this.automagicBlocksInner(false, showAlerts);
+  } else  if (analysis.chequeredOK()) {
+    return this.automagicBlocksInner(true, showAlerts);
   } else {
     if (showAlerts) alert('Cannot add automagic blocks to the current grid');
-    return false
+    return false;
   }
-  return false
+  return false;
 }
 
 // --------------- Autofill-related code --------------------------------------
-
-// ExetDher is an implementation of a double heap that stores the top k
-// candidates in terms of descending scores. A min-heap lets us retain
-// the top-k elements, while a max-heap lets us extract the max element.
-// The candidate objects stored in this (via add()) should have a "score" field.
-// Objects stored in this get a property named "dher" attached to them, for
-// storing some book-keping info.
-function ExetDher(lim) {
-  this.maxelts = []
-  this.minelts = []
-  this.lim = lim
-  console.assert(lim > 0, lim);
-}
-ExetDher.prototype.relimit = function(lim) {
-  console.assert(lim > 0, lim);
-  const extra = this.minelts.length - lim;
-  for (let i = 0; i < extra; i++) {
-    this.pop(false, 0)
-  }
-  this.lim = lim
-}
-ExetDher.prototype.size = function() {
-  return this.maxelts.length
-}
-ExetDher.prototype.limit = function() {
-  return this.lim
-}
-ExetDher.prototype.parent = function(idx) {
-  return idx == 0 ? 0 : (idx - 1) >> 1
-}
-ExetDher.prototype.heapifyUp = function(inMax, idx) {
-  let elts = inMax ? this.maxelts : this.minelts
-  console.assert(idx >= 0 && idx < elts.length, idx, elts.length)
-  while (idx > 0) {
-    let parent = this.parent(idx)
-    if (inMax) {
-      if (elts[parent].score >= elts[idx].score) {
-        return
-      }
-    } else {
-      if (elts[parent].score <= elts[idx].score) {
-        return
-      }
-    }
-    let temp = elts[idx]
-    elts[idx] = elts[parent]
-    elts[parent] = temp
-    elts[idx].dher[inMax] = idx
-    elts[parent].dher[inMax] = parent
-    idx = parent
-  }
-}
-ExetDher.prototype.heapifyDown = function(inMax, idx) {
-  let elts = inMax ? this.maxelts : this.minelts
-  console.assert(idx >= 0 && idx < elts.length, idx, elts.length)
-  while (idx < elts.length) {
-    let lchild = (idx << 1) + 1
-    if (lchild >= elts.length) return
-    let child = lchild
-    let rchild = lchild + 1
-    if (inMax) {
-      if (rchild < elts.length &&
-          elts[rchild].score > elts[lchild].score) {
-        child = rchild
-      }
-      if (elts[idx].score >= elts[child].score) return
-    } else {
-      if (rchild < elts.length &&
-          elts[rchild].score < elts[lchild].score) {
-        child = rchild
-      }
-      if (elts[idx].score <= elts[child].score) return
-    }
-    let temp = elts[idx]
-    elts[idx] = elts[child]
-    elts[child] = temp
-    elts[idx].dher[inMax] = idx
-    elts[child].dher[inMax] = child
-    idx = child
-  }
-}
-ExetDher.prototype.add = function(candidate) {
-  let num = this.minelts.length
-  if (num == this.lim) {
-    let worst = this.minelts[0]
-    if (candidate.score < worst.score) {
-      return
-    }
-    if (candidate.score == worst.score) {
-      if (Math.random() < 0.5) {
-        return;
-      }
-    }
-    this.pop(false)
-    num--;
-  }
-  candidate.dher = {}
-  candidate.dher[true] = num
-  candidate.dher[false] = num
-  this.maxelts.push(candidate)
-  this.minelts.push(candidate)
-  this.heapifyUp(true, num)
-  this.heapifyUp(false, num)
-}
-ExetDher.prototype.popInner = function(inMax, idx) {
-  let elts = inMax ? this.maxelts : this.minelts;
-  let len = elts.length;
-  console.assert(len > 0, len);
-  let last = elts.pop();
-  if (len == 1 || idx >= len - 1) {
-    return last;
-  }
-  // len > 1 && idx < len - 1
-  let ret = elts[idx];
-  elts[idx] = last;
-  last.dher[inMax] = idx;
-  let parent = this.parent(idx);
-  if (idx > 0 &&
-      ((inMax && last.score > elts[parent].score) ||
-       (!inMax && last.score < elts[parent].score))) {
-    this.heapifyUp(inMax, idx);
-  } else {
-    this.heapifyDown(inMax, idx);
-  }
-  return ret;
-}
-ExetDher.prototype.pop = function(inMax, idx=0) {
-  let elts = inMax ? this.maxelts : this.minelts;
-  if (idx < 0 || idx >= elts.length) return null;
-  const otherIdx = elts[idx].dher[!inMax];
-  this.popInner(!inMax, otherIdx);
-  return this.popInner(inMax, idx);
-}
-ExetDher.prototype.peep = function(inMax, idx=0) {
-  let elts = inMax ? this.maxelts : this.minelts;
-  if (idx < 0 || idx >= elts.length) return null;
-  return elts[idx];
-}
 
 /**
  * Is [r,c] a cell to be counted for a constrained pangram?
@@ -5734,13 +5607,60 @@ Exet.prototype.hashCandidate = function(candidate) {
   let fills = '';
   for (let i = 0; i < candidate.gridHeight; i++) {
     for (let j = 0; j < candidate.gridWidth; j++) {
-      let gridCell = candidate.grid[i][j];
+      const gridCell = candidate.grid[i][j];
       if (!gridCell.isLight) continue;
       fills += gridCell.currLetter || '?';
     }
   }
   candidate.fills = fills;
   return exetLexicon.javaHash(fills);
+}
+
+Exet.prototype.getCurrEntry = function(candidate, ci) {
+  const cells = this.puz.getAllCells(ci);
+  let entry = '';
+  for (const cell of cells) {
+    const gridCell = candidate.grid[cell[0]][cell[1]];
+    entry += gridCell.currLetter;
+  }
+  return entry;
+}
+
+Exet.prototype.hasPatternOfDeath = function(candidate) {
+  for (let i = 0; i < candidate.gridHeight; i++) {
+    for (let j = 0; j < candidate.gridWidth; j++) {
+      const gridCell = candidate.grid[i][j];
+      if (!gridCell.isLight) continue;
+      if (gridCell.currLetter != '?') continue;
+      const puzCell = this.puz.grid[i][j];
+      if (!puzCell.acrossClueLabel || !puzCell.downClueLabel) continue;
+      const aci = this.puz.getDirClueIndex('A', puzCell.acrossClueLabel);
+      const dci = this.puz.getDirClueIndex('D', puzCell.downClueLabel);
+      console.assert(aci && dci, aci, dci);
+      const ac = candidate.clues[aci];
+      const dc = candidate.clues[dci];
+      if (ac.solution != dc.solution) {
+        continue;
+      }
+      const acEntry = this.getCurrEntry(candidate, aci);
+      const dcEntry = this.getCurrEntry(candidate, dci);
+      if (acEntry != dcEntry) {
+        continue;
+      }
+      const loc = acEntry.indexOf('?');
+      console.assert(loc >= 0, acEntry);
+      if (acEntry.substr(0, loc).indexOf('?') >= 0 ||
+          acEntry.substr(loc + 1).indexOf('?') >= 0) {
+        continue;
+      }
+      /* Across and down solutions are identical, and have the
+       * current cell as the only unfilled cell. This is not
+       * fillable!
+       */
+      return true;
+    }
+  }
+  return false;
 }
 
 Exet.prototype.maybeAddAutofillCandidate = function(candidate) {
@@ -5750,6 +5670,9 @@ Exet.prototype.maybeAddAutofillCandidate = function(candidate) {
     return false;
   }
   this.autofill.triedHashes[h] = true;
+  if (this.hasPatternOfDeath(candidate)) {
+    return false;
+  }
   this.autofill.beam.add(candidate);
   return true;
 }
@@ -5925,6 +5848,8 @@ Exet.prototype.updateAutofillPreflex = function() {
       this.indexMinPop - 1).toLocaleString()
   this.autofill.properNounsSpan.innerText = this.noProperNouns ?
       "disallowed" : "allowed"
+  this.autofill.stemDupesSpan.innerText = this.noStemDupes ?
+      "disallowed" : "allowed"
   this.autofill.tryReversalsSpan.innerText = this.tryReversals ?
       "allowed" : "disallowed"
 }
@@ -6091,6 +6016,7 @@ Exet.prototype.initAutofill = function() {
       beamWidth: 64,
       beam: new ExetDher(64),
       step: 0,
+      numCells: this.puz.gridWidth * this.puz.gridHeight * this.puz.layers3d,
       running: false,
       throttledTimer: null,
       lag: 200,
@@ -6106,8 +6032,10 @@ Exet.prototype.initAutofill = function() {
       triedHashes: {},
     };
   }
-  this.autofill.doublyChecked = this.gridUnchequeredOK(
-      this.puz.grid, this.puz.gridWidth, this.puz.gridHeight, false);
+  const analysis = new ExetAnalysis(
+      this.puz.grid, this.puz.gridWidth, this.puz.gridHeight, this.puz.layers3d);
+  this.autofill.barred = analysis.numBars() > 0;
+  this.autofill.doublyChecked = analysis.unchequeredOK(false);
   this.autofill.clear = document.getElementById("xet-autofill-clear")
   this.autofill.clear.disabled = true
   this.autofill.clear.addEventListener('click', e => {
@@ -6198,43 +6126,45 @@ Exet.prototype.initAutofill = function() {
     }
   });
 
-  this.autofill.stepSpan = document.getElementById('xet-autofill-step')
-  this.autofill.stepSpan.innerText = this.autofill.step
+  this.autofill.stepSpan = document.getElementById('xet-autofill-step');
+  this.autofill.stepSpan.innerText = this.autofill.step;
 
-  this.autofill.statusSpan = document.getElementById('xet-autofill-status')
-  this.autofill.statusSpan.innerHTML = this.autofill.status
+  this.autofill.statusSpan = document.getElementById('xet-autofill-status');
+  this.autofill.statusSpan.innerHTML = this.autofill.status;
 
-  this.autofill.timeSpan = document.getElementById('xet-autofill-time')
-  this.autofill.speedSpan = document.getElementById('xet-autofill-speed')
+  this.autofill.timeSpan = document.getElementById('xet-autofill-time');
+  this.autofill.speedSpan = document.getElementById('xet-autofill-speed');
 
-  this.autofill.currBeamSpan = document.getElementById('xet-autofill-curr-beam')
-  this.autofill.currBeamSpan.innerText = this.autofill.beam.limit()
+  this.autofill.currBeamSpan = document.getElementById('xet-autofill-curr-beam');
+  this.autofill.currBeamSpan.innerText = this.autofill.beam.limit();
 
-  this.autofill.scoreSpan = document.getElementById('xet-autofill-score')
-  this.autofill.scoreVSpan = document.getElementById('xet-autofill-score-v')
-  this.autofill.scorePSpan = document.getElementById('xet-autofill-score-p')
-  this.autofill.scoreFSpan = document.getElementById('xet-autofill-score-f')
+  this.autofill.scoreSpan = document.getElementById('xet-autofill-score');
+  this.autofill.scoreVSpan = document.getElementById('xet-autofill-score-v');
+  this.autofill.scorePSpan = document.getElementById('xet-autofill-score-p');
+  this.autofill.scoreFSpan = document.getElementById('xet-autofill-score-f');
 
-  this.autofill.reversalsSpan = document.getElementById('xet-autofill-reversals')
+  this.autofill.reversalsSpan = document.getElementById('xet-autofill-reversals');
 
   this.autofill.preflexTotalSpan = document.getElementById(
-      'xet-autofill-preflex-total')
+      'xet-autofill-preflex-total');
   this.autofill.preflexUsedSpan = document.getElementById(
-      'xet-autofill-preflex-used')
+      'xet-autofill-preflex-used');
   this.autofill.unpreflexTotalSpan = document.getElementById(
-      'xet-autofill-unpreflex-total')
-  this.autofill.minpopSpan = document.getElementById('xet-autofill-minpop')
+      'xet-autofill-unpreflex-total');
+  this.autofill.minpopSpan = document.getElementById('xet-autofill-minpop');
   this.autofill.indexMinPopSpan = document.getElementById(
-      'xet-autofill-index-minpop')
+      'xet-autofill-index-minpop');
   this.autofill.properNounsSpan = document.getElementById(
-      'xet-autofill-proper-nouns')
+      'xet-autofill-proper-nouns');
+  this.autofill.stemDupesSpan = document.getElementById(
+      'xet-autofill-stem-dupes');
   this.autofill.tryReversalsSpan = document.getElementById(
-      'xet-autofill-try-reversals')
-  this.autofill.pangramSpan = document.getElementById('xet-autofill-letters')
+      'xet-autofill-try-reversals');
+  this.autofill.pangramSpan = document.getElementById('xet-autofill-letters');
   this.autofill.pangramConstrSpan = document.getElementById(
-      'xet-autofill-pangram-cletters')
-  this.autofill.pangramConstrSpan.style.display = 'none'
-  this.autofill.isPangram = document.getElementById('xet-is-pangram')
+      'xet-autofill-pangram-cletters');
+  this.autofill.pangramConstrSpan.style.display = 'none';
+  this.autofill.isPangram = document.getElementById('xet-is-pangram');
 
   this.refreshAutofill();
 }
@@ -6243,6 +6173,11 @@ Exet.prototype.refreshAutofill = function() {
   this.autofill.pangramConstrSpan.style.display =
       this.autofill.pangramAll ? 'none' : '';
   this.autofill.isPangram.style.display = 'none';
+
+  if (this.autofill.step > (this.autofill.numCells * 3)) {
+    console.log('Autofill seems to be stuck in a loop, quitting it.');
+    return null;
+  }
 
   const candidate = this.autofill.beam.peep(true);
   if (!candidate) {
@@ -6570,10 +6505,11 @@ Exet.prototype.unlinkClue = function(ci) {
   }
   for (let cci of theClue.childrenClueIndices) {
     const cClue = this.puz.clues[cci];
-    delete cClue.parentClueIndex
+    delete cClue.parentClueIndex;
+    cClue.linkedOffset = 0;
+    cClue.solution = '';
+    cClue.anno = '';
     cClue.clue = this.draftClue(cci);
-    cClue.solution = ''
-    cClue.anno = ''
   }
   theClue.childrenClueIndices = [];
   theClue.displayLabel = theClue.label;
@@ -6647,11 +6583,22 @@ Exet.prototype.addLinkedClue = function() {
     alert(parsed.label + parsed.dirStr + ' is itself a linked clue');
     return
   } 
-  cClue.parentClueIndex = ci
+  const oldParentCells = this.puz.getAllCells(ci);
+  const childCells = this.puz.getAllCells(cci);
+  cClue.parentClueIndex = ci;
   cClue.clue = this.draftClue(cci);
-  cClue.solution = ''
-  cClue.anno = ''
-  theClue.childrenClueIndices.push(cci)
+  cClue.solution = '';
+  cClue.anno = '';
+  cClue.linkedOffset = 0;
+  if (childCells.length > 0 && oldParentCells.length > 0) {
+    const lastParentCell = oldParentCells[oldParentCells.length - 1];
+    const firstChildCell = childCells[0];
+    if (lastParentCell[0] == firstChildCell[0] &&
+        lastParentCell[1] == firstChildCell[1]) {
+      cClue.linkedOffset = 1;
+    }
+  }
+  theClue.childrenClueIndices.push(cci);
   theClue.displayLabel = theClue.displayLabel + ', ' + parsed.label + parsed.dirStr;
   // update enum of clue
   this.maybeAdjustEnum(ci);
@@ -7565,43 +7512,14 @@ Exet.prototype.Set2Trims = function(set1, set2) {
   return false
 }
 
-// A data structure encapsulating clues and a grid, along with available fill
-// choices. Used for figuring out viability, weeding out non-viable choices,
-// and doing autofill. Note that you can initialize this from exet.puz as well
-// as from another ExetFillState.
-function ExetFillState(obj) {
-  this.gridWidth = obj.gridWidth;
-  this.gridHeight = obj.gridHeight;
-  this.grid = new Array(this.gridHeight);
-  this.viable = obj.viable
-  for (let i = 0; i < this.gridHeight; i++) {
-    this.grid[i] = new Array(this.gridWidth)
-    for (let j = 0; j < this.gridWidth; j++) {
-      let gridCell = obj.grid[i][j]
-      this.grid[i][j] = {}
-      let thisCell = this.grid[i][j]
-      thisCell.isLight = gridCell.isLight
-      if (!thisCell.isLight) continue
-      thisCell.solution = gridCell.solution
-      thisCell.currLetter = gridCell.currLetter
-      thisCell.cChoices = gridCell.cChoices || {}
-      thisCell.viability = gridCell.viability
+Exet.prototype.addToDontReuse = function(p, dontReuse) {
+  if (this.noStemDupes) {
+    const stemGroup = exetLexicon.stemGroup(p);
+    for (const sp of stemGroup) {
+      dontReuse[sp] = true;
     }
-  }
-  this.clues = {}
-  for (let ci in obj.clues) {
-    let theClue = obj.clues[ci]
-    this.clues[ci] = {}
-    let thisClue = this.clues[ci]
-    thisClue.solution = theClue.solution
-    thisClue.parentClueIndex = theClue.parentClueIndex || null;
-    thisClue.childrenClueIndices = theClue.childrenClueIndices || []
-    thisClue.dir = theClue.dir
-    thisClue.index = theClue.index
-    thisClue.cells = theClue.cells
-    thisClue.enumLen = theClue.enumLen
-    thisClue.lChoices = theClue.lChoices || []
-    thisClue.lRejects = theClue.lRejects || []
+  } else {
+    dontReuse[p] = true;
   }
 }
 
@@ -7614,8 +7532,8 @@ function ExetFillState(obj) {
 Exet.prototype.refineLightChoices = function(fillState, limit=0) {
   fillState.preflexUsed = {};
   const dontReuse = {};
-  for (let ci in this.puz.clues) {
-    let theClue = this.puz.clues[ci];
+  for (let ci in fillState.clues) {
+    let theClue = fillState.clues[ci];
     if (theClue.parentClueIndex) {
       continue;
     }
@@ -7629,7 +7547,7 @@ Exet.prototype.refineLightChoices = function(fillState, limit=0) {
     if (choices.length > 0) {
       let p = choices[0];
       console.assert(p > 0, p);
-      dontReuse[p] = true;
+      this.addToDontReuse(p, dontReuse);
       if (this.preflexSet[p]) {
         fillState.preflexUsed[p] = true;
       }
@@ -7696,7 +7614,7 @@ Exet.prototype.refineLightChoices = function(fillState, limit=0) {
     if (isForced) {
       for (let x of theClue.lChoices) {
         const p = Math.abs(x);
-        dontReuse[p] = true;
+        this.addToDontReuse(p, dontReuse);
         if (this.preflexSet[p]) fillState.preflexUsed[p] = true;
       }
     }
@@ -7852,7 +7770,7 @@ Exet.prototype.someClueTurnsNonViable = function(tempFillState) {
           !theClue.solution || theClue.solution.indexOf('?') < 0) {
         continue;
       }
-      let cells = this.puz.getAllCells(ci);;
+      let cells = this.puz.getAllCells(ci);
       let cellChoiceSets = [];
       for (let cell of cells) {
         cellChoiceSets.push({});
@@ -8132,7 +8050,7 @@ Exet.prototype.resetViability = function() {
     if (choices.length > 0) {
       let p = choices[0];
       console.assert(p > 0, p);
-      dontReuse[p] = true;
+      this.addToDontReuse(p, dontReuse);
       if (this.preflexSet[p]) {
         this.preflexInUse[p] = true;
         numPreflexUsed++;
