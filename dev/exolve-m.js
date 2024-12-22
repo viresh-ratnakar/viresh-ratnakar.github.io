@@ -84,7 +84,7 @@ function Exolve(puzzleSpec,
                 visTop=0,
                 maxDim=0,
                 notTemp=true) {
-  this.VERSION = 'Exolve v1.59 December 20, 2024';
+  this.VERSION = 'Exolve v1.59 December 22, 2024';
   this.id = '';
 
   this.puzzleText = puzzleSpec;
@@ -383,7 +383,7 @@ function Exolve(puzzleSpec,
          <li><b>Delete:</b>
              Clear the contents of the current square.</li>
          <li><b>Spacebar:</b>
-             Place/clear block in the current square if it's diagramless.</li>
+             Place block in the current square if it's diagramless.</li>
          <li><b>Double-click or Shift+Letter:</b>
              If the puzzle has rebus cells, this is the way to enter
              multiple letters into a single cell.</li>
@@ -2368,104 +2368,112 @@ Exolve.prototype.parseGrid = function() {
     this.throwErr('Not the right number of lines (' + this.gridHeight +
                   ') in or missing exolve-grid section');
   }
-  this.grid = new Array(this.gridHeight)
+  this.grid = new Array(this.gridHeight);
   for (let i = 0; i < this.gridHeight; i++) {
-    this.grid[i] = new Array(this.gridWidth)
-    let gridLine = this.specLines[i + gridFirstLine].trim().toUpperCase()
+    this.grid[i] = new Array(this.gridWidth);
+    let gridLine = this.specLines[i + gridFirstLine].trim().toUpperCase();
     if (!this.multiLetter) {
-      gridLine = gridLine.replace(/\s/g, '')
+      gridLine = gridLine.replace(/\s/g, '');
     } else {
-      gridLine = gridLine.replace(/\s+/g, ' ')
+      gridLine = gridLine.replace(/\s+/g, ' ');
     }
-    let gridLineIndex = 0
+    let gridLineIndex = 0;
     for (let j = 0; j < this.gridWidth; j++) {
       if (gridLineIndex >= gridLine.length) {
-        let errmsg = 'Too few letters in the grid at row,col: ' + i + ',' + j
+        let errmsg = 'Too few letters in the grid at row,col: ' + i + ',' + j;
         if (this.multiLetter) {
           errmsg = errmsg + '. Note that grid letters must be separated by ' +
             'spaces or decorators for languages that have compound characters ' +
             'or if there are rebus cells';
         }
-        this.throwErr(errmsg)
+        this.throwErr(errmsg);
       }
-      let letter = gridLine.charAt(gridLineIndex++)
-      let escaped = false
+      let letter = gridLine.charAt(gridLineIndex++);
+      let escaped = false;
       if (letter == '&') {
-        letter = gridLine.charAt(gridLineIndex++)
-        escaped = true
+        letter = gridLine.charAt(gridLineIndex++);
+        escaped = true;
       }
-      if (this.multiLetter && letter != '.' && letter != '0') {
-        let next = gridLineIndex
-        while (next < gridLine.length &&
-               !reNextChar.test(gridLine.charAt(next))) {
-          next++
+      if (this.multiLetter && (escaped || (letter != '.' && letter != '0'))) {
+        let next = gridLineIndex;
+        while (next < gridLine.length) {
+          let nextChar = gridLine.charAt(next);
+          if (nextChar == '&' && (next + 1 < gridLine.length)) {
+            next++;
+            letter += gridLine.charAt(next);
+            next++;
+          } else if (!reNextChar.test(nextChar)) {
+            letter += nextChar;
+            next++;
+          } else {
+            break;
+          }
         }
-        letter = letter + gridLine.substring(gridLineIndex, next).trim()
-        gridLineIndex = next
+        gridLineIndex = next;
       }
-      this.grid[i][j] = this.newGridCell(i, j, letter, escaped)
-      let gridCell = this.grid[i][j]
+      this.grid[i][j] = this.newGridCell(i, j, letter, escaped);
+      let gridCell = this.grid[i][j];
       // Deal with . and 0 and 1 in second pass
-      let thisChar = ''
+      let thisChar = '';
       while (gridLineIndex < gridLine.length &&
              (thisChar = gridLine.charAt(gridLineIndex)) &&
              reDecorators.test(thisChar)) {
         if (thisChar == '|') {
-          gridCell.hasBarAfter = true
+          gridCell.hasBarAfter = true;
         } else if (thisChar == '_') {
-          gridCell.hasBarUnder = true
+          gridCell.hasBarUnder = true;
         } else if (thisChar == '+') {
-          gridCell.hasBarAfter = true
-          gridCell.hasBarUnder = true
+          gridCell.hasBarAfter = true;
+          gridCell.hasBarUnder = true;
         } else if (thisChar == '@') {
-          gridCell.hasCircle = true
+          gridCell.hasCircle = true;
         } else if (thisChar == '*') {
-          gridCell.isDgmless = true
+          gridCell.isDgmless = true;
         } else if (thisChar == '!') {
-          gridCell.prefill = true
+          gridCell.prefill = true;
         } else if (thisChar == '~') {
-          gridCell.skipNum = true
+          gridCell.skipNum = true;
         } else if (thisChar == ' ') {
         } else {
           this.throwErr('Should not happen! thisChar = ' + thisChar);
         }
-        gridLineIndex++
+        gridLineIndex++;
       }
       if (gridCell.isLight && gridCell.solution != '0' && !gridCell.prefill) {
-        allEntriesAre0s = false
+        allEntriesAre0s = false;
       }
     }
   }
   // We use two passes to be able to detect if 0 means blank cell or digit 0.
   for (let i = 0; i < this.gridHeight; i++) {
     for (let j = 0; j < this.gridWidth; j++) {
-      let gridCell = this.grid[i][j]
+      let gridCell = this.grid[i][j];
       if (gridCell.isLight) {
-        let saved = gridCell.solution
+        let saved = gridCell.solution;
         if (gridCell.solution == '0') {
           if (allEntriesAre0s && !gridCell.prefill) {
-            this.hasUnsolvedCells = true
+            this.hasUnsolvedCells = true;
           } else {
-            gridCell.solution = this.SPECIAL_STATE_CHARS['0']
+            gridCell.solution = this.SPECIAL_STATE_CHARS['0'];
           }
         }
         if (!this.isValidGridChar(gridCell.solution)) {
-          this.throwErr('Invalid grid entry[' + i + '][' + j + ']: ' + saved)
+          this.throwErr('Invalid grid entry[' + i + '][' + j + ']: ' + saved);
         }
       }
       if (gridCell.isDgmless && gridCell.solution == '.') {
-        gridCell.solution = '1'
+        gridCell.solution = '1';
       }
       if (gridCell.prefill && !gridCell.isLight) {
-        this.throwErr('Pre-filled cell (' + i + ',' + j + ') not in a light: ')
+        this.throwErr('Pre-filled cell (' + i + ',' + j + ') not in a light: ');
       }
       if (gridCell.isDgmless) {
-        this.hasDgmlessCells = true
+        this.hasDgmlessCells = true;
       }
     }
   }
   if (this.hasDgmlessCells) {
-    this.hideCopyPlaceholders = true
+    this.hideCopyPlaceholders = true;
   }
   if (this.layers3d > 1) {
     // 3-d crossword. Mark layer boundaries with bars.
@@ -5747,7 +5755,7 @@ Exolve.prototype.cnavToInner = function(activeClueIndex, grabFocus = false) {
     }
   }
   this.currClueInner.style.background = this.colorScheme['currclue'];
-  this.updateClueState(parentIndex, false, null)
+  this.updateClueState(parentIndex, false, null, false)
   this.currClue.style.display = '';
   this.resizeCurrClueAndControls();
   return gnav;
@@ -7368,6 +7376,7 @@ Exolve.prototype.forceAlts = function(groups, inclusionBits) {
         this.gridInput.value = revealedChar;
       }
     }
+    this.updateClueState(ci, false, null, true);
   }
   this.adjustRebusFonts();
   this.updateAndSaveState();
