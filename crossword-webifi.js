@@ -240,7 +240,7 @@ CrosswordWebifi.prototype.linkedChildrenNames = function(indices) {
 }
 
 CrosswordWebifi.prototype.readCells = function(cells, pattern) {
-  const entry = this.puz.punctuateEntry(cells, pattern);
+  const entry = this.puz.getCellsEntry(cells, pattern);
   return this.markUpEntry(entry);
 }
 
@@ -856,7 +856,7 @@ CrosswordWebifi.prototype.handleMatches = function() {
   if (!ci) return;
   const cells = this.puz.getAllCells(ci);
   const placeholder = this.puz.clues[ci].placeholder || '';
-  pattern = this.puz.punctuateEntry(cells, placeholder);
+  pattern = this.puz.getCellsEntry(cells, placeholder);
   // Pass back to webifi, to be picked up by WordsWebifi
   this.webifi.processInput('pattern ' + pattern);
 }
