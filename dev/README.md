@@ -2,7 +2,7 @@
 
 ## An Easily Configurable Interactive Crossword Solver
 
-### Version: Exolve v1.56 November 1?, 2023
+### Version: Exolve v1.59 December 22, 2024
 
 Exolve can help you create online interactively solvable crosswords (simple
 ones with blocks and/or bars as well as those that are jumbles or are
@@ -80,7 +80,9 @@ them to see examples of usage of most Exolve features.
 The basic control is to click on a square and enter a letter in it. If a square
 is a part of both an across clue and a down clue, then clicking on that square
 while it is the current square (or pressing the Enter key) will toggle the
-active direction.
+active direction (unless the shift key is also pressed with a click, in which
+case no directon-toggling will happen, which is useful when navigating back
+to the grid from some other input element).
 
 The control buttons (*Clear this*, *Clear all!*, *Check this*, *Check all!*,
 *Reveal this*, and *Reveal all!*) work as suggested by their names ("this"
@@ -119,11 +121,9 @@ If the setter has provided annotations by appending annotations at the end of
 some clues, then these annotations get shown when the solver clicks
 "Reveal all!". Clue-specific annotations get revealed/hidden with
 "Reveal/Clear this" buttons (unless the clue only has diagramless cells).
-Additionally, "Check this" and "Check all!" behave like "Reveal this" and
-"Reveal all!" respectively, if they find no mistakes. In a puzzle in which
-solutions are not provided, the "Reveal this" button will still get shown if
-there are any clues for which annotations are present (these annotations may be
-full solutions or just hints, possibly).
+In a puzzle in which solutions are not provided, the "Reveal this" button will
+still get shown if there are any clues for which annotations are present (these
+annotations may be full solutions or just hints, possibly).
 
 If the setter has provided the location of one or more ninas (through
 [`exolve-nina`](#exolve-nina) sections), then an additional button control,
@@ -228,28 +228,33 @@ and the `exolve-end` line:
 * `exolve-force-bar-right`
 * `exolve-force-bar-below`
 * `exolve-cell-size`
+* `exolve-grid-spacing`
+* `exolve-grid-bounds`
+* `exolve-cell-decorator`
 * `exolve-postscript`
+* `exolve-shaped-cell`
 
 Each section has the section name (`exolve-something`), followed by a colon.
 Other than the `exolve-preamble`/`exolve-prelude`, `exolve-grid`,
-`exolve-across`, `exolve-down`, `exolve-nodir`, `exolve-explanations`, and
-`exolve-postscript` sections, all other sections occupy a single line (some can
-be repeated though). For such single-line sections, the "value" of the section
-is the text following the colon on the same line.
+`exolve-across`, `exolve-down`, `exolve-nodir`,
+`exolve-explanations`, and `exolve-postscript` sections, all other sections
+occupy a single line (some can be repeated though). For such single-line
+sections, the "value" of the section is the text following the colon on the
+same line.
 
 The bolded sections, namely, `exolve-width`, `exolve-height`, and
 `exolve-grid` are required. The other sections are optional, but
-`exolve-across`, `exolve-down`, `exolve-title`, `exolve-setter` should probably
-be present in most puzzles.
+`exolve-across`, `exolve-down`, (or `exolve-nodir`), `exolve-title`, `exolve-setter`
+should probably be present in most puzzles.
 
 Any line (or trailing part of a line) that begins with a "# " is treated
 as a comment and is ignored. A "#" with an end-of-line after it is also treated
-as a comment. Note that a "#" with a non-space character after it is NOT treated
-as a somment (this is so because we may have HTML colour names such as #FF00FF
-in `exolve-colour` sections, and we may have clues in which their grid-location
-is indicated in the #xN
-notation—[see this section](#extended-chessboard-notation)). I did not use
-"//" as the comment marker as it is used in URLs.
+as a comment. Note that a "#" with a non-space character after or before it is
+NOT treated as a comment. This is so because we may have things like "#1" or
+"Phone#" in clues, or "#" in URLs, or HTML colour names such as #FF00FF in
+`exolve-colour` sections, or we may have clues in which their grid-location is
+indicated in the #xN notation—[see this section](#extended-chessboard-notation).
+I did not use "//" as the comment marker as it is used in URLs.
 
 Any text appearing before `exolve-begin` or after `exolve-end` is ingored.
 
@@ -352,6 +357,12 @@ As a convenient reference, here again is the complete list of decorators:
 | `!`       | Is prefilled.                      |
 | `~`       | Skips normal numbering             |
 
+Apart from these standard decorators, you can also create arbitrary SVG based
+decorators (see [`exolve-cell-decorator`](#exolve-cell-decorator). A cell
+can be decorated with the kth (k = 1, 2, ...) `exolve-cell-decorator`by suffixing
+its entry in the grid with `{k}` (or comma-separated lists of numbers, like
+`{k1,k2,...}`).
+
 If you use a language/Script that uses compound letters made up of multiple
 Unicode characters (for example, Devanagari—see the
 [`exolve-language`](#exolve-language) section), or if you have
@@ -368,13 +379,16 @@ This will work:
      से ह त
 ```
 
+You can also create grids with arbitary geometries of cells (such as hexagonal
+cells), using [`exolve-shaped-cell`](#exolve-shaped-cell), described later.
+
 ### Digits and special characters
 
 Normally, only the letters of the alphabet (A-Z, or script-specific) can be
 used in solution letters. However using [`exolve-option`](#exolve-option)
 `allow-digits` or `allow-chars:<chars>`, you may allow some non-alphabetic
 characters. If any of these characters is also a decorator or has a special
-meaning in grid specifications (i.e., is one of `|_+@!~*.?`), then it should
+meaning in grid specifications (i.e., is one of `|_+@!~*.?{[`), then it should
 be prefixed with `&` in the grid specifications. If `&` itself needs to be used
 in the grid, then it too should be prefixed with an `&`. For example:
 ```
@@ -427,6 +441,76 @@ more space for the text.
 You cannot have rebus cells in crosswords that use languages with
 max-char-codes greater than one and in crosswords with diagramless cells (this
 allows us to keep the code simpler).
+
+### Alternative letters
+
+Sometimes you would want to permit alternative spellings of some words. You
+can do that by using one or more `exolve-alternatives` sections. Each such
+single-line section has one or more space-separated entries that specify
+alternative letters for specific cells (identified using the
+[extended chessboard notation](#extended-chessboard-notation)). Example:
+```
+  exolve-width: 7
+  exolve-height: 3
+  exolve-grid:
+    OXIDISE
+    U.....V
+    REALISE
+  exolve-alternatives: r1c6:Z
+  exolve-alternatives: r3c6:Z
+```
+
+Both S and Z will be allowed by "Check this" and "Check all!", in
+OXIDISE/OXIDIZE (1a) and REALISE/REALIZE (3a). Similarly, "Reveal this" and
+"Reveal all!" will not change any letter that the solver might have entered in
+a cell, if it's listed as an alternative for that cell.
+
+If an exolve-alternatives section has more than one cell, then it is treated
+as an all-or-nothing group. For example, we can add this line to the above:
+```
+  exolve-alternatives: r2c1:A r2c7:Y
+```
+Here, there is an alternative solution to the puzzle in which 1d is OAR _and_
+2d is EYE. This can be used to craft puzzles that might have
+two (or more!) distinct solutions, such as this
+[famous example](https://viresh-ratnakar.github.io/test-farrell-quantum.html)
+by Jeremiah Farrell.
+
+We disallow specifying the same cell in more than one `exolve-alternatives`
+section. The reason is to avoid the possibility of puzzles where the solver
+may reach a dead-end conflict in choices from two groups. Dealing with such
+conflicts would have required adding code complexity as well as user interface
+complexity.
+
+The above way of specifying alternatives, with the non-duplicated-cell
+constraint just described, means that you cannot specify more than one
+alternative for a cell. We think that's reasonable, but if someone comes
+up with an interesting puzzle in which more than one alternative is warranted
+for some cell, please let us know and we can consider supporting that scenario.
+
+Revealed in-clue solutions will include all possible solutions for a clue.
+The solutions where some `exolve-alternatives` groups are used will be
+shown with a superscript that is a comma-separated list of all group numbers
+used in crafting that alternative. For example, 1a will show "OXIDISE,
+OXIDIZE<sup>2</sup>", and 3a will show "REALISE, REALIZE<sup>1</sup>". The
+revealed in-clue solutions also show the following help-text when hovered
+over:
+
+> This is an alternative solution to the clue. Clicking on it
+> will set any currently visible letters in it to this variant. If
+> the setter has created an alternative solution group with more than one
+> cell (group numbers are shown in superscripts of solution variants)
+> then clicking will set all revealed visible letters in the group to
+> reflect this variant.
+
+As described in the above help-text, clicking on any variant will set
+all currently visible revealed cells to the values implied by the
+alternatives groups used in that variant.
+
+We disallow using `exolve-alternatives` when there ar diagramless cells or
+when any cell does not have a solution. We disallow more than 3 distinct groups
+of alternatives within any single clue (as it's an unlikely scenario and the
+listing of all possible solutions would be too long).
 
 ### Some details about diagramless cells
 Note that "diagramlessness" only hides from the solver whether a square is
@@ -583,6 +667,31 @@ using `exolve-option: ignore-unclued` and/or
 done if there are any nodir clues, and checking for mismatched enums is
 not done if there are any diagramless cells.
 
+### Hints
+
+You can include hints in clues (in some clues or in all clues). This is done
+by providing a sequence of lines immediately under the clue, each one carrying
+the prefix, `Hint:` (case-insensitive). Each hint can include HTML formatting.
+Example:
+```
+  exolve-across:
+  1 Some clue without a hint (9)
+  5 A clue with two hints (5)
+    Hint: The <i>first</i> hint!
+    Hint: The second hint is noticeably longer.
+  6 A clue with one snarky hint (6)
+    Hint: Try using your brain for a change?
+```
+
+Note that these hints are completely independent of the post-reveal annotation
+desribed below (if present). When hints are available for the current clue, and
+not all hints have yet been shown, a lightbulb icon is shown at the end of the
+clue (above the grid only, not in the clues table). Clicking on this icon will
+reveal the next hint. Clicking on any hint will hide all the hints once again.
+
+Exolve does not save state about how many hints were shown for various clues, so
+if you reload the puzzle then all hints restart in the not-shown state.
+
 ### Annotations
 In a grid with solutions provided, the setter may include annotations for
 explaining how a clue works or for providing hints. Any text located after the
@@ -716,8 +825,8 @@ column and 31st row.
 
 ### Filler lines between clues
 Any line in a clues section (i.e., in
-`exolve-across`/`exolve-down`/`exolve-nodir`) that cannot be parsed as a clue
-is treated as a filler line. It is simply displayed in that position in the
+`exolve-across`/`exolve-down`/`exolve-nodir`) that cannot be parsed as a clue or
+hint is treated as a filler line. It is simply displayed in that position in the
 list of clues. It is an error to place a filler line after the last clue in a
 clues section. Filler lines can be used to demarcate sections within clues, if
 needed. Example:
@@ -986,7 +1095,7 @@ count them more easily.
 The placeholder blank, when empty, will show (as the light gray "placeholder"
 text that indicates a hint for what the solver needs to enter) the text pattern
 implied by the enum, such as "??? ??-??" for (3, 3-3). You can override this
-placeholfer text by specifying what should get displayed within square brackets,
+placeholder text by specifying what should get displayed within square brackets,
 right after the last underscore. For example:
 ```
   exolve-down:
@@ -1218,6 +1327,9 @@ Note that the colour that you specify will get shown transparently overlaid over
 the normal cell colour (white, unless changed with `exolve-option:colour-cell`)
 as well as over the active cell colour.
 
+The colouring can be forced to be limited to a bar at the bottom of the cell,
+using `exolve-option: colour-only-cell-bottom`.
+
 You can also have ninas that involve arbitrary letters/words from within the
 text of the clues or the prelude. This involves a little bit of HTML.
 Just enclose the text that you want to highlight as a nina in a "span" tag,
@@ -1255,6 +1367,9 @@ can be any valid
 Note that the colour that you specify will get shown transparently overlaid over
 the normal cell colour (white, unless changed with `exolve-option:colour-cell`)
 as well as over the active cell colour.
+
+The colouring can be forced to be limited to a bar at the bottom of the cell,
+using `exolve-option: colour-only-cell-bottom`.
 
 ## `exolve-question`
 Often, the setter might have hidden additional information for the solver to
@@ -1344,6 +1459,46 @@ modify the URL to make a direct submission link, like this:
   exolve-submit: https://docs.google.com/forms/d/e/1FAIpQLSeezqRzI7N77Huk8_TYwAB40wp2E6HgQaOsNPMc1KgJp-7O8Q/formResponse?submit=SUBMIT entry.411104056 entry.464339112 entry.861079418 entry.1052922113
 ```
 
+### Automatically scoring submitted solutions in Google Forms
+
+- Link the form to a spreadsheet (there is an option under "Responses").
+
+- Open the spreadsheet and click on `Extensions > Apps Script`.
+
+- Delete all the skeletal, pre-populated `function myFunction() ..` code lines
+  and replace them with the following lines of code:
+
+```
+  function SCORE(solution) {
+    const expected = 'REPLACE..ME';
+    var matched = 0;
+    for (var i = 0; i < expected.length; i++) {
+      if (i >= solution.length) {
+        break;
+      }
+      if (expected.charAt(i) == solution.charAt(i) &&
+          expected.charAt(i) != '.') {
+        matched++;
+      }
+    }
+    return matched;
+  }
+```
+
+- Change the `REPLACE..ME` text to be the solution string for the crossword. You
+  can submit an all-correct entry to see what this should be (essentially, all
+  the letters strung together, row-by-row, with a "." for every black cell. So,
+  for a 15x15 grid, there should be 225 letters + periods in this string.
+
+- Save the project and deploy it, giving it a name. [See these instructions if you
+  run into any
+  problems](https://developers.google.com/apps-script/guides/sheets/functions).
+
+- Now, add a column to the spreadsheet beyond the last column. Give it the heading
+  "Score". Use the formula `=SCORE(B2)` in the second row, and then extend the
+  formula to all the rows. This column will now show the number of correct letters
+  for each submission.
+
 ## `exolve-option`
 In this single-line, repeatable section, the setter can specify certain options.
 Multiple, space-separated options may be provided on each exolve-option line.
@@ -1412,6 +1567,12 @@ The list of currently supported options is as follows:
   "Clear all", then the nina button is hidden again.
 - **`no-smart-coloring`** or **`no-smart-colouring`** If this option is
   specified, then we do not try ["smart colouring"](#smart-colouring).
+- **`colour-only-cell-bottom`** or **`color-only-cell-bottom`** If this option
+  is specified, then for cell colouring (for cells that have exolve-colour
+  specified or for cells that are parts of ninas), we do not colour the
+  whole cell; instead, we just colour a bar at the bottom of the cell. This
+  can be useful for printing too, as colouring the whole cell tends to blur
+  the text in it when printing). This option is ignored in 3-d (for now).
 - **`offset-left:<N>`** Draw the grid with this much space to the left and
   to the right (N pixels). Useful for drawing additional art around the grid
   using `customizeExolve()`, for example.
@@ -1451,7 +1612,7 @@ be overriding), and descriptions.
 |----------------------------|---------------|-----------------------------------|
 | `colour-active`            | mistyrose     | Squares for the light(s) currently active.|
 | `colour-active-clue`       | mistyrose     | The current clue(s) in the clues list get(s) this as background colour.|
-| `colour-anno`              | darkgreen     | The text of the annotation.       |
+| `colour-anno`              | darkgreen     | The text of the annotations.       |
 | `colour-arrow`             | mistyrose     | The right- or down-arrow (or left-, or up-arrow in crosswords with reversals) in the square where the solver is typing.|
 | `colour-background`        | black         | The background: blocked squares and bars.|
 | `colour-button`            | #4caf50       | Buttons (Check/Reveal etc).       |
@@ -1463,6 +1624,8 @@ be overriding), and descriptions.
 | `colour-circle-input`      | gray          | Same as above, in the square where the solver is typing.|
 | `colour-currclue`          | white         | Background for the current clue above the grid.|
 | `colour-def-underline`     | #3eb0ff       | The underline in a revealed definition within a clue.|
+| `colour-hint`              | dodgerblue    | The text of the hints.       |
+| `colour-hint-bulb`         | dodgerblue    | The text of the hint icon (only relevant if you override the default icon, which is a lightbulb, with text). |
 | `colour-imp-text`          | darkgreen     | "Important" text: setter's name, answer entries, grid-filling status.|
 | `colour-input`             | #ffb6b4       | The light square where the solver is typing.|
 | `colour-light-label`       | black         | The number (or nun-numeric label) of a clue, in its first square. |
@@ -1585,12 +1748,23 @@ of four characters). In these situations, you can specify
 to allow to go into a composite letter, at most. For Devanagari, the software
 already sets this to 5 (but you can override that if you specify a value
 here). When &lt;max-char-codes-per-letter&gt; is greater than 1, you can append
-to existing characters within a cell by pressing the Shify key, or by
+to existing characters within a cell by pressing the Shift key, or by
 double-clicking in the cell. If a cell already has a multi-char letter in
 it, then you can append more characters to it (or delete existing them)
 when you come to it by clicking on it or via auto-advancing from an
 adjacent cell (i.e., the Shift key or double-click are not needed in that
 case).
+
+You may also want to provide
+[placeholder blanks](#forcing-the-display-of-placeholder-blanks)
+for languages such as Hindi that have compound letters. Exolve recognizes
+multi-character letters separated by spaces within placeholders. So,
+if you have a 3-letter clue, and the placeholder text contains
+"उ स्ता द"
+then copying this into a 3-letter entry will place 
+"उ" in the first cell,
+"स्ता" in the second cell, and
+"द" in the third cell.
 
 When you use a language other than English, you may also want to change the
 text displayed in various buttons etc. to that language. You can do that
@@ -1644,28 +1818,33 @@ Here are all the names of pieces of text that you can relabel:
 | `hide-ninas.hover` | Hide ninas shown in the grid/clues. |
 | `reveal-all`     | Reveal all!                          |
 | `reveal-all.hover` | Reveal all solutions, available annos, answers, notes! |
+| `hint-bulb.hover`| Click to see a hint. |
+| `hint.hover`| Click to hide hints. |
+| `hint`           | Hint |
+| `hint-bulb`      | &#128161; |
 | `submit`         | Submit                               |
 | `submit.hover`   | Submit the solution!                 |
 | `setter-by`      | By                                   |
 | `curr-clue-prev` | &lsaquo;                             |
-| `curr-clue-prev.hover` | Previous clue.       |
+| `curr-clue-prev.hover` | Previous clue.                 |
 | `curr-clue-next` | &rsaquo;                             |
-| `curr-clue-next.hover` | Next clue.           |
+| `curr-clue-next.hover` | Next clue.                     |
 | `squares-filled` | Squares filled                       |
 | `across-label`   | Across                               |
 | `down-label`     | Down                                 |
-| `3d-ac-label`     | Across & Back                        |
-| `3d-aw-label`     | Away & Towards                       |
+| `3d-ac-label`     | Across & Back                       |
+| `3d-aw-label`     | Away & Towards                      |
 | `3d-dn-label`     | Down & Up                           |
 | `nodir-label`    | Other                                |
-| `tools-link`     | Exolve                                |
+| `tools-link`     | Exolve                               |
 | `tools-link.hover` | Crossword software: [VERSION]: Show/hide panel with info/help and links to report a bug, manage storage, etc.|
 | `tools-msg`      | [Longish list of all control keys, and more...]|
+| `alts.hover`     | This is an alternative solution to the clue. Clicking on it will set any currently visible letters in it to this variant. If the setter has created an alternative solution group with more than one cell (group numbers are shown in superscripts of solution variants) then clicking will set all revealed visible letters in the group to reflect this variant.|
 | `crossword-id`   | Crossword ID                         |
 | `notes`          | Notes                                |
 | `notes.hover`    | Show/hide notes panel.               |
 | `notes-help`     | Ctrl-/ takes you to the current clue's notes (or overall notes) and back (if already there). Ctrl-\* adds a * prefix to the current clue's notes. Hovering over a clue's notes shows the clue as a tooltip.|
-| `jotter`         | Jotter                                |
+| `jotter`         | Jotter                               |
 | `jotter.hover`   | Show/hide a jotting pad that also lets you try out anagrams and subtractions.|
 | `jotter-text.hover`|You can shuffle letters by clicking above. If you enter something like "Alphabet - betas  =" then it will be replaced by "lpha - s" (subtraction of common letters). |
 | `maker-info`     | Exolve-maker info                    |
@@ -1673,9 +1852,12 @@ Here are all the names of pieces of text that you can relabel:
 | `manage-storage.hover` | View puzzle Ids for which state has been saved. Delete old saved states to free up local storage space if needed.|
 | `manage-storage-close` | Close (manage storage)         |
 | `manage-storage-close.hover` | Close the local storage management panel.|
-| `exolve-link`    | Exolve on GitHub                     |
+| `exolve-link`    | Exolve-on-GitHub                     |
 | `exolve-link.hover`| Visit the Exolve open-source repository on GitHub, with a detailed user guide.|
-| `report-bug`     | Report Bug                                  |
+| `report-bug`     | Report-Bug                                  |
+| `report-bug.hover`| Report a bug on the GitHub page for Exolve |
+| `exolve-exet-etc`| Community |
+| `exolve-exet-etc.hover`| Exolve-Exet-Etc: a Google Group to get release updates, discuss usage and features for Exolve, Exet, etc.|
 | `webifi`         | Webifi                               |
 | `webifi.hover`   | Show/hide "Webifi", the interactive-fictionesque text/audio interface.|
 | `saving-msg`     | Your entries are auto-saved in the browser's local storage.|
@@ -1712,13 +1894,19 @@ Here are all the names of pieces of text that you can relabel:
 | `confirm-delete-id` | Delete puzzle state for puzzle id |
 | `confirm-delete-older` | Delete all puzzle states saved before |
 | `confirm-state-override` | Do you want to override the state saved in this device with the state found in the URL?|
-| `warnings-label` | Please fix or use "ignore-unclued" / "ignore-enum-mismatch" [options](https://github.com/viresh-ratnakar/exolve/blob/master/README.md#exolve-option):|
+| `warnings-label` | Please fix, or use "ignore-unclued" / "ignore-enum-mismatch" [options](https://github.com/viresh-ratnakar/exolve/blob/master/README.md#exolve-option):|
 | `warnings.hover` | Issues detected: click &times; to dismiss.    |
 | `print` | Print                                                  |
 | `print.hover` | Show/hide panel for printing or creating PDFs.   |
 | `print-heading` | Print or create a PDF:                         |
 | `print-size` | Page size:                                        |
-| `print-margin` | Margin (inches):                                |
+| `print-grid-scale` | Force grid scale to:                        |
+| `print-grid-scale.hover` | Instead of figuring out a good grid-scale factor (from width/height/etc.), force it to this value. |
+| `print-only-grid`| Only grid                                     |
+| `print-only-clues`| Only clues                                   |
+| `print-all`| Grid and clues                                      |
+| `print-margin`| Margin (inches, up to 4 numbers)                 |
+| `print-margin.hover`| The numbers are in inches, and are for top, right, bottom, left. Missing numbers are taken from symmetry or last available values. |
 | `print-font` | Font size:                                        |
 | `print-font-normal` | Normal                                     |
 | `print-font-large` | Large                                       |
@@ -1731,17 +1919,26 @@ Here are all the names of pieces of text that you can relabel:
 | `print-page.hover` | Print the whole page (Ctrl-p or Cmd-P).     |
 | `print-page-wysiwyg` | Print wysiwyg                             |
 | `print-page-wysiwyg.hover` | Print the whole page without reformatting the crossword.|
-| `print-questions`| Include questions                             |
-| `print-clues-page`| Page break before clues                      |
-| `print-preamble-below`| Preamble below grid                      |
+| `print-title` | Title                                            |
+| `print-setter` | Setter                                          |
+| `print-preamble` | Preamble                                      |
+| `print-explanations` | Explanations                              |
+| `print-copyright` | Copyright                                    |
+| `print-questions` | Questions                                    |
+| `print-header` | Extra header                                    |
+| `print-header.hover` | Any HTML you provide here will be inserted in the beginning of the puzzle frame before printing |
+| `print-footer` | Extra footer                                    |
+| `print-footer.hover` | Any HTML you provide here will be inserted at the end of the puzzle frame before printing |
 | `print-inksaver`| Inksaver                                       |
-| `print-qrcode`| Include QR code                                  |
+| `print-qrcode`| Add QR code for this puzzle's URL            |
 | `print-qrcode-details`| The QR code (rendered to the right) will be printed to the |
-| `print-qrcode-in-preamble`| right of the preamble |
+| `print-qrcode-in-botleft`| bottom-left of the puzzle |
 | `print-qrcode-in-botright`| bottom-right of the puzzle |
 | `print-qrcode-cta-label`| Call to action                         |
 | `print-qrcode-cta`| Solve online                                 |
 | `print-qrcode-size`| QR code size:                               |
+| `print-url-qrcodes`| Convert Explanations URLs to QR codes   |
+| `print-url-qrcodes-heading`| Links             |
 | `show-notes-seq`| Show clue-solving sequence: |
 | `show-notes-entries`| Show entered solutions: |
 | `show-notes-times`| Show clue-solving times:  |
@@ -1797,6 +1994,74 @@ can create rectangular cells that are not squares too) using
 The first parameter is the cell width and the second parameter is the cell
 height. Both values must be at least 10.
 
+## `exolve-grid-spacing`
+
+Normally, the horizontal spacing between grid cells is `cellW + GRIDLINE`
+and he vertical spacing is `cellH + GRIDLINE`. You can override these as
+follows:
+```
+  exolve-grid-spacing: 15.5 15.5
+```
+
+You would typically do this only when using non-standard cell shapes with
+[`exolve-shaped-cell`](#exolve-shaped-cell).
+
+## `exolve-grid-bounds`
+
+Normally, the horizontal and vertical extents of the grid can be computed
+using width, height, and cell dimensions/spacing. However, if you're using
+[`exolve-shaped-cell`](#exolve-shaped-cell) *and* are placing some cells
+individually by specifying `[<shape-index>,x,y]` in `exolve-grid`, then
+you need to specify the overall bounds of the grid using this section as
+the default calculations may not yield the correct bounds.
+```
+  exolve-grid-bounds: 400 320
+```
+
+## `exolve-cell-decorator`
+
+You can create arbitary shapes and patterns to add to selected light cells,
+using `exolve-cell-decorator` lines. Each such line specifies one or more SVG
+elements, that assume the cells's top-left coordinates are (0,0). Exolve
+will take care of rendering the decorator at each cell where it is placed.
+The cell decorators created like this are implicitly numbered 1, 2, ... (in
+the order in which they are listed). They can be applied to arbitrary cells
+within the `exolve-grid` section, by suffixing the cell's specs with
+`{k1,k2,...}`, withi `k1`, `k2`, etc., being the decorator numbers for the
+decorators to be added to the cell.
+
+For example, the following will create a dash at the bottom right of
+each cell in the bottom row, and a small circle at the top of each cell in
+the last column:
+
+```
+exolve-width: 4
+exolve-height: 4
+exolve-cell-decorator: <line stroke="blue" x1="20" y1="28" x2="26" y2="28">
+exolve-cell-decorator: <circle cx="15.5" cy="4" r="2.5">
+exolve-grid:
+  0    0    0    0{2}
+  0    .    .    0{2}
+  0{1} 0{1} 0{1} 0{1,2}
+...
+
+Note that a cell normally has dimensions of `cellW (31)` by `cellH (31)`.
+
+While such decorators can be used in any grid, they are especially useful
+when you want to create grids that contain non-standard-shaped cells created
+using `exolve-shaped-cell`. Because, for such cells, you need to place any
+separator bars explicitly, and `exolve-cell-decorator` is the mechanism
+for doing that. You can see a complete example in
+[`test-shaped-cells.html`](test-shaped-cells.html).
+
+The decorator is made clickable by default—i.e., clicking on it would activate
+the light cell it belongs to. If you want to make a decorator non-clickable,
+perhaps because you want to create a long shape that spans multiple cells,
+then just add the prefix `non-clickable`, like this:
+```
+exolve-cell-decorator: non-clickable <line stroke="red" x1="20" y1="28" x2="26" y2="28">
+```
+
 ## `exolve-postscript`
 If this section is provided, it gets rendered under the whole puzzle. Like
 `exolve-preamble`, this is also a multiline section and can include arbitrary
@@ -1809,6 +2074,63 @@ HTML. Example:
      <li><a href="puzzle-43.html">Next puzzle</a></li>
    </ul>
 ```
+
+## `exolve-shaped-cell`
+This can be used to create a non-standard cell shape (e.g., hexagonal,
+triangular, circular, etc.).
+
+A shaped cell is assumed to be disconnected from all its neighbours. So, a
+shaped cell can only be made a part of a `nodir` light. This is done because
+connectivity is too complex when arbitrary shapes are tiled together.
+
+For example, consider this grid with diamond-shaped cells.
+
+```
+/\/\/\
+\/\/\/
+ \/\/
+  \/
+```
+
+To create this grid, we use W = 5, H = 3. Note that the width is 5 (not 3) to
+account for all possible cell locations, using a fine-grained grid that allows
+the diamonds in odd rows to be not aligned vertically with the diamonds in even
+rows. We override grid spacing with `exolve-grid-spacing` to enable the above
+tiling.  We also suppress the appearance of grid lines by setting the background
+to be transparent.
+
+```
+exolve-width: 5
+exolve-height: 5
+exolve-option: color-background:transparent
+exolve-grid-spacing: 16 16
+exolve-shaped-cell: 2.5 18 <polygon points="15.5,-1 31,15.5 15.5,31 -1,15.5">
+exolve-grid:
+ H[1] .    A[1] .    D[1]
+ .    I[1] .    M[1] .
+ .    .    S[1] .    .
+```
+
+A shaped-cell definition needs to specify x and y coordinates of the baseline
+where the cell label should be placed (if that cell is the first cell in a nodir
+light), followed by a fillable SVG element specified using HTML (one of circle,
+ellipse, path, polygon, polyline, rect, text, textPath, tref, or tspan). The SVG
+specs should define the cell shape assuming the cell's top-left corner is at
+(0,0). Exolve takes care of rendering the cell shape at every cell identified as
+a cell location. Note that in specifying the
+SVG element, you have to keep in mind that the base cell has default dimensions
+of 31 &times; 31 (which you can override with an `exolve-cell-size` section) and
+is preceded by and followed by a 1-pixel-thick grid line that has the background
+colour. It is generally convenient to eliminate the grid line in such grids,
+using `exolve-option: override-number-GRIDLINE:0`.
+
+Please do not include an `id` or `fill` attributes in any shaped-cell element.
+
+You can see the above example as well as a couple more examples, in
+[`test-shaped-cells.html`](test-shaped-cells.html).
+
+We disallow shaped-cells in 3d-grids and when diagramless cells are present, to
+limit code complexity.
 
 ## Notes
 
@@ -2237,8 +2559,46 @@ The plain text can optionally include a title, a byline, a copyright line, and
 a preamble, before the 'Across' line that marks the beginning of the clues. The
 parsing code for these sections is *very* naive and may make mistakes.
 
-This functionality is only supported for standard, blocked, UK-style crossword
-grids. Here are the constraints under which this works:
+Clue solutions in square brackets (and possibly annotations) can be present
+in the text after the clue enums. For example:
+
+```
+7 This clue's solution is so-so (2-2) [SO-SO] Wasn't very cryptic, was it?
+```
+
+However, this is unlikely to be found for non-Exolve-formatted puzzles. We
+support a simple mechanism to augment clue texts with solutions, like this:
+
+```
+  Across solution[s][:]
+  1 ...
+  2 ...
+  ...
+  Down solution[s][:]
+  1 ...
+  5 ...
+  ...
+```
+
+The above format is case-insensitive. It can only appear after the clues.
+Similarly, annotations may be supplied in separate sections that look like this:
+
+```
+  Across annotation[s][:]
+  1 ...
+  2 ...
+  ...
+  Down annotation[s][:]
+  1 ...
+  5 ...
+  ...
+```
+
+This section too, has to occur only after the clues. It can appear before or
+after the Solutions section.
+
+This "grid inference" functionality is only supported for standard, blocked,
+UK-style crossword grids. Here are the constraints under which this works:
 - The grid is symmetric
 - Every 4x4 area has at least one black cell.
 - No light is shorter than 3 letters.
@@ -2337,7 +2697,9 @@ and it is restored after printing.
 If it does not make sense for some chunks of text or some HTML elements to be
 printed (for example, some instructions that only make sense in interactive
 mode), you can enclose them in an HTML element (such as a `DIV` or a `SPAN`)
-that has the class `xlv-dont-print`.
+that has the class `xlv-dont-print`. Similarly, if there some text or some
+HTML element that you want to be shown *only* in the printed version, then
+you can add the class `xlv-only-print` to it.
 
 ### Additional settings for printing
 
@@ -2348,30 +2710,30 @@ with the title "Settings for printing/PDFs". This lets you specify:
   pick the same page size in the printer's settings that open up when you
   print, if you use a paper size that's not the current choice in the printer's
   settings.
-- Page margin in inches. Caveat: very large margins may lead to some parts
-  getting clipped.
+- Page margins in inches. Caveat: very large margins may lead to some parts
+  getting clipped. You can now specify up to four numbers (all in inches),
+  for the top/right/bottom/left margins, respectively. Missing values will
+  be copied from their symmetric counterparts, and if that's missing too, then
+  from the last available value.
 - Font size (Normal, Large, Extra Large, Small, or specify an arbitrary font
   size). Please note that the specific font size picked, such as "18px" may
   not be the actual printed size exactly (because of scaling). However, in
   general, you can increase/decrease the font size setting and the printed
   size will increase/decrease accordingly.
-- Print questions. When the crossword includes questions, a checkbox is shown
-  to let you decide whether to include them in the printing (the option is
-  ignored when printing in wysiwig mode).
-- Page break before clues. If you select this option, then the grid gets
-  printed on the first page (as does any preamble or revealed explanations),
-  while the clues get printed on a separate page.
-- Preamble below grid. Set this option to print the preamble below the grid
-  rather than above it.
+- You can choose to print just the grid or just the clues (instead of the
+  default, grid as well as clues). Nuance: in the "only clues" mode, we
+  always just use two columns (not three, even if the crossword is unsolved),
+  we do not balance the heights of clue lists, and we split columns just before
+  the Down clues start.
+- You can selectively exclude any of these from printing: title, setter,
+  preamble, explanations, copyright, questions. These exclusion settings are
+  ignored when printing in wysiwig mode.
 - Inksaver. Set this option to print using a chequered pattern instead of a
   complete fill as the background colour for blocks.
 - Include QR code. Use this option to include a QR code. The QR code will
   use the URL of the current web page, but you can override that, and you
   can also override the call to action, which defaults to "Solve online".
-  The QR code is printed to the bottom-right of the puzzle or the right of
-  the preamble. When printing the QR code in the preamble, it's usually
-  better to print the preamble below the grid.
-
+  The QR code is printed to the bottom-right of the puzzle or the bottom-left.
 
 Additionally, from this panel, you have three buttons for printing:
 
@@ -2563,4 +2925,9 @@ readers have asked for an online interactive solver. Can we use your code?**
 
 Yes. The software is free, and is released under the rather permissive MIT
 License.
+
+**Is there a user community group where I can ask questions or propose and
+discuss ideas?**
+
+Yes. ["Exolve-Exet-Etc"](https://groups.google.com/g/exolve-exet-etc)
 
