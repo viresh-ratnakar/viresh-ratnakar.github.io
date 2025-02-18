@@ -2126,6 +2126,18 @@ using `exolve-option: override-number-GRIDLINE:0`.
 
 Please do not include an `id` or `fill` attributes in any shaped-cell element.
 
+Inside the `exolve-grid` section, as seen above, a cell cen be marked has
+having the shaped-cell numbered `k`, by adding the suffix, `[k]`. Normally,
+there would be just one shape (numbered "1"), but one can imagine more
+complex tilings with multiple shapes.
+
+You can also change the location of a shaped cell to any arbitrary SVG x,y
+location, by adding the coordinates within the square brackets, like this:
+`[1,20,30]`. If you place cells like this, then Exolve's computations of the
+overall grid extent in pixels is likely to be off. Please use
+[`exolve-grid-bounds`](#exolve-grid-bounds) to specify the grid's horizontal
+and vertical spans in such cases.
+
 You can see the above example as well as a couple more examples, in
 [`test-shaped-cells.html`](test-shaped-cells.html).
 
