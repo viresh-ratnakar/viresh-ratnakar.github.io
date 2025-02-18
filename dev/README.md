@@ -2100,15 +2100,15 @@ tiling.  We also suppress the appearance of grid lines by setting the background
 to be transparent.
 
 ```
-exolve-width: 5
-exolve-height: 5
-exolve-option: color-background:transparent
-exolve-grid-spacing: 16 16
-exolve-shaped-cell: 2.5 18 <polygon points="15.5,-1 31,15.5 15.5,31 -1,15.5">
-exolve-grid:
- H[1] .    A[1] .    D[1]
- .    I[1] .    M[1] .
- .    .    S[1] .    .
+  exolve-width: 5
+  exolve-height: 3
+  exolve-option: color-background:transparent
+  exolve-grid-spacing: 16 16
+  exolve-shaped-cell: 5 20 <polygon points="15.5,-0.5 31.5,15.5 15.5,31.5 -0.5,15.5" stroke="black">
+  exolve-grid:
+    H[1] .    A[1] .    D[1]
+    .    I[1] .    M[1] .
+    .    .    S[1] .    .
 ```
 
 A shaped-cell definition needs to specify x and y coordinates of the baseline
