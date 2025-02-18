@@ -2,7 +2,7 @@
 
 ## An Easily Configurable Interactive Crossword Solver
 
-### Version: Exolve v1.59 December 22, 2024
+### Version: Exolve v1.60 February 18, 2025
 
 Exolve can help you create online interactively solvable crosswords (simple
 ones with blocks and/or bars as well as those that are jumbles or are
@@ -2061,6 +2061,13 @@ then just add the prefix `non-clickable`, like this:
 ```
 exolve-cell-decorator: non-clickable <line stroke="red" x1="20" y1="28" x2="26" y2="28">
 ```
+
+The grid is rendered in raster order (row-wise, and within each row,
+column-wise). This means that decorators in cells occurring later in the
+order should be used, when you have decorators that need to overflow into
+adjoining cells (otherwise the overlap will get hidden). See the long green
+vertical lines in the example in
+[`test-cell-decorators.html`](test-cell-decorators.html).
 
 ## `exolve-postscript`
 If this section is provided, it gets rendered under the whole puzzle. Like
