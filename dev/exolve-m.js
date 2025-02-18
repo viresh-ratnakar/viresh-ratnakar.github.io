@@ -4313,30 +4313,31 @@ Exolve.prototype.finalClueTweaks = function() {
   }
 }
 
+Exolve.prototype.rcValid = function(r, c) {
+  return (r >= 0 && c >= 0 &&
+          r < this.gridHeight && c < this.gridWidth);
+}
+
 // Using hyphenAfter[] and wordEndAfter[] in clues as well as from
 // exolve-force-*, set {hyphen,wordEnd}{ToRight,Below} in grid[i][j]s.
 Exolve.prototype.setWordEndsAndHyphens = function() {
   for (c of this.forcedSeps['force-hyphen-right']) {
-    if (c[0] >= 0 && c[0] < this.gridHeight &&
-        c[1] >= 0 && c[1] < this.gridWidth) {
+    if (this.rcValid(c[0], c[1])) {
       this.grid[c[0]][c[1]].hyphenToRight = true
     }
   }
   for (c of this.forcedSeps['force-hyphen-below']) {
-    if (c[0] >= 0 && c[0] < this.gridHeight &&
-        c[1] >= 0 && c[1] < this.gridWidth) {
+    if (this.rcValid(c[0], c[1])) {
       this.grid[c[0]][c[1]].hyphenBelow = true
     }
   }
   for (c of this.forcedSeps['force-bar-right']) {
-    if (c[0] >= 0 && c[0] < this.gridHeight &&
-        c[1] >= 0 && c[1] < this.gridWidth) {
+    if (this.rcValid(c[0], c[1])) {
       this.grid[c[0]][c[1]].wordEndToRight = true
     }
   }
   for (c of this.forcedSeps['force-bar-below']) {
-    if (c[0] >= 0 && c[0] < this.gridHeight &&
-        c[1] >= 0 && c[1] < this.gridWidth) {
+    if (this.rcValid(c[0], c[1])) {
       this.grid[c[0]][c[1]].wordEndBelow = true
     }
   }
@@ -6286,6 +6287,26 @@ Exolve.prototype.toggleCurrDirAndActivate = function(e) {
   this.activateCell(this.currRow, this.currCol);
 }
 
+Exolve.prototype.arrowNav = function(rincr, cincr, shouldLoop) {
+  console.assert(rincr != 0 || cincr != 0, rincr, cincr);
+  let row = this.currRow + rincr;
+  let col = this.currCol + cincr;
+  while (shouldLoop && this.rcValid(row, col) &&
+         !this.grid[row][col].isLight &&
+         !this.grid[row][col].isDgmless) {
+    row += rincr;
+    col += cincr;
+  }
+  if (this.rcValid(row, col)) {
+    const gc = this.grid[row][col];
+    if (gc.isLight || gc.isDgmless) {
+      this.activateCell(row, col);
+      return true;
+    }
+  }
+  return false;
+}
+
 /**
  * Handle navigation keys. Used by a listener, and also used to auto-advance
  * after a cell is filled. Returns false only if a tab input was actually used.
@@ -6363,50 +6384,38 @@ Exolve.prototype.handleKeyUpInner = function(key, shift=false) {
     this.toggleCurrDirAndActivate();
   } else if (key == 39) {
     // right arrow
-    let col = this.currCol + 1;
-    while (col < this.gridWidth &&
-           !this.grid[this.currRow][col].isLight &&
-           !this.grid[this.currRow][col].isDgmless) {
-      col++;
-    }
-    if (col < this.gridWidth) {
-      this.activateCell(this.currRow, col);
+    if (!this.arrowNav(0, 1, true)) {
+      /* Try one cell right-diagonally up then down */
+      if (!this.arrowNav(-1, 1, false)) {
+        this.arrowNav(1, 1, false);
+      }
     }
   } else if (key == 37) {
     // left arrow
-    let col = this.currCol - 1;
-    while (col >= 0 &&
-           !this.grid[this.currRow][col].isLight &&
-           !this.grid[this.currRow][col].isDgmless) {
-      col--;
-    }
-    if (col >= 0) {
-      this.activateCell(this.currRow, col);
+    if (!this.arrowNav(0, -1, true)) {
+      /* Try one cell left-diagonally up then down */
+      if (!this.arrowNav(-1, -1, false)) {
+        this.arrowNav(1, -1, false);
+      }
     }
   } else if (key == 40) {
     // down arrow
-    let row = this.currRow + 1
-    while (row < this.gridHeight &&
-           !this.grid[row][this.currCol].isLight &&
-           !this.grid[row][this.currCol].isDgmless) {
-      row++;
-    }
-    if (row < this.gridHeight) {
-      this.activateCell(row, this.currCol);
+    if (!this.arrowNav(1, 0, true)) {
+      /* Try one cell left-diagonally then right-diagonally down */
+      if (!this.arrowNav(1, -1, false)) {
+        this.arrowNav(1, 1, false);
+      }
     }
   } else if (key == 38) {
     // up arrow
-    let row = this.currRow - 1
-    while (row >= 0 &&
-           !this.grid[row][this.currCol].isLight &&
-           !this.grid[row][this.currCol].isDgmless) {
-      row--;
-    }
-    if (row >= 0) {
-      this.activateCell(row, this.currCol);
+    if (!this.arrowNav(-1, 0, true)) {
+      /* Try one cell left-diagonally then right-diagonally up */
+      if (!this.arrowNav(-1, -1, false)) {
+        this.arrowNav(-1, 1, false);
+      }
     }
   }
-  return true
+  return true;
 }
 
 Exolve.prototype.handleKeyUp = function(e) {
