@@ -2043,7 +2043,7 @@ exolve-grid:
   0    0    0    0{2}
   0    .    .    0{2}
   0{1} 0{1} 0{1} 0{1,2}
-...
+```
 
 Note that a cell normally has dimensions of `cellW (31)` by `cellH (31)`.
 
