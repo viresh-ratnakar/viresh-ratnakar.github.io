@@ -19,10 +19,11 @@ exolve-begin
   exolve-cell-decorator: non-clickable <line stroke="red" x1="20" y1="27" x2="25" y2="27">
   exolve-cell-decorator: <line stroke="blue" x1="20" y1="27" x2="25" y2="27">
   exolve-cell-decorator: <circle cx="15.5" cy="4" r="2.5">
+  exolve-cell-decorator: non-clickable <line stroke="green" stroke-width="4" x1="0" y1="15" x2="0" y2="-45"> # long line
   exolve-grid:
-    0   0        0
-    0   0{1,2}   0{1,2,3}
-    0   0{1,3}   0{2}
+    0    0{4}     0
+    0    0{1,2}   0{1,2,3}
+    0{4} 0{1,3}   0{2,4}
   exolve-option: ignore-unclued
 exolve-end
 `);
