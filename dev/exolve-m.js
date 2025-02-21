@@ -84,7 +84,7 @@ function Exolve(puzzleSpec,
                 visTop=0,
                 maxDim=0,
                 notTemp=true) {
-  this.VERSION = 'Exolve v1.59 December 22, 2024';
+  this.VERSION = 'Exolve v1.60 February 18, 2025';
   this.id = '';
 
   this.puzzleText = puzzleSpec;
@@ -1595,12 +1595,16 @@ Exolve.prototype.parseForcedSep = function(s, section) {
   }
 }
 
+/**
+ * Parse a cell-decoration spec that has an optional "non-clickable " prefix and
+ * then one or more SVG specs.
+ */
 Exolve.prototype.parseCellDec = function(s) {
   const cellDec = {
     clickable: true,
     svgSpec: '',
   };
-  s = s.trim().toLowerCase();
+  s = s.trim();
   if (s.startsWith('non-clickable')) {
     cellDec.clickable = false;
     s = s.substr(13).trim();
@@ -1612,8 +1616,11 @@ Exolve.prototype.parseCellDec = function(s) {
   this.cellDecs.push(cellDec);
 }
 
+/**
+ * Parse a shaped-cell spec that looks like <label-x> <label-y> <svg-spec>
+ */
 Exolve.prototype.parseShapedCell = function(s) {
-  s = s.trim().toLowerCase();
+  s = s.trim();
   const shapedCell = {
     labelX: 0,
     labelY: 0,
@@ -1634,6 +1641,8 @@ Exolve.prototype.parseShapedCell = function(s) {
 }
 
 /**
+ * Parses a grid-cell's cell-decoration list that looks like {k1,k2,..}
+ * Parameters may have colon-preceded parameters, like {1,2:v1:v2,3}
  * Returns 1 less than the number of chars from { to }
  */
 Exolve.prototype.parseCellDecList = function(s, start, cell) {
@@ -1641,16 +1650,53 @@ Exolve.prototype.parseCellDecList = function(s, start, cell) {
   if (end < 0) {
     this.throwErr('Cell decorators list not enclosed in {}: ' + s);
   }
-  cell.decorators = s.substring(start + 1, end).split(',').map(Number);
-  for (const d of cell.decorators) {
+  const dpList = s.substring(start + 1, end).split(',');
+  cell.decorators = [];
+  for (const dp of dpList) {
+    const dAndParams = dp.split(':');
+    const d = dAndParams[0] ?? -1;
     if (isNaN(d) || d <= 0 || d > this.cellDecs.length) {
-      this.throwErr('Found cell with invalid cell-decorators index: ' + d);
+      this.throwErr('Found cell with invalid cell-decorators index/params: ' + d);
     }
+    cell.decorators.push(dAndParams);
   }
   return (end - start);
 }
 
 /**
+ * Replace each $<x> in s with params[x], for x = 1,2,..
+ */
+Exolve.prototype.fillParams = function(s, params) {
+  let filled = '';
+  let idx = 0;
+  while (idx < s.length) {
+    const c = s[idx++];
+    if (c != '$') {
+      filled += c;
+      continue;
+    }
+    const idxStart = idx;
+    while (idx < s.length && s[idx] >= '0' && s[idx] <= '9') {
+      idx++;
+    }
+    const numPart = s.substring(idxStart, idx);
+    const pnum = parseInt(numPart);
+    if (isNaN(pnum) || pnum < 0 || pnum >= params.length) {
+      this.throwErr('When looking to do $-substitution using params[] of ' +
+          'length ' + params.length + ' found invalid/out-of-bounds part: [$' +
+          numPart + ']');
+    }
+    if (pnum > 0) {
+      filled += params[pnum];
+    } else if (pnum == 0) {
+      filled += '$';
+    }
+  }
+  return filled;
+}
+
+/**
+ * Parses a grid-cell's shaped-cell spec that looks like [k] or [k,x,y]
  * Returns 1 less than the number of chars from [ to ]
  */
 Exolve.prototype.parseShapedCellSpec = function(s, start, cell) {
@@ -7057,10 +7103,12 @@ Exolve.prototype.displayGrid = function() {
         gridCell.cellCircle = cellCircle
       }
       if (gridCell.decorators && gridCell.decorators.length > 0) {
-        for (const d of gridCell.decorators) {
+        for (const dp of gridCell.decorators) {
+          const d = dp[0];
           const cellDec = this.cellDecs[d - 1];
+          const svgSpec = this.fillParams(cellDec.svgSpec, dp);
           const g = this.makeCellSVG(
-              gridCell.cellLeft, gridCell.cellTop, cellDec.svgSpec);
+              gridCell.cellLeft, gridCell.cellTop, svgSpec);
           cellGroup.appendChild(g)
           if (cellDec.clickable) {
             g.addEventListener('click', activator)
@@ -7237,23 +7285,21 @@ Exolve.prototype.addCellText = function(row, col, text,
                                         atTop=true, toRight=false) {
   if (row < 0 || row >= this.gridHeight ||
       col < 0 || col >= this.gridWidth) {
-    return
+    return;
   }
-  let gridCell = this.grid[row][col]
+  const gridCell = this.grid[row][col];
   if (!gridCell.isLight && !gridCell.isDgmless) {
-    return
+    return;
   }
   const cellText =
       document.createElementNS('http://www.w3.org/2000/svg', 'text');
-  let xCol = toRight ? col + 1 : col
-  let xOff = toRight ? (0 - (w + this.NUMBER_START_X)) : this.NUMBER_START_X
-  cellText.setAttributeNS(null, 'x', this.cellLeftPos(xCol, xOff))
-  let yCol = atTop ? row : row + 1
-  let yOff = atTop ? h : -this.NUMBER_START_X
-  cellText.setAttributeNS(null, 'y', this.cellTopPos(yCol, yOff));
-  cellText.textLength = w + 'px'
-  cellText.style.fill = this.colorScheme['light-label']
-  cellText.style.fontSize = h + 'px'
+  const xOff = toRight ? (this.cellW + this.GRIDLINE - (w + this.NUMBER_START_X)) : this.NUMBER_START_X;
+  cellText.setAttributeNS(null, 'x', this.cellLeftPos(col, xOff));
+  const yOff = atTop ? h : this.cellH + this.GRIDLINE - this.NUMBER_START_X;
+  cellText.setAttributeNS(null, 'y', this.cellTopPos(row, yOff));
+  cellText.textLength = w + 'px';
+  cellText.style.fill = this.colorScheme['light-label'];
+  cellText.style.fontSize = h + 'px';
   cellText.innerHTML = text;
   cellText.addEventListener('click', this.cellActivator.bind(this, row, col));
   gridCell.cellGroup.appendChild(cellText);

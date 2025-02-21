@@ -156,7 +156,10 @@ square without advancing.
 
 The solver can press Tab/Shift-Tab to navigate to the next/previous clue. The
 solver can use the arrow keys to navigate to the next/previous light cells in
-the direction of the arrow.
+the direction of the arrow. If there is no light cell anywhere further in the
+direction of the arrow, but there is a light cell immediately diagonally in
+that direction to one side, then the cursor moves there (this is intuitively
+helpful in tiled grids created using `exolve-shaped-cell`).
 
 The software tries to keep the current clue visible when scrolling, as long
 as the square with the cursor is visible.
@@ -2027,7 +2030,7 @@ will take care of rendering the decorator at each cell where it is placed.
 The cell decorators created like this are implicitly numbered 1, 2, ... (in
 the order in which they are listed). They can be applied to arbitrary cells
 within the `exolve-grid` section, by suffixing the cell's specs with
-`{k1,k2,...}`, withi `k1`, `k2`, etc., being the decorator numbers for the
+`{k1,k2,...}`, with `k1`, `k2`, etc., being the decorator numbers for the
 decorators to be added to the cell.
 
 For example, the following will create a dash at the bottom right of
@@ -2068,6 +2071,25 @@ order should be used, when you have decorators that need to overflow into
 adjoining cells (otherwise the overlap will get hidden). See the long green
 vertical lines in the example in
 [`test-cell-decorators.html`](test-cell-decorators.html).
+
+You can also add cell-specific parameters to cell decorators. Basically, you
+can use markers like `$1` (`$2`, etc.) anywhere in the `exolve-cell-decorator`
+specs. And then, in the `exolve-grid` entry for a cell that's decorated with
+a parameterized decorator, you can specify values for the parameters by
+appending the decorator number with `:val` (or `:val1:val2` if there are
+multiple parameters). The only constraint is that the parameters cannot include
+spaces (as all spaces get stripped off when parsing lines within `exolve-grid`)
+and cannot include colons or commas. If you need to have the dollar symbol
+itself within a decorator, then use `$0`. Here's an example:
+
+```
+exolve-cell-decorator: <line stroke="$1" x1="20" y1="28" x2="26" y2="28">
+exolve-cell-decorator: <text x="5" y="14.1">$1$0</text>
+exolve-grid:
+  0        0         0        0{2:42}
+  0        .         .        0{2:!!}
+  0{1:red} 0{1:blue} 0{1:red} 0{1:blue,2:*}
+```
 
 ## `exolve-postscript`
 If this section is provided, it gets rendered under the whole puzzle. Like
@@ -2133,7 +2155,7 @@ using `exolve-option: override-number-GRIDLINE:0`.
 
 Please do not include an `id` or `fill` attributes in any shaped-cell element.
 
-Inside the `exolve-grid` section, as seen above, a cell cen be marked has
+Inside the `exolve-grid` section, as seen above, a cell can be marked as
 having the shaped-cell numbered `k`, by adding the suffix, `[k]`. Normally,
 there would be just one shape (numbered "1"), but one can imagine more
 complex tilings with multiple shapes.
@@ -2512,6 +2534,10 @@ all HTML IDs and class names were made distinctive by having them use the
 making future backwards-incompatible changes unnecessary.
 
 ### Customized additional text within cells
+NOTE: A more general mechanism than `addCellText()` (with greater flexibility,
+control) for adding text to cells is now available via
+[`exolve-cell-decorator`](#exolve-cell-decorator) with parameters.
+
 Exolve provides you with a JavaScript API that you can call from
 `customizeExolve()` that lets you add arbitrary text within any cell. The
 function to call is:
