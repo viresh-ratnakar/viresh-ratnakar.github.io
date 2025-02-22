@@ -1686,11 +1686,7 @@ Exolve.prototype.fillParams = function(s, params) {
           'length ' + params.length + ' found invalid/out-of-bounds part: [$' +
           numPart + ']');
     }
-    if (pnum > 0) {
-      filled += params[pnum];
-    } else if (pnum == 0) {
-      filled += '$';
-    }
+    filled += (pnum ? params[pnum] : '$');
   }
   return filled;
 }
