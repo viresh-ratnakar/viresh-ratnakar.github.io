@@ -300,6 +300,7 @@ function ExolveGridSkeleton(puz, specs) {
   this.specs = specs;
   this.w = puz.gridWidth;
   this.h = puz.gridHeight;
+  this.no4x4 = true;
   this.grid = new Array(this.h);
   for (let r = 0; r < this.h; r++) {
     this.grid[r] = new Array(this.w);
@@ -316,6 +317,7 @@ ExolveGridSkeleton.prototype.clone = function(newLights=false) {
   copy.parents = this.parents;
   copy.name = this.name;
   copy.symName = this.symName;
+  copy.no4x4 = this.no4x4;
 
   copy.grid = new Array(this.h);
   for (let r = 0; r < this.h; r++) {
@@ -700,6 +702,16 @@ ${sections.preamble}`;
     candidate.name = 'Non-chequered';
     candidate.appendWithSyms(ret.candidates);
   }
+  /**
+   * no4x4 determines whether (in an unchequered skeleton), we allow
+   * blocks of 2x2 white cells (false is tried as a last resort).
+   */
+  for (let skeleton of skeletons) {
+    const candidate = skeleton.clone();
+    candidate.no4x4 = false;
+    candidate.name = 'Non-chequered-2x2-white-OK';
+    candidate.appendWithSyms(ret.candidates);
+  }
   return ret;
 }
 
@@ -725,28 +737,21 @@ exolveFromTextCreateWorker = function(candidates) {
         return;
       }
       const results = [];
-      for (let pass = 0; pass < 2; pass++) {
-        const no4x4 = (pass == 0);
-        for (const skeleton of candidates) {
-          const candidate = new ExolveGridInferrer(skeleton, no4x4);
-          candidate.infer(results);
-          if (results.length > 0) {
-            break;
-          }
-        }
-        if (no4x4 && results.length > 0) {
+      for (const skeleton of candidates) {
+        const candidate = new ExolveGridInferrer(skeleton);
+        candidate.infer(results);
+        if (results.length > 0) {
           break;
         }
       }
       const seen = {};
-      results.sort((r1, r2) => r1.inferrer.score() - r2.inferrer.score());
+      results.sort((r1, r2) => r1.score() - r2.score());
       const deduped = [];
       for (const result of results) {
-        const gridSpecLines = result.gridSpecLines;
+        const gridSpecLines = result.gridSpecLines();
         if (seen[gridSpecLines]) continue;
         seen[gridSpecLines] = true;
-        delete result.inferrer;
-        deduped.push(result);
+        deduped.push({gridSpecLines: gridSpecLines, exolve: result.exolve()});
       }
       postMessage({results: deduped});
     }
@@ -798,19 +803,12 @@ ExolveRowCol.prototype.isLessThan = function(other) {
  * numbers (i.e., they have an unused element at index 0). The lights array
  * lists all the lights that need to be mapped, and the mapped array lists the
  * prefix of the lights that has been mapped so far.
- *
- * Set no4x4 to false if you want to consider grids that have the pattern
- *   00
- *   00
- * This is notmally not used, but sometimes grids do use it, so, we first try
- * all grid variants withi this set to true, and if we do not find a match,
- * then we re-try, with this set to false.
  */
-function ExolveGridInferrer(skeleton, no4x4) {
+function ExolveGridInferrer(skeleton) {
   this.w = skeleton.w;
   this.h = skeleton.h;
   this.specs = skeleton.specs;
-  this.no4x4 = no4x4;
+  this.no4x4 = skeleton.no4x4;
   /* The 'cursor': the next light will be placed at a cell here onwards */
   this.rowcol = new ExolveRowCol(this.h, this.w);
 
@@ -820,7 +818,7 @@ function ExolveGridInferrer(skeleton, no4x4) {
   /* mapped[x] (for x = 1,2,..) is the cell where label x has been placed */
   this.mapped = [null];
   this.parents = skeleton.parents;
-  this.name = skeleton.name + (no4x4 ? '' : ' - allow 4x4 blocks');
+  this.name = skeleton.name;
   this.symName = skeleton.symName;
   this.sym = ExolveGridSymmetries[this.symName] ||
              ExolveSqGridSymmetries[this.symName];
@@ -1108,7 +1106,7 @@ ExolveGridInferrer.prototype.infer = function(results) {
     if (!this.isViable(true)) {
       return;
     }
-    results.push({gridSpecLines: this.gridSpecLines(), exolve: this.exolve(), inferrer: this});
+    results.push(this);
     return;
   }
   const lights = this.lights[this.mapped.length];
