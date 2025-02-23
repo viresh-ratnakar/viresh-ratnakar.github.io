@@ -683,7 +683,7 @@ ${sections.preamble}`;
 
   for (let rowpar = 0; rowpar < 2; rowpar++) {
     for (let colpar = 0; colpar < 2; colpar++) {
-      for (let skeleton of skeletons) {
+      for (const skeleton of skeletons) {
         const candidate = skeleton.clone();
         for (let r = 0; r < h; r++) {
           for (let c = 0; c < w; c++) {
@@ -697,7 +697,7 @@ ${sections.preamble}`;
       }
     }
   }
-  for (let skeleton of skeletons) {
+  for (const skeleton of skeletons) {
     const candidate = skeleton.clone();
     candidate.name = 'Non-chequered';
     candidate.appendWithSyms(ret.candidates);
@@ -706,7 +706,7 @@ ${sections.preamble}`;
    * no4x4 determines whether (in an unchequered skeleton), we allow
    * blocks of 2x2 white cells (false is tried as a last resort).
    */
-  for (let skeleton of skeletons) {
+  for (const skeleton of skeletons) {
     const candidate = skeleton.clone();
     candidate.no4x4 = false;
     candidate.name = 'Non-chequered-2x2-white-OK';
