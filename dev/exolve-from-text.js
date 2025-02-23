@@ -24,7 +24,7 @@ SOFTWARE.
 The latest code and documentation for Exolve can be found at:
 https://github.com/viresh-ratnakar/exolve
 
-Version: Exolve v1.59 December 20, 2024
+Version: Exolve v1.60 February 22, 2025
 */
 
 /**
@@ -97,10 +97,14 @@ exolveFromText = function(w, h, text, fname='') {
     copyright: '',
     across: [],
     down: [],
+    acSols: [],
+    dnSols: [],
+    acAnnos: [],
+    dnAnnos: [],
     file: fname || '[provided text]',
   };
   let seenClues = false;
-  let inDown = false;
+  let seenDown = false;
 
   const lines = exolveFromTextClean(text).split('\n');
 
@@ -111,15 +115,44 @@ exolveFromText = function(w, h, text, fname='') {
   const copyrightRE = /^\s*(copyright|\(c\)|Ⓒ)/i;
   const titleAndSetterRE = /^\s*(.+)\sby\s(.+)/i; 
   const bylineRE = /^\s*(?:(?:set\sby)|(?:by))[^a-zA-Z0-9]*\s([a-zA-Z0-9].+)/i; 
+
   const acrossRE = /^[^a-zA-Z0-9]*across[^a-zA-Z0-9]*$/i;
   const downRE = /^[^a-zA-Z0-9]*down[^a-zA-Z0-9]*$/i; 
+
+  const acSolsRE = /^[^a-zA-Z0-9]*across\s+solutions?[^a-zA-Z0-9]*$/i;
+  const dnSolsRE = /^[^a-zA-Z0-9]*down\s+solutions?[^a-zA-Z0-9]*$/i; 
+  const acAnnosRE = /^[^a-zA-Z0-9]*across\s+annotations?[^a-zA-Z0-9]*$/i;
+  const dnAnnosRE = /^[^a-zA-Z0-9]*down\s+annotations?[^a-zA-Z0-9]*$/i; 
+
+  let solannoArray = null;
 
   let joinedLine = '';
   for (let rawLine of lines) {
     let line = rawLine.replace(/\s/g, ' ').replace(/\s+/g, ' ').trim();
+    if (seenDown) {
+      if (acSolsRE.test(line)) {
+        solannoArray = sections.acSols;
+        continue;
+      } else if (dnSolsRE.test(line)) {
+        solannoArray = sections.dnSols;
+        continue;
+      } else if (acAnnosRE.test(line)) {
+        solannoArray = sections.acAnnos;
+        continue;
+      } else if (dnAnnosRE.test(line)) {
+        solannoArray = sections.dnAnnos;
+        continue;
+      }
+    }
+    if (solannoArray) {
+      if (line) {
+        solannoArray.push(line);
+      }
+      continue;
+    }
     if (seenClues) {
-      if (!inDown && downRE.test(line)) {
-        inDown = true;
+      if (!seenDown && downRE.test(line)) {
+        seenDown = true;
         joinedLine = '';
         continue;
       }
@@ -132,7 +165,7 @@ exolveFromText = function(w, h, text, fname='') {
             console.log('Ignored potential clue start: ' + joinedLine);
           }
         }
-        if (!inDown) sections.across.push(line.trim());
+        if (!seenDown) sections.across.push(line.trim());
         else sections.down.push(line.trim());
         joinedLine = '';
       } else if (clueStartRE.test(line)) {
@@ -140,7 +173,7 @@ exolveFromText = function(w, h, text, fname='') {
       } else {
         joinedLine = joinedLine + ' ' + line;
         if (clueRE.test(joinedLine) || childRE.test(joinedLine)) {
-          if (!inDown) sections.across.push(joinedLine.trim());
+          if (!seenDown) sections.across.push(joinedLine.trim());
           else sections.down.push(joinedLine.trim());
           joinedLine = '';
         }
@@ -477,21 +510,22 @@ exolveFromTextSections = function(w, h, sections) {
     exolve-preamble:
 ${sections.preamble}`;
   }
-  specs += `
+
+  let clueSpecLines = `
     exolve-across:`;
   for (let acrossClue of sections.across) {
-  specs += `
+    clueSpecLines += `
       ${acrossClue}`;
   }
-  specs += `
+  clueSpecLines += `
     exolve-down:`;
   for (let downClue of sections.down) {
-  specs += `
+    clueSpecLines += `
       ${downClue}`;
   }
-  specs += `
+
+  let gridSpecLines = `
     exolve-grid:`;
-  let gridSpecLines = '';
   for (let r = 0; r < h; r++) {
     let rowSpec = '';
     for (let c = 0; c < w; c++) {
@@ -501,7 +535,7 @@ ${sections.preamble}`;
       ${rowSpec}`;
   }
 
-  const tempSpecs = specs + gridSpecLines + `
+  const tempSpecs = specs + clueSpecLines + gridSpecLines + `
     exolve-option: ignore-unclued ignore-enum-mismatch
     exolve-id: ${xlvpid}
   exolve-end`;
@@ -522,6 +556,58 @@ ${sections.preamble}`;
     ret.error = 'Exolve had fatal errors in parsing clues: ' + err;
     return ret;
   }
+
+  if (sections.acSols.length > 0 || sections.dnSols.length > 0 ||
+      sections.acAnnos.length > 0 || sections.dnAnnos.length > 0) {
+    const lineRE = /^\s*(\d+)\s*\.?\s*(.+)$/;
+    const lineParser = (line) => {
+      const matches = lineRE.exec(line);
+      if (!matches || matches.length != 3) {
+        console.log('Ignoring solution/annotation line: ' + line);
+        return null;
+      }
+      return [matches[1], matches[2]];
+    }
+    for (const dir of ['A', 'D']) {
+      const arrays = (dir == 'A') ? {
+        sols: sections.acSols,
+        annos: sections.acAnnos,
+      } : {
+        sols: sections.dnSols,
+        annos: sections.dnAnnos,
+      }
+      for (const sa in arrays) {
+        const arr = arrays[sa];
+        for (const line of arr) {
+          const numAndText = lineParser(line);
+          if (!numAndText) continue;
+          const ci = dir + numAndText[0];
+          if (!puz.clues.hasOwnProperty(ci)) {
+            console.log(sa + ' line has invalid index: ' + ci);
+            continue;
+          }
+          const clue = puz.clues[ci];
+          const anno = (sa == 'sols') ?
+              '[' + numAndText[1] + ']' : numAndText[1];
+          if (clue.anno) clue.anno += ' ';
+          clue.anno += anno;
+        }
+      }
+    }
+    let acClues = '';
+    let dnClues = '';
+    for (const ci of puz.allClueIndices) {
+      const clue = puz.clues[ci];
+      const fullClue = '\n' + clue.label + ' ' + clue.clue + (
+          clue.anno ? ' ' + clue.anno : '');
+      if (clue.dir == 'A') acClues += fullClue;
+      else dnClues += fullClue;
+    }
+    clueSpecLines = `
+    exolve-across:${acClues}
+    exolve-down:${dnClues}`;
+  }
+  specs += clueSpecLines;
 
   const skeleton = new ExolveGridSkeleton(puz, specs);
   if (exolvePuzzles && exolvePuzzles[xlvpid]) {
@@ -639,19 +725,27 @@ exolveFromTextCreateWorker = function(candidates) {
         return;
       }
       const results = [];
-      for (let skeleton of candidates) {
-        const candidate = new ExolveGridInferrer(skeleton);
-        candidate.infer(results);
-        if (results.length > 0) {
+      for (let pass = 0; pass < 2; pass++) {
+        const no4x4 = (pass == 0);
+        for (const skeleton of candidates) {
+          const candidate = new ExolveGridInferrer(skeleton, no4x4);
+          candidate.infer(results);
+          if (results.length > 0) {
+            break;
+          }
+        }
+        if (no4x4 && results.length > 0) {
           break;
         }
       }
       const seen = {};
+      results.sort((r1, r2) => r1.inferrer.score() - r2.inferrer.score());
       const deduped = [];
-      for (let result of results) {
+      for (const result of results) {
         const gridSpecLines = result.gridSpecLines;
         if (seen[gridSpecLines]) continue;
         seen[gridSpecLines] = true;
+        delete result.inferrer;
         deduped.push(result);
       }
       postMessage({results: deduped});
@@ -704,11 +798,19 @@ ExolveRowCol.prototype.isLessThan = function(other) {
  * numbers (i.e., they have an unused element at index 0). The lights array
  * lists all the lights that need to be mapped, and the mapped array lists the
  * prefix of the lights that has been mapped so far.
+ *
+ * Set no4x4 to false if you want to consider grids that have the pattern
+ *   00
+ *   00
+ * This is notmally not used, but sometimes grids do use it, so, we first try
+ * all grid variants withi this set to true, and if we do not find a match,
+ * then we re-try, with this set to false.
  */
-function ExolveGridInferrer(skeleton) {
+function ExolveGridInferrer(skeleton, no4x4) {
   this.w = skeleton.w;
   this.h = skeleton.h;
   this.specs = skeleton.specs;
+  this.no4x4 = no4x4;
   /* The 'cursor': the next light will be placed at a cell here onwards */
   this.rowcol = new ExolveRowCol(this.h, this.w);
 
@@ -718,7 +820,7 @@ function ExolveGridInferrer(skeleton) {
   /* mapped[x] (for x = 1,2,..) is the cell where label x has been placed */
   this.mapped = [null];
   this.parents = skeleton.parents;
-  this.name = skeleton.name;
+  this.name = skeleton.name + (no4x4 ? '' : ' - allow 4x4 blocks');
   this.symName = skeleton.symName;
   this.sym = ExolveGridSymmetries[this.symName] ||
              ExolveSqGridSymmetries[this.symName];
@@ -865,7 +967,7 @@ ExolveGridInferrer.prototype.setGrid = function(rc, letter) {
   }
   this.grid[rc.row][rc.col] = letter;
   this.grid[sym.row][sym.col] = letter;
-  if (letter == '0') {
+  if (letter == '0' && this.no4x4) {
     const mustBlock = this.threeZerosAll(rc);
     for (let rc2 of mustBlock) {
       if (!this.setGrid(rc2, '.')) {
@@ -1006,7 +1108,7 @@ ExolveGridInferrer.prototype.infer = function(results) {
     if (!this.isViable(true)) {
       return;
     }
-    results.push({gridSpecLines: this.gridSpecLines(), exolve: this.exolve()});
+    results.push({gridSpecLines: this.gridSpecLines(), exolve: this.exolve(), inferrer: this});
     return;
   }
   const lights = this.lights[this.mapped.length];
@@ -1014,7 +1116,7 @@ ExolveGridInferrer.prototype.infer = function(results) {
   let numUnsetCellsSet = 0;
 
   /* Only consider blackening up to these many cells */
-  const maxToBlacken = 5;
+  const maxToBlacken = 6;
   while (this.rowcol.isValid() && numUnsetCellsSet <= maxToBlacken) {
     const gridCell = this.grid[this.rowcol.row][this.rowcol.col];
     if (gridCell == '_') {
@@ -1044,6 +1146,59 @@ ExolveGridInferrer.prototype.infer = function(results) {
     }
     candidate.infer(results);
   }
+}
+
+ExolveGridInferrer.prototype.score = function() {
+  let numUnches = 0;
+  let num4x4 = 0;
+  let maxRowBlack = 0;
+  let maxColBlack = 0;
+  for (let r = 0; r < this.h; r++) {
+    for (let c = 0; c < this.w; c++) {
+      if (this.grid[r][c] != '0') continue;
+      if ((c < this.w - 1 && this.grid[r][c + 1] == '0') &&
+          (r == 0 || this.grid[r - 1][c] == '.') &&
+          (r == 0 || this.grid[r - 1][c + 1] == '.') &&
+          (r == this.h - 1 || this.grid[r + 1][c] == '.') &&
+          (r == this.h - 1 || this.grid[r + 1][c + 1] == '.')) {
+        numUnches++;
+      }
+      if ((r < this.h - 1 && this.grid[r + 1][c] == '0') &&
+          (c == 0 || this.grid[r][c - 1] == '.') &&
+          (c == 0 || this.grid[r + 1][c - 1] == '.') &&
+          (c == this.w - 1 || this.grid[r][c + 1] == '.') &&
+          (c == this.w - 1 || this.grid[r + 1][c + 1] == '.')) {
+        numUnches++;
+      }
+      if (r < this.h - 1 && c < this.w - 1 &&
+          this.grid[r+1][c] == '0' &&
+          this.grid[r][c+1] == '0' &&
+          this.grid[r+1][c+1] == '0') {
+        num4x4++;
+      }
+      /* horiz black span ending before this: */
+      let span = 0;
+      for (let c2 = c - 1; c2 >= 0; c2--) {
+        if (this.grid[r][c2] == '.') {
+          span++;
+        } else {
+          break;
+        }
+      }
+      if (span > maxRowBlack) maxRowBlack = span;
+      /* vert black span ending before this: */
+      span = 0;
+      for (let r2 = r - 1; r2 >= 0; r2--) {
+        if (this.grid[r2][c] == '.') {
+          span++;
+        } else {
+          break;
+        }
+      }
+      if (span > maxColBlack) maxColBlack = span;
+    }
+  }
+  return numUnches + num4x4 + maxRowBlack + maxColBlack;
 }
 
 ExolveGridInferrer.prototype.isConnected = function() {
@@ -1091,7 +1246,8 @@ ExolveGridInferrer.prototype.isConnected = function() {
  * hasn't yet been determined, it is made diagramless.
  */
 ExolveGridInferrer.prototype.gridSpecLines = function() {
-  let lines = ''
+  let lines = `
+    exolve-grid:`;
   for (let r = 0; r < this.h; r++) {
     let rowLine = '';
     for (let c = 0; c < this.w; c++) {
