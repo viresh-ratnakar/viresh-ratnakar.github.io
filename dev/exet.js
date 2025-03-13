@@ -116,54 +116,23 @@ function ExetRevManager() {
     this.SPECIAL_KEY += `-${exetLexicon.language}-${exetLexicon.script}` +
                         `-${exetLexicon.maxCharCodes}`;
   }
-  this.spaceUsedAtStart = 0
-  for (let idx = 0; idx < window.localStorage.length; idx++) {
-    let id = window.localStorage.key(idx)
-    this.spaceUsedAtStart += window.localStorage.getItem(id).length
-  }
-  this.spaceUsed = this.spaceUsedAtStart
-
-  let k500 = '1234567812345678'
-  while (k500.length < 500000) {
-    k500 = k500 + k500
-  }
-  let tempKey = '42-exet-cap-42-'
-  this.spaceLeftAtStart = 0
-  for (let i = 0; i < 20; i++) {
-    // Only count up to 10 MB
-    try {
-      window.localStorage.setItem(tempKey + i, k500)
-      this.spaceLeftAtStart += k500.length
-    } catch (err) {
-      break
-    }
-  }
-  for (let i = 0; i < 20; i++) {
-    window.localStorage.removeItem(tempKey + i)
-  }
 
   // Id for previews
   this.previewId = `exet-preview-${Math.random().toString(36).substring(2, 8)}`
 };
-
-ExetRevManager.prototype.inMB = function(num) {
-  return (num / 1000000).toFixed(2)
-}
 
 ExetRevManager.prototype.choosePuzRev = function(manageStorage,
                                                  puz, elt, callback) {
   let choices = [];
   if (puz) {
     let stored = window.localStorage.getItem(puz.id);
-    let spaceUsed = stored.length;
-    choices = [{id: puz.id, title: puz.title, space: spaceUsed}];
+    let lsUsed = stored.length;
+    choices = [{id: puz.id, title: puz.title, space: lsUsed}];
   } else {
-    this.spaceUsed = 0;
     for (let idx = 0; idx < window.localStorage.length; idx++) {
       let id = window.localStorage.key(idx);
       let stored = window.localStorage.getItem(id);
-      let spaceUsed = stored.length;
-      this.spaceUsed += spaceUsed;
+      let lsUsed = stored.length;
       if (id.startsWith(this.SPECIAL_KEY_PREFIX)) {
         continue;
       }
@@ -179,14 +148,10 @@ ExetRevManager.prototype.choosePuzRev = function(manageStorage,
       if (stored.revs.length > 0) {
         title = stored.revs[stored.revs.length - 1].title;
       }
-      choices.push({id: stored.id, title: title, space: spaceUsed});
+      choices.push({id: stored.id, title: title, space: lsUsed});
     }
   }
-  const storageUsedMB = this.inMB(this.spaceUsed);
-  const storageFreeMB = this.inMB(this.spaceUsedAtStart +
-      this.spaceLeftAtStart - this.spaceUsed);
-  exet.storageUsed.innerText = storageUsedMB;
-  exet.storageFree.innerText = storageFreeMB;
+  exet.checkStorage();
   let html = `
   <table>
     <tr>
@@ -204,7 +169,7 @@ ExetRevManager.prototype.choosePuzRev = function(manageStorage,
       <tr id="xet-id-choice-${i}">
         <td>${choices[i].id}</td>
         <td>${choices[i].title}</td>
-        <td>${this.inMB(choices[i].space)} MB</td></tr>`
+        <td>${exet.inMB(choices[i].space)} MB</td></tr>`
   }
   html = html + `
           </table>
@@ -220,9 +185,11 @@ ExetRevManager.prototype.choosePuzRev = function(manageStorage,
     <tr>
       <td colspan="2">
         <div>
-          <span>Space used: ${storageUsedMB} MB</span>
-          <span>Space available: <span
-            class="xet-red">${storageFreeMB}</span> MB</span>
+          <span>Space used = ${exet.lsUsedSpan.innerText} MB</span>,
+          <span>Space available &asymp;
+            <span ${exet.lsLeftIsAmple ? '' :
+              'class="xet-red"'}>${exet.lsFreeSpan.innerText}</span>
+              MB</span>
           <button id="xet-puz-rev-deleter"
             style="float:right;margin: 0 16px; display: none"
             class="xlv-button">Delete rev</button>
@@ -446,6 +413,7 @@ ExetRevManager.prototype.saveLocal = function(k, v) {
   try {
     window.localStorage.setItem(k, v)
   } catch (err) {
+    this.checkStorage();
     alert('No available local storage left. Please use the ' +
           '"Manage local storage" menu option to free up some space.');
     console.log('Could not save value of length ' + v.length + ' for key: ' + k)
@@ -553,12 +521,16 @@ ExetRevManager.prototype.saveAllRevisions = function() {
   a.href = window.URL.createObjectURL(
     new Blob([json], {type: 'text/json'})
   );
-  let filename = `exet-revisions-${(new Date()).toISOString()}.json`
+  let filename = `exet-backup-${(new Date()).toISOString()}.json`
   a.setAttribute('download', filename)
   a.click();
   window.URL.revokeObjectURL(a.href);
   document.body.removeChild(a);
-  exetModals.hide()
+  exetState.lastBackup = Date.now();
+  exetRevManager.saveLocal(exetRevManager.SPECIAL_KEY,
+                           JSON.stringify(exetState))
+  exet.checkStorage();
+  exetModals.hide();
 }
 
 ExetRevManager.prototype.mergeRevisionsFile = function() {
@@ -721,6 +693,14 @@ function Exet() {
   this.sweepMaxChoices = 5000
   this.sweepMaxChoicesSmall = 4
   this.shownLightChoices = 200
+
+  /**
+   * Local storage usage. Filled by the first call to checkStorage().
+   */
+  this.lsUsed = -1;
+  this.lsUsedAtStart = -1;
+  this.lsLeftAtStart = -1;
+  this.lsLeftIsAmple = false;
 
   this.tipsList = [
     `If you want to allow enum mismatches, then add the line
@@ -1210,90 +1190,121 @@ Exet.prototype.makeExetTab = function() {
             Open Exolve or .puz file: <input id="xet-file"
                 onchange="exetLoadFile();" type="file"></input>
           </div>
-          <div class="xet-dropdown-item">
-            New grid:
-            <div class="xet-dropdown-submenu">
-              <div style="padding:4px;text-align:center">
-                <div>
-                  <label for="xet-w">Width:</label>
-                  <input id="xet-w" name="xet-w" value="${exetConfig.defaultDimension}"
-                    type="text" size="3" maxlength="3" placeholder="W">
-                  </input>
-                  &times;
-                  <label for="xet-h">Height:</label>
-                  <input id="xet-h" name="xet-h" value="${exetConfig.defaultDimension}"
-                    type="text" size="3" maxlength="3" placeholder="H">
-                  </input>
-                </div>
-                <br>
-                <div>
-                  Unique ID:
-                  <input id="xet-id" name="xet-id"
-                    value="xet-${Math.random().toString(36).substring(2, 8)}"
-                    title="Please change to a meaningful alphanumeric id (beginning with a letter) to identify easily later"
-                    type="text" size="15" maxlength="30" placeholder="alphanumeric unique id">
-                  </input>
-                </div>
-                <br>
-                <div title="When this is checked, Exet will automagically ` +
-                  'add blocked cells to create a valid grid. You can ' +
-                  'further edit the blocks and add more automagic blocks ' +
-                  'from the Edit menu">' +
-                  `Add automagic blocks:
-                  <input id="xet-autoblock" name="xet-autoblock"
-                      value="autoblock" checked=true type="checkbox">
-                  </input>
-                </div>
+          <hr>
+          <hr>
+          <div class="xet-dropdown-div">
+            <div style="font-style:italic">
+              <label for="xet-w">Width:</label>
+              <input id="xet-w" name="xet-w" value="${exetConfig.defaultDimension}"
+                type="text" size="3" maxlength="3" placeholder="W">
+              </input>
+              &times;
+              <label for="xet-h">Height:</label>
+              <input id="xet-h" name="xet-h" value="${exetConfig.defaultDimension}"
+                type="text" size="3" maxlength="3" placeholder="H">
+              </input>
+              Unique ID:
+              <input id="xet-id" name="xet-id"
+                value="xet-${Math.random().toString(36).substring(2, 8)}"
+                title="Please change to a meaningful alphanumeric id (beginning with a letter) to identify easily later"
+                type="text" size="15" maxlength="30" placeholder="alphanumeric unique id">
+              </input>
+            </div>
+          </div>
+          <div class="xet-dropdown-item"
+              title="Blank starting-point-grid for a blocked or barred grid to which you will manually add blocks/bars"
+                onclick="exetBlank(document.getElementById('xet-w').value, ` +
+                  `document.getElementById('xet-h').value, 1, ` +
+                  `document.getElementById('xet-id').value, ` +
+                  `false, false);">
+              New blank grid (add blocks/bars later)
+          </div>
+          <div class="xet-dropdown-div" style="padding-bottom:0"
+              title="Starting point for a chequered grid to which you will manually add blocks">
+            New blocked lattice grid (no added blocks):
+            <div class="xet-controls-row">
+              <div class="xet-dropdown-item"
+                   title="Blocked with no top/left unches"
+                onclick="exetBlank(document.getElementById('xet-w').value, ` +
+                    `document.getElementById('xet-h').value, 1, ` +
+                    `document.getElementById('xet-id').value, ` +
+                    `false, true, false, false);">
+                <img class="xet-icon" src="no-unches.png"/>
               </div>
-              <hr>
-              <div class="xet-controls-row">
-                <div class="xet-dropdown-subitem"
-                     title="Blocked with no top/left unches"
-                  onclick="exetBlank(document.getElementById('xet-w').value, ` +
-                      `document.getElementById('xet-h').value, 1, ` +
-                      `document.getElementById('xet-id').value, ` +
-                      `document.getElementById('xet-autoblock').checked, ` +
-                      `true, false, false);">
-                  <img class="xet-icon" src="no-unches.png"/>
-                </div>
-                <div class="xet-dropdown-subitem"
-                     title="Blocked with top but not left unches"
-                  onclick="exetBlank(document.getElementById('xet-w').value, ` +
-                      `document.getElementById('xet-h').value, 1, ` +
-                      `document.getElementById('xet-id').value, ` +
-                      `document.getElementById('xet-autoblock').checked, ` +
-                      `true, true, false);">
-                  <img class="xet-icon" src="t-unches.png"/>
-                </div>
-                <div class="xet-dropdown-subitem"
-                     title="Blocked with left but not top unches"
-                  onclick="exetBlank(document.getElementById('xet-w').value, ` +
-                      `document.getElementById('xet-h').value, 1, ` +
-                      `document.getElementById('xet-id').value, ` +
-                      `document.getElementById('xet-autoblock').checked, ` +
-                      `true, false, true);">
-                  <img class="xet-icon" src="l-unches.png"/>
-                </div>
-                <div class="xet-dropdown-subitem"
-                     title="Blocked with top/left unches"
-                  onclick="exetBlank(document.getElementById('xet-w').value, ` +
-                      `document.getElementById('xet-h').value, 1, ` +
-                      `document.getElementById('xet-id').value, ` +
-                      `document.getElementById('xet-autoblock').checked, ` +
-                      `true, true, true);">
-                  <img class="xet-icon" src="tl-unches.png"/>
-                </div>
-                <div class="xet-dropdown-subitem" title="No blocks"
-                  onclick="exetBlank(document.getElementById('xet-w').value, ` +
-                      `document.getElementById('xet-h').value, 1, ` +
-                      `document.getElementById('xet-id').value, ` +
-                      `document.getElementById('xet-autoblock').checked, ` +
-                      `false);">
-                  <img class="xet-icon" src="no-blocks.png"/>
-                </div>
+              <div class="xet-dropdown-item"
+                   title="Blocked with top but not left unches"
+                onclick="exetBlank(document.getElementById('xet-w').value, ` +
+                    `document.getElementById('xet-h').value, 1, ` +
+                    `document.getElementById('xet-id').value, ` +
+                    `false, true, true, false);">
+                <img class="xet-icon" src="t-unches.png"/>
+              </div>
+              <div class="xet-dropdown-item"
+                   title="Blocked with left but not top unches"
+                onclick="exetBlank(document.getElementById('xet-w').value, ` +
+                    `document.getElementById('xet-h').value, 1, ` +
+                    `document.getElementById('xet-id').value, ` +
+                    `false, true, false, true);">
+                <img class="xet-icon" src="l-unches.png"/>
+              </div>
+              <div class="xet-dropdown-item"
+                   title="Blocked with top/left unches"
+                onclick="exetBlank(document.getElementById('xet-w').value, ` +
+                    `document.getElementById('xet-h').value, 1, ` +
+                    `document.getElementById('xet-id').value, ` +
+                    `false, true, true, true);">
+                <img class="xet-icon" src="tl-unches.png"/>
               </div>
             </div>
           </div>
+          <div class="xet-dropdown-div" style="padding-bottom:0"
+              title="Chequered grid with already added blocks that you can modify as needed">
+            New blocked lattice grid (with blocks added):
+            <div class="xet-controls-row">
+              <div class="xet-dropdown-item"
+                   title="Blocked with no top/left unches"
+                onclick="exetBlank(document.getElementById('xet-w').value, ` +
+                    `document.getElementById('xet-h').value, 1, ` +
+                    `document.getElementById('xet-id').value, ` +
+                    `true, true, false, false);">
+                <img class="xet-icon" src="no-unches.png"/>
+              </div>
+              <div class="xet-dropdown-item"
+                   title="Blocked with top but not left unches"
+                onclick="exetBlank(document.getElementById('xet-w').value, ` +
+                    `document.getElementById('xet-h').value, 1, ` +
+                    `document.getElementById('xet-id').value, ` +
+                    `true, true, true, false);">
+                <img class="xet-icon" src="t-unches.png"/>
+              </div>
+              <div class="xet-dropdown-item"
+                   title="Blocked with left but not top unches"
+                onclick="exetBlank(document.getElementById('xet-w').value, ` +
+                    `document.getElementById('xet-h').value, 1, ` +
+                    `document.getElementById('xet-id').value, ` +
+                    `true, true, false, true);">
+                <img class="xet-icon" src="l-unches.png"/>
+              </div>
+              <div class="xet-dropdown-item"
+                   title="Blocked with top/left unches"
+                onclick="exetBlank(document.getElementById('xet-w').value, ` +
+                    `document.getElementById('xet-h').value, 1, ` +
+                    `document.getElementById('xet-id').value, ` +
+                    `true, true, true, true);">
+                <img class="xet-icon" src="tl-unches.png"/>
+              </div>
+            </div>
+          </div>
+          <div class="xet-dropdown-item"
+              title="Doubly checked US-style blocked grid with already added blocks that you can modify as needed"
+                onclick="exetBlank(document.getElementById('xet-w').value, ` +
+                  `document.getElementById('xet-h').value, 1, ` +
+                  `document.getElementById('xet-id').value, ` +
+                  `true, false);">
+              New US-style doubly-checked grid (with blocks added)
+          </div>
+          <hr>
+          <hr>
           <div class="xet-dropdown-item">
             New 3-D grid:
             <div class="xet-dropdown-submenu">
@@ -1337,92 +1348,6 @@ Exet.prototype.makeExetTab = function() {
               </div>
             </div>
           </div>
-          <hr>
-          <hr>
-          <div class="xet-dropdown-item" id="xet-manage-storage">
-            Manage local storage (Used:
-                <span id="xet-storage-used">${exetRevManager.inMB(exetRevManager.spaceUsed)}</span> MB
-            Available: 
-              <span class="xet-red" id="xet-storage-free">${exetRevManager.inMB(
-                  exetRevManager.spaceUsedAtStart +
-                  exetRevManager.spaceLeftAtStart -
-                  exetRevManager.spaceUsed)}</span> MB)
-          </div>
-          <div class="xet-dropdown-item"
-             onclick="exetRevManager.saveAllRevisions()">
-            Save all revisions to file (exet-revisions-<i>timestamp</i>.json)
-          </div>
-          <div class="xet-dropdown-item">
-            Merge saved revisions file:
-            <input id="xet-merge-revs-file"
-               onchange="exetRevManager.mergeRevisionsFile()" type="file"
-               accept=".json"></input><br>
-            <input id="xet-merge-only-latest-revs"
-               name="xet-merge-only-latest-revs"
-              checked=true value="merge-only-latest-revs" type="checkbox">
-            </input>
-            Take only the latest revision per crossword
-          </div>
-        </div>
-      </li>
-      <li class="xet-dropdown">
-        <div class="xet-dropbtn" title="Click to save, with some formatting options">Save</div>
-        <div class="xet-dropdown-content" id="xet-save" title="The * shown in file names will be replaced by '-[title]', if there is a non-empty puzzle title">
-          <div class="xet-dropdown-div">
-            <b>Settings:</b>
-            <div title="Set this option for American-style grids that do ` +
-              `not show enums in clues">
-              Show enums in clues:
-              <input id="xet-show-enums" name="xet-show-enums"
-                ${exetState.showEnums ? "checked=true" : ""}
-                value="show-enums" type="checkbox">
-              </input>
-            </div>
-            <div title="Change this to your own URL prefix for exolve-m.js ` +
-              `and exolve-m.css. Only used when saving as Exolve if the ` +
-              `Exolve data did not already have these URLs. Press Esc after ` +
-              `clicking in the box to revert to default.">
-              Exolve URL prefix:
-              <input id="xet-xlv-url-prefix" name="xet-xlv-url-prefix"
-                value="${exetState.exolveUrl}"
-                placeholder="Press Esc after clicking in the box to revert ` +
-                  `to default" type="text" size="40" maxlength="100">
-              </input>
-            </div>
-          </div>
-          <hr>
-          <div id="xet-save-warnings" class="xet-dropdown-div xet-red"></div>
-          <hr>
-          <div class="xet-dropdown-item" onclick="exet.download(true)">
-              Download Exolve file with solutions<br>(exet-exolve-<span
-                  class="xet-filetitle"></span>-with-solutions.html)</div>
-          <div class="xet-dropdown-item" onclick="exet.download(false)">
-              Download Exolve file without solutions<br>(exet-exolve-<span
-                  class="xet-filetitle"></span>-sans-solutions.html)</div>
-          <div class="xet-dropdown-item" onclick="exet.downloadDotPuz()">
-              Download PUZ file<br>
-              (exet-<span class="xet-filetitle"></span>.puz)
-          </div>
-          <div class="xet-dropdown-item"
-              onclick="exet.toClipboard(true, 'xet-xlv-widget')">
-            Copy Exolve widget code with solutions &#128203;
-            <div class="xet-dropdown-submenu">
-              <textarea rows="25" cols="40" id="xet-xlv-widget">
-              </textarea>
-            </div>
-          </div>
-          <div class="xet-dropdown-item"
-              onclick="exet.toClipboard(false, 'xet-xlv-widget-nosol')">
-            Copy Exolve widget code without solutions &#128203;
-            <div class="xet-dropdown-submenu">
-              <textarea rows="25" cols="40" id="xet-xlv-widget-nosol">
-              </textarea>
-            </div>
-          </div>
-          <div class="xet-dropdown-item" onclick="exet.print(true)">
-              Print or download PDF file with solutions</div>
-          <div class="xet-dropdown-item" onclick="exet.print(false)">
-              Print or download PDF file without solutions</div>
         </div>
       </li>
       <li class="xet-dropdown">
@@ -1431,12 +1356,32 @@ Exet.prototype.makeExetTab = function() {
             `also note the listed keyboard shortcuts)">Edit</div>
         <div class="xet-dropdown-content">
 
+          <div title="Toggle whether the current cell is a block or not" ` +
+              `class="xet-dropdown-item" onclick="exet.handleKeyDown('.')">
+            Toggle block (.)
+          </div>
           <div title="Try to autmatically add random blocks while ` +
               `maintaining a valid grid"
               class="xet-dropdown-item" onclick="exet.handleKeyDown('#')">
             Add automagic blocks (#)
           </div>
+          <div class="xet-dropdown-item">
+            Toggle barred cell:
+            <div class="xet-dropdown-submenu">
+              <div class="xet-dropdown-subitem"
+                  title="Toggle bar after this cell"
+                  onclick="exet.handleKeyDown('|')">
+                Toggle bar-after (|)
+              </div>
+              <div class="xet-dropdown-subitem"
+                  title="Toggle bar under this cell"
+                  onclick="exet.handleKeyDown('_')">
+                Toggle bar-under (_)
+              </div>
+            </div>
+          </div>
 
+          <hr>
           <div title="Try to autofill the remaining grid"
             class="xet-dropdown-item" id="xet-autofill">Autofill:
             <div class="xet-dropdown-submenu xet-autofill-panel">
@@ -1615,27 +1560,7 @@ Exet.prototype.makeExetTab = function() {
               class="xet-dropdown-item" onclick="exet.acceptAll()">
             Accept autofilled entries (=)
           </div>
-
-          <div class="xet-dropdown-item">
-            Edit grid cell:
-            <div class="xet-dropdown-submenu">
-              <div class="xet-dropdown-subitem"
-                  title="Toggle making this cell a block"
-                  onclick="exet.handleKeyDown('.')">
-                Toggle block (.)
-              </div>
-              <div class="xet-dropdown-subitem"
-                  title="Toggle bar after this cel"
-                  onclick="exet.handleKeyDown('|')">
-                Toggle bar-after (|)
-              </div>
-              <div class="xet-dropdown-subitem"
-                  title="Toggle bar under this cel;"
-                  onclick="exet.handleKeyDown('_')">
-                Toggle bar-under (_)
-              </div>
-            </div>
-          </div>
+          <hr>
 
           <div class="xet-dropdown-item">
             Mark grid cell:
@@ -1680,6 +1605,8 @@ Exet.prototype.makeExetTab = function() {
                onclick="exet.reverseLight()">
              Reverse current light
           </div>
+
+          <hr>
 
           <div class="xet-dropdown-item">
             Add/edit special sections:
@@ -1727,6 +1654,97 @@ Exet.prototype.makeExetTab = function() {
         <div class="xet-dropbtn" title="Click to see analyses of the ` +
             `crossword (grid, grid-fill, clues)">Analysis</div>
         <div class="xet-dropdown-content xet-analysis" id="xet-analysis">
+        </div>
+      </li>
+      <li class="xet-dropdown">
+        <div class="xet-dropbtn" title="Click to save, with some formatting options">Save</div>
+        <div class="xet-dropdown-content" id="xet-save" title="The * shown in file names will be replaced by '-[title]', if there is a non-empty puzzle title">
+          <div class="xet-dropdown-div">
+            <b>Settings:</b>
+            <div title="Set this option for American-style grids that do ` +
+              `not show enums in clues">
+              Show enums in clues:
+              <input id="xet-show-enums" name="xet-show-enums"
+                ${exetState.showEnums ? "checked=true" : ""}
+                value="show-enums" type="checkbox">
+              </input>
+            </div>
+            <div title="Change this to your own URL prefix for exolve-m.js ` +
+              `and exolve-m.css. Only used when saving as Exolve if the ` +
+              `Exolve data did not already have these URLs. Press Esc after ` +
+              `clicking in the box to revert to default.">
+              Exolve URL prefix:
+              <input id="xet-xlv-url-prefix" name="xet-xlv-url-prefix"
+                value="${exetState.exolveUrl}"
+                placeholder="Press Esc after clicking in the box to revert ` +
+                  `to default" type="text" size="40" maxlength="100">
+              </input>
+            </div>
+          </div>
+          <hr>
+          <div id="xet-save-warnings" class="xet-dropdown-div xet-red"></div>
+          <hr>
+          <div class="xet-dropdown-item" onclick="exet.download(true)">
+              Download Exolve file with solutions<br>(exet-exolve-<span
+                  class="xet-filetitle"></span>-with-solutions.html)</div>
+          <div class="xet-dropdown-item" onclick="exet.download(false)">
+              Download Exolve file without solutions<br>(exet-exolve-<span
+                  class="xet-filetitle"></span>-sans-solutions.html)</div>
+          <div class="xet-dropdown-item" onclick="exet.downloadDotPuz()">
+              Download PUZ file<br>
+              (exet-<span class="xet-filetitle"></span>.puz)
+          </div>
+          <div class="xet-dropdown-item"
+              onclick="exet.toClipboard(true, 'xet-xlv-widget')">
+            Copy Exolve widget code with solutions &#128203;
+            <div class="xet-dropdown-submenu">
+              <textarea rows="25" cols="40" id="xet-xlv-widget">
+              </textarea>
+            </div>
+          </div>
+          <div class="xet-dropdown-item"
+              onclick="exet.toClipboard(false, 'xet-xlv-widget-nosol')">
+            Copy Exolve widget code without solutions &#128203;
+            <div class="xet-dropdown-submenu">
+              <textarea rows="25" cols="40" id="xet-xlv-widget-nosol">
+              </textarea>
+            </div>
+          </div>
+          <div class="xet-dropdown-item" onclick="exet.print(true)">
+              Print or download PDF file with solutions</div>
+          <div class="xet-dropdown-item" onclick="exet.print(false)">
+              Print or download PDF file without solutions</div>
+        </div>
+      </li>
+      <li class="xet-dropdown">
+        <div class="xet-dropbtn" id="xet-storage-heading">Storage</div>
+        <div class="xet-dropdown-content" id="xet-storage">
+          <div class="xet-dropdown-item" id="xet-manage-storage">
+            Manage local storage (Used =
+                <span id="xet-local-storage-used"></span> MB,
+            Available &asymp; 
+              <span id="xet-local-storage-free"></span> MB)
+          </div>
+          <div class="xet-dropdown-item"
+             onclick="exetRevManager.saveAllRevisions()">
+            Back up all current crosswords to file (exet-backup-<i>timestamp</i>.json)
+            <br></br>
+            <span id="xet-last-backup">Last backed up at:
+              <span id="xet-last-backup-time"></span></span>
+          </div>
+          <div class="xet-dropdown-item">
+            Merge saved back-ups file:
+            <input id="xet-merge-revs-file"
+               onchange="exetRevManager.mergeRevisionsFile()" type="file"
+               accept=".json"></input><br>
+            <input id="xet-merge-only-latest-revs"
+               name="xet-merge-only-latest-revs"
+              checked=true value="merge-only-latest-revs" type="checkbox">
+            </input>
+            Take only the latest revision per crossword
+          </div>
+          <hr>
+          <hr>
         </div>
       </li>
       <li class="xet-dropdown" style="float:right;">
@@ -2052,9 +2070,10 @@ Exet.prototype.makeExetTab = function() {
     exetModals.showModal(exet.revChooser)
     e.stopPropagation()
   })
-  const manageStorage = document.getElementById("xet-manage-storage")
-  this.storageUsed = document.getElementById("xet-storage-used")
-  this.storageFree = document.getElementById("xet-storage-free")
+  const manageStorage = document.getElementById("xet-manage-storage");
+  this.lsUsedSpan = document.getElementById("xet-local-storage-used");
+  this.lsFreeSpan = document.getElementById("xet-local-storage-free");
+  this.storageHeading = document.getElementById("xet-storage-heading");
   manageStorage.addEventListener('click', e => {
     exetRevManager.choosePuzRev(true, null, exet.revChooser, null);
     exetModals.showModal(exet.revChooser)
@@ -5199,30 +5218,37 @@ Exet.prototype.handleClueChange = function() {
   exetRevManager.throttledSaveRev(exetRevManager.REV_CLUE_CHANGE);
 }
 
-// Return < 0 if randomness suggests picking nothing.
-Exet.prototype.randomIndex = function(candidates) {
-  if (candidates.length <= 0 || Math.random() > 0.85) return -1
-  if (candidates.length == 1) {
-    return 0
+/**
+ * Return < 0 if !noSkipping and randomness suggests picking nothing.
+ */
+Exet.prototype.randomIndex = function(candidates, noSkipping) {
+  if (candidates.length <= 0 || (!noSkipping && (Math.random() > 0.98))) {
+    return -1;
   }
-  return Math.floor(Math.random() * candidates.length)
+  if (candidates.length == 1) {
+    return 0;
+  }
+  return Math.floor(Math.random() * candidates.length);
 }
 
-Exet.prototype.automagicBlocksInner = function(chequered, showAlerts=true) {
+Exet.prototype.numLightsInRange = function(minLights, maxLights) {
+  const numLights = this.puz.clues.length;
+  return (numLights >= minLights && numLights <= maxLights);
+}
+
+Exet.prototype.automagicBlocksInner = function(chequered, targetNumClues, showAlerts=true) {
   const minSpan = chequered ? 4 : 3;
-  let grid = this.puz.grid;
-  let w = this.puz.gridWidth;
-  let wby2 = Math.ceil(w / 2);
-  let h = this.puz.gridHeight;
-  let hby2 = Math.ceil(h / 2);
-  let layers3d = this.puz.layers3d;
+  const grid = this.puz.grid;
+  const w = this.puz.gridWidth;
+  const wby2 = Math.ceil(w / 2);
+  const h = this.puz.gridHeight;
+  const hby2 = Math.ceil(h / 2);
+  const layers3d = this.puz.layers3d;
 
   const analysis = new ExetAnalysis(grid, w, h, layers3d);
+  const minwhby2 = Math.min(wby2, hby2);
 
-  let numCandidates = 0;
-  let numChanges = 0;
-  let rowcols = [];
-  let minwhby2 = Math.min(wby2, hby2);
+  const rowcols = [];
   for (let x = 0; x < minwhby2; x++) {
     rowcols.push(["row", x]);
     rowcols.push(["col", x]);
@@ -5233,73 +5259,93 @@ Exet.prototype.automagicBlocksInner = function(chequered, showAlerts=true) {
   for (let j = minwhby2 + 1; j < wby2; j++) {
     rowcols.push(["col", j]);
   }
-  for (rc of rowcols) {
-    let k1 = rc[1];
-    let isRow = (rc[0] == "row");
-    let symk1 = w - 1 - k1;
-    if (isRow) {
-      symk1 = h - 1 - k1;
-    }
-    const spans = isRow ? analysis.acrossSpans(k1) : analysis.downSpans(k1);
-    let candidates = [];
-    for (let span of spans) {
-      for (let x = minSpan; x < span[1] - minSpan; x++) {
-        let k2 = span[0] + x;
-        let symk2 = h - 1 - k2;
-        if (isRow) {
-          symk2 = w - 1 - k2;
+
+  let totalChanges = 0;
+  let numClues = Object.keys(this.puz.clues).length;
+  /**
+   * Add a maxLoops limit because technically, the randomness couuld
+   * lead to a no-op in every loop. Also, loop at least once even if
+   * targetNumClues <= numClues.
+   */
+  const maxLoops = Math.max(1, (targetNumClues - numClues));
+  let loop = 0;
+  while (numClues < targetNumClues && (loop++ < maxLoops)) {
+    let numChanges = 0;
+    let numCandidates = 0;
+    for (rc of rowcols) {
+      let k1 = rc[1];
+      let isRow = (rc[0] == "row");
+      let symk1 = w - 1 - k1;
+      if (isRow) {
+        symk1 = h - 1 - k1;
+      }
+      const spans = isRow ? analysis.acrossSpans(k1) : analysis.downSpans(k1);
+      let candidates = [];
+      for (let span of spans) {
+        for (let x = minSpan; x < span[1] - minSpan; x++) {
+          let k2 = span[0] + x;
+          let symk2 = h - 1 - k2;
+          if (isRow) {
+            symk2 = w - 1 - k2;
+          }
+          const gridCell = isRow ? grid[k1][k2] : grid[k2][k1];
+          const gridSymCell = isRow ? grid[symk1][symk2] : grid[symk2][symk1];
+          if (gridCell.solution != '?' || gridSymCell.solution != '?') {
+            continue;
+          }
+          gridCell.isLight = false;
+          gridSymCell.isLight = false;
+          if (analysis.isConnected() &&
+              ((chequered && analysis.chequeredOK()) ||
+               (!chequered && analysis.unchequeredOK())) &&
+              analysis.throughCutsBigEnough()) {
+            candidates.push(k2);
+          }
+          gridCell.isLight = true;
+          gridSymCell.isLight = true;
         }
-        const gridCell = isRow ? grid[k1][k2] : grid[k2][k1];
-        const gridSymCell = isRow ? grid[symk1][symk2] : grid[symk2][symk1];
-        if (gridCell.solution != '?' || gridSymCell.solution != '?') {
-          continue;
-        }
-        gridCell.isLight = false;
-        gridSymCell.isLight = false;
-        if (analysis.isConnected() &&
-            ((chequered && analysis.chequeredOK()) ||
-             (!chequered && analysis.unchequeredOK())) &&
-            analysis.throughCutsBigEnough()) {
-          candidates.push(k2);
-        }
-        gridCell.isLight = true;
-        gridSymCell.isLight = true;
+      }
+      if (candidates.length == 0) {
+        continue;
+      }
+      numCandidates += candidates.length;
+      /**
+       * If there was only one span, and we're not doing a chequered grid, then
+       * do not skip breaking it up.
+       */
+      const noSkipping = !chequered && (spans.length == 1);
+      let randIndex = this.randomIndex(candidates, noSkipping);
+      if (randIndex < 0) {
+        /** We randomly chose not to make a change */
+        continue;
+      }
+      let k2 = candidates[randIndex];
+      let symk2 = h - 1 - k2;
+      if (isRow) {
+        symk2 = w - 1 - k2;
+      }
+      const gridCell = isRow ? grid[k1][k2] : grid[k2][k1];
+      const gridSymCell = isRow ? grid[symk1][symk2] : grid[symk2][symk1];
+      gridCell.isLight = false;
+      gridSymCell.isLight = false;
+      numChanges += 2;
+      numClues = this.killInvalidatedClues();
+      if (numClues >= targetNumClues) {
+        break;
       }
     }
-    if (candidates.length == 0) {
-      continue;
+    totalChanges += numChanges;
+    if (numCandidates == 0) {
+      break;
     }
-    numCandidates += candidates.length;
-    let randIndex = this.randomIndex(candidates);
-    if (randIndex < 0) {
-      // We randomly chose not to make a change
-      continue;
-    }
-    let k2 = candidates[randIndex];
-    let symk2 = h - 1 - k2;
-    if (isRow) {
-      symk2 = w - 1 - k2;
-    }
-    const gridCell = isRow ? grid[k1][k2] : grid[k2][k1];
-    const gridSymCell = isRow ? grid[symk1][symk2] : grid[symk2][symk1];
-    gridCell.isLight = false;
-    gridSymCell.isLight = false;
-    numChanges += 2;
-  }
-  if (numChanges > 0) {
-    this.killInvalidatedClues();
-  } else {
+ }
+  if (totalChanges == 0) {
     if (showAlerts) {
-      if (numCandidates == 0) {
-        alert('Add automagic blocks: found no further candidate cells ' +
-              'for turning into blocks');
-      } else {
-        alert('Add automagic blocks: found some candidate cells for ' +
-              'turning into blocks, but random numbers favoured no changes');
-      }
+      alert('Add automagic blocks: found no further candidate cells ' +
+            'for turning into blocks');
     }
   }
-  return numChanges > 0;
+  return totalChanges > 0;
 }
 
 Exet.prototype.automagicBlocks = function(showAlerts=true) {
@@ -5334,9 +5380,13 @@ Exet.prototype.automagicBlocks = function(showAlerts=true) {
     return false;
   }
   if (analysis.unchequeredOK()) {
-    return this.automagicBlocksInner(false, showAlerts);
+    const target = Math.floor(2*w*h/6.5);
+    return this.automagicBlocksInner(false, target, showAlerts);
   } else  if (analysis.chequeredOK()) {
-    return this.automagicBlocksInner(true, showAlerts);
+    const lightRows = Math.floor(h/2) + (((h % 2) == 1 && grid[0][0].isLight) ? 1 : 0);
+    const lightCols = Math.floor(w/2) + (((w % 2) == 1 && grid[0][0].isLight) ? 1 : 0);
+    const target = Math.floor((lightRows * (w/7.9)) + (lightCols * (h/7.9)));
+    return this.automagicBlocksInner(true, target, showAlerts);
   } else {
     if (showAlerts) alert('Cannot add automagic blocks to the current grid');
     return false;
@@ -6391,6 +6441,9 @@ Exet.prototype.updateColourNinaLights = function(nOrCList, fullNewLabels) {
   }
 }
 
+/**
+ * Returns the number of clues in the updated puzzle.
+ */
 Exet.prototype.killInvalidatedClues = function() {
   const tempId = this.puz.id + '-temp';
   // New puzzle, but no clues/ninas/colours (these may contain invalid entries).
@@ -6495,6 +6548,7 @@ Exet.prototype.killInvalidatedClues = function() {
   }
   xetTemp.innerHTML = ''
   newPuz.destroy();
+  return Object.keys(cellsToIndex).length;
 }
 
 Exet.prototype.unlinkClue = function(ci) {
@@ -7225,6 +7279,7 @@ Exet.prototype.makeExolve = function(specs) {
   if (!this.puz) {
     return;
   }
+  this.checkLocalStorage();
 
   this.handleTabClick(this.currTab);
   exetState.lastId = this.puz.id
@@ -8480,13 +8535,98 @@ Exet.prototype.checkVersion = function() {
   xhttp.send();
 }
 
-Exet.prototype.finishSetup = function() {
-  this.versionText = ''
+Exet.prototype.getLocalStorageUsed = function() {
+  let s = 0;
+  for (let idx = 0; idx < window.localStorage.length; idx++) {
+    const id = window.localStorage.key(idx);
+    s += window.localStorage.getItem(id).length;
+  }
+  return s;
+}
+
+Exet.prototype.getLocalStorageLeft = function() {
+  let k500 = '1234567812345678';
+  while (k500.length < 500000) {
+    k500 = k500 + k500;
+  }
+  const tempKey = '42-exet-cap-42-';
+  const limit = 20;
+  let s = 0;
+  for (let i = 0; i < limit; i++) {
+    // Only count up to 10 MB
+    try {
+      window.localStorage.setItem(tempKey + i, k500);
+      s += k500.length;
+    } catch (err) {
+      break;
+    }
+  }
+  for (let i = 0; i < limit; i++) {
+    window.localStorage.removeItem(tempKey + i);
+  }
+  return s;
+}
+
+Exet.prototype.inMB = function(num) {
+  return (num / 1000000).toFixed(2)
+}
+
+Exet.prototype.checkLocalStorage = function() {
+  this.lsUsed = this.getLocalStorageUsed();
+  if (this.lsUsedAtStart < 0) {
+    this.lsUsedAtStart = this.lsUsed;
+    this.lsLeftAtStart = this.getLocalStorageLeft();
+  }
+  const lsFree = this.lsUsedAtStart + this.lsLeftAtStart - this.lsUsed;
+  this.lsUsedSpan.innerText = this.inMB(this.lsUsed);
+  this.lsFreeSpan.innerText = this.inMB(lsFree);
+  this.lsLeftIsAmple = (lsFree > 50000);
+  this.lsFreeSpan.style.color = this.lsLeftIsAmple ? 'default' : 'red';
+  return this.lsLeftIsAmple;
+}
+
+Exet.prototype.checkBackup = function() {
+  const backupTime = document.getElementById("xet-last-backup-time");
+  backupTime.innerHTML = (new Date(exetState.lastBackup)).toLocaleString();
+  /** 7 days check */
+  const isRecent = ((Date.now() - exetState.lastBackup) <= (7 * 86400000));
+  const backupElem = document.getElementById("xet-last-backup");
+  backupElem.style.color = isRecent ? 'default' : 'red';
+  return isRecent;
+}
+
+Exet.prototype.checkStorage = function() {
+  const warnings = [];
+  const backupOK = this.checkBackup();
+  if (!backupOK) {
+    warnings.push('Last back-up is quite stale, please save a new one.');
+  }
+  const lsOK = this.checkLocalStorage();
+  if (!lsOK) {
+    warnings.push('Local Storage is running low, please delete some older puzzle revisions.');
+  }
+  if (warnings.length > 0) {
+    this.storageHeading.style.color = 'red';
+    this.storageHeading.title = warnings.join(' ');
+  } else {
+    this.storageHeading.style.color = 'default';
+    this.storageHeading.title = 'Manage local storage, back up crosswords to file.';
+  }
+}
+
+Exet.prototype.periodicChecks = function() {
   if (window.location.protocol != "file:") {
     this.checkVersion();
-    // Check every 10 minutes
-    setInterval(this.checkVersion.bind(this), 10 * 60 * 1000)
   }
+  this.checkStorage();
+}
+
+Exet.prototype.finishSetup = function() {
+  this.versionText = '';
+  this.periodicChecks();
+  /** Check every 10 minutes */
+  setInterval(this.periodicChecks.bind(this), 10 * 60 * 1000);
+
   window.addEventListener('scroll', this.reposition.bind(this));
   window.addEventListener('resize', this.reposition.bind(this));
 
@@ -8739,6 +8879,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   if (!exetState.hasOwnProperty('spellcheck')) {
     exetState.spellcheck = false;
+  }
+  if (!exetState.hasOwnProperty('lastBackup')) {
+    exetState.lastBackup = Date.now();
   }
   if (exetState.lastId) {
     let saved = window.localStorage.getItem(exetState.lastId)
