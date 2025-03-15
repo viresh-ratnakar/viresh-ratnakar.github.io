@@ -6366,66 +6366,63 @@ Exolve.prototype.arrowNav = function(rincr, cincr, shouldLoop) {
  * after a cell is filled. Returns false only if a tab input was actually used.
  */
 Exolve.prototype.handleKeyUpInner = function(key, shift=false) {
+  const gridCell = this.currCell();
   if (key == 9 && !shift) {
     // tab
-    if (this.usingGnav) {
-      const gridCell = this.currCell()
+    if (this.usingGnav && (!gridCell || !gridCell.shapedCell)) {
       if (!gridCell || !this.currDir) {
-        return false
+        return false;
       }
-      const gnav = gridCell['next' + this.currDir]
+      const gnav = gridCell['next' + this.currDir];
       if (!gnav) {
-        return false
+        return false;
       }
-      this.currDir = gnav.dir
-      this.activateCell(gnav.cell[0], gnav.cell[1])
+      this.currDir = gnav.dir;
+      this.activateCell(gnav.cell[0], gnav.cell[1]);
     } else {
       if (!this.currClueIndex || !this.clues[this.currClueIndex] ||
           !this.clues[this.currClueIndex].next) {
-        return false
+        return false;
       }
-      this.cnavTo(this.clues[this.currClueIndex].next)
+      this.cnavTo(this.clues[this.currClueIndex].next);
     }
     return true
   } else if (key == 9 && shift) {
     // shift-tab
-    if (this.usingGnav) {
-      const gridCell = this.currCell()
+    if (this.usingGnav && (!gridCell || !gridCell.shapedCell)) {
       if (!gridCell || !this.currDir) {
-        return false
+        return false;
       }
-      const gnav = gridCell['prev' + this.currDir]
+      const gnav = gridCell['prev' + this.currDir];
       if (!gnav) {
-        return false
+        return false;
       }
-      this.currDir = gnav.dir
-      this.activateCell(gnav.cell[0], gnav.cell[1])
+      this.currDir = gnav.dir;
+      this.activateCell(gnav.cell[0], gnav.cell[1]);
     } else {
       if (!this.currClueIndex || !this.clues[this.currClueIndex] ||
           !this.clues[this.currClueIndex].prev) {
-        return false
+        return false;
       }
-      this.cnavTo(this.clues[this.currClueIndex].prev)
+      this.cnavTo(this.clues[this.currClueIndex].prev);
     }
-    return true
+    return true;
   }
   if (!this.currCellIsValid()) {
-    return false
+    return false;
   }
 
-  this.usingGnav = true
+  this.usingGnav = true;
   if (key == 8) {
-    const gridCell = this.currCell()
     if (gridCell.currLetter != '0' && gridCell.currLetter != '?' &&
         !gridCell.prefill) {
-      return true
+      return true;
     }
     // backspace in an empty or prefilled cell
-    this.retreatCursorInLight();
-    return true
+    this.retreatCursorInLight();;
+    return true;
   }
   if (key == 46) { // delete key
-    const gridCell = this.currCell();
     if (gridCell && gridCell.isLight && !gridCell.prefill) {
       this.clearCell(this.currRow, this.currCol);
       this.updateActiveCluesState();
