@@ -6369,7 +6369,7 @@ Exolve.prototype.handleKeyUpInner = function(key, shift=false) {
   const gridCell = this.currCell();
   if (key == 9 && !shift) {
     // tab
-    if (this.usingGnav && (!gridCell || !gridCell.shapedCell)) {
+    if (this.usingGnav && this.hasDgmlessCells) {
       if (!gridCell || !this.currDir) {
         return false;
       }
@@ -6389,7 +6389,7 @@ Exolve.prototype.handleKeyUpInner = function(key, shift=false) {
     return true
   } else if (key == 9 && shift) {
     // shift-tab
-    if (this.usingGnav && (!gridCell || !gridCell.shapedCell)) {
+    if (this.usingGnav && this.hasDgmlessCells) {
       if (!gridCell || !this.currDir) {
         return false;
       }
