@@ -1,0 +1,405 @@
+<html>
+<head>
+<style>
+body {
+  font-family: serif;
+  font-size: 18px;
+  line-height: 155%;
+  margin: 12px;
+  max-width: 1000px;
+}
+a {
+  text-decoration: none;
+}
+td {
+  padding: 6px 4px;
+  vertical-align: top;
+}
+.anno,
+.clue {
+  font-family: monospace;
+  font-size: 14px;
+}
+.clue {
+  font-weight: 550;
+}
+.not-ok {
+  color: brown;
+}
+</style>
+<title>Linking Words</title>
+</head>
+
+<script>
+function shadeTable() {
+  let trs = document.getElementsByTagName('TR')
+  let parity = 0
+  for (tr of trs) {
+    if (parity == 0) {
+      tr.style.background = 'gainsboro'
+    }
+    parity = 1 - parity
+  }
+}
+</script>
+
+</head>
+
+<body onload="shadeTable()">
+
+<img src="../../gussalufz-wizard.png" width="60px" align="left"
+     alt="Picture of Gussalufz (a wizard bearing a crossword).">
+
+<center>
+<h2>Linking Words</h2>
+<h4>Gussalufz, April 2025</h4>
+</center>
+
+<p>
+Some linking words give me pause thought while setting. It's usually because
+I've seen someone object to their usage for some reason, and I've either
+(a) agreed with that reason or (b) have come up with a counter reason that makes
+them OK to use (for me, at least), and I need the pause to figure out whether
+it was (a) or (b). This write-up is an attempt to tabulate a whole darn
+annotated set of linking words for my own future self (and hopefully other
+setters will be able to derive some value as well).
+</p>
+
+<p>
+A linking word is a word that's inserted between the wordplay part and the
+definition part in a cryptic clue. The need typically comes from the surface
+reading, but the setter has to make sure that the linking word works well in
+the cryptic reading as well. I use the same model as I have described in my
+<a href="../2023/cryptic-grammar.html">article on Cryptic Grammar</a>:
+the linking word has to work in the sense of the setter observing the wordplay
+(in present or present continuous tense) or the setter instructing the
+solver to apply the wordplay.
+</p>
+
+<p>
+For example, the linking word <span class="clue">"from"</span> works
+well in this clue:
+<blockquote class="clue">Food from a can (4)</blockquote> 
+This is because the cryptic reading of the clue, <span class="clue">[definition]
+  from [wordplay]</span>, is grammatically correct; it is the setter
+telling you that a word for a kind of food (ALOO) can be created <i>from</i>
+the wordplay of concatenating A and LOO (can). This linking word only works
+in the 
+<span class="clue">[definition] from [wordplay]</span>
+direction; it cannot be used in the opposite direction,
+<span class="clue not-ok">[wordplay] from [definition]</span>.
+</p>
+
+<h2>Big Table Of Linking Words That Work Well</h2>
+
+<p>
+Here's the main act, a table tabulating some controversial and some
+not-so-controversial linking words, alongside a column noting which of
+the two directions they work in, and some occasional notes. The tables
+can't be and aren't comprehensive (one can always find creative
+rephrasings!). They are also not absolute commandments: context-specific
+subjective judgement is the ultimate decider, for any setter.
+</p>
+
+
+<table>
+  <tr style="color:darkblue">
+    <td style="width:10%"><b>Linking word(s)</b></td>
+    <td style="width:38%"><b>Direction(s)</b></td>
+    <td><b>Notes</b></td>
+  </tr>
+
+  <tr>
+    <td><span class="clue">and</span></td>
+    <td>
+      <span class="clue">[definition] and [wordplay]</span>
+      <br>
+      <span class="clue">[wordplay] and [definition]</span>
+    </td>
+    <td>
+      Here's the definition of the solution word, <i>and</i> here's a bit of
+      wordplay that creates the same word.
+    </td>
+  </tr>
+
+  <tr>
+    <td><span class="clue">or</span></td>
+    <td>
+      <span class="clue">[definition] or [wordplay]</span>
+      <br>
+      <span class="clue">[wordplay] or [definition]</span>
+    </td>
+    <td>
+      The solution word can be derived from this definition <i>or</i> from this
+      wordplay.
+    </td>
+  </tr>
+
+  <tr>
+    <td><span class="clue">is</span></td>
+    <td>
+      <span class="clue">[definition] is [wordplay]</span>
+      <br>
+      <span class="clue">[wordplay] is [definition]</span>
+    </td>
+    <td>
+      The solution word <i>is</i> the same as the result of this wordplay.
+    </td>
+  </tr>
+
+  <tr>
+    <td><span class="clue">'s</span></td>
+    <td>
+      <span class="clue">[definition]'s [wordplay]</span>
+      <br>
+      <span class="clue">[wordplay]'s [definition]</span>
+    </td>
+    <td>
+      Note that the <i>'s</i> is to be read as <i>is</i> in the
+      cryptic reading. A common ruse is to have it work as a
+      shortening of <i>has</i> in the surface reading.
+    </td>
+  </tr>
+
+  <tr>
+    <td><span class="clue">being</span></td>
+    <td>
+      <span class="clue">[definition] being [wordplay]</span>
+      <br>
+      <span class="clue">[wordplay] being [definition]</span>
+    </td>
+    <td>
+      This one feels slightly weird, but less so if you imagine
+      a comma before the <i>being</i> and think of it as
+      <i>definition/wordplay, being the same as wordplay/definition</i>.
+    </td>
+  </tr>
+
+  <tr>
+    <td><span class="clue">from</span></td>
+    <td>
+      <span class="clue">[definition] from [wordplay]</span>
+    </td>
+    <td>
+    </td>
+  </tr>
+
+  <tr>
+    <td><span class="clue">of</span></td>
+    <td>
+      <span class="clue">[definition] of [wordplay]</span>
+    </td>
+    <td>
+    </td>
+  </tr>
+
+  <tr>
+    <td><span class="clue">with</span></td>
+    <td>
+      <span class="clue">[definition] with [wordplay]</span>
+      <br>
+      <span class="clue">[wordplay] with [definition]</span>
+    </td>
+    <td>
+      The first direction is generally accepted by everyone, but the
+      second one is not. If you interpret <i>with</i> as <i>from</i>, then
+      the second direction does not work, indeed. But the trick is to see
+      the <i>with</i> simply as a conjunction, in the sense of <i>alongside</i>,
+      for the cryptic reading to make sense.
+    </td>
+  </tr>
+
+  <tr>
+    <td><span class="clue">has</span></td>
+    <td>
+      <span class="clue">[definition] has [wordplay]</span>
+    </td>
+    <td>
+      This, in fact, is the origin story for this article.
+      A friend (and budding setter) used this construction, and I
+      nitpicked initially. But, upon reflection, I felt that this is fine!
+      It's the setter observing that the solution word <i>has</i> this
+      wordplay. For example:
+      <br>
+      <br>
+      <span class="clue">This beach area has raging disease (7)</span>
+    </td>
+  </tr>
+
+  <tr>
+    <td>
+      <span class="clue">displays</span><br>
+      <span class="clue">exhibits</span><br>
+      <span class="clue">parades</span><br>
+      <span class="clue">shows</span>
+    </td>
+    <td>
+      <span class="clue">[definition] displays/.../shows [wordplay]</span>
+    </td>
+    <td>
+      These are extensions of the <i>has</i> construction. The setter is
+      saying that the solution word (with the given definition) exhibits
+      the listed wordplay.
+    </td>
+  </tr>
+
+  <tr>
+    <td>
+      <span class="clue">for</span>
+    </td>
+    <td>
+      <span class="clue">[wordplay] for [definition]</span>
+    </td>
+    <td>
+      This construction only works with instructional wordplay.
+    </td>
+  </tr>
+
+  <tr>
+    <td>
+      <span class="clue">to find</span><br>
+      <span class="clue">to get</span>
+    </td>
+    <td>
+      <span class="clue">[wordplay] to find/get [definition]</span>
+    </td>
+    <td>
+      This construction too only works with instructional wordplay.
+    </td>
+  </tr>
+
+  <tr>
+    <td>
+      <span class="clue">becomes</span><br>
+      <span class="clue">composes</span><br>
+      <span class="clue">concocts</span><br>
+      <span class="clue">constitutes</span><br>
+      <span class="clue">constructs</span><br>
+      <span class="clue">creates</span><br>
+      <span class="clue">forms</span><br>
+      <span class="clue">formulates</span><br>
+      <span class="clue">gives</span><br>
+      <span class="clue">generates</span><br>
+      <span class="clue">leads to</span><br>
+      <span class="clue">makes</span><br>
+      <span class="clue">manufactures</span><br>
+      <span class="clue">offers</span><br>
+      <span class="clue">produces</span><br>
+      <span class="clue">yields</span>
+    </td>
+    <td>
+      <span class="clue">[wordplay] becomes/.../yields [definition]</span>
+    </td>
+    <td>
+      The present continuous versions of these
+      (<span class="clue">[wordplay] creating [definition]</span>, etc.)
+      seem weird to me. But, one can be forgiven to imagine an elided
+      <i>is</i> in front of them, if the surface really really needs
+      such a form.
+      <br>
+      <br>
+      When the wordplay is presented as an instruction, the infinitive
+      forms of these linking words can be used (<i>to create</i>,
+      <i>to form</i>, etc.).
+    </td>
+  </tr>
+
+</table>
+
+<h2>Small Table Of Linking Words That Some Setters Are OK With But I'm Generally Not</h2>
+
+<table>
+  <tr style="color:darkblue">
+    <td style="width:10%"><b>Linking word(s)</b></td>
+    <td style="width:38%"><b>Direction(s)</b></td>
+    <td><b>Notes</b></td>
+  </tr>
+
+  <tr>
+    <td><span class="clue">causes</span></td>
+    <td>
+      <span class="clue not-ok">[wordplay] causes [definition]</span>
+    </td>
+    <td>
+      I think wordplay can <i>create</i> words but not <i>cause</i> them. 
+    </td>
+  </tr>
+
+  <tr>
+    <td><span class="clue">at</span></td>
+    <td>
+      <span class="clue not-ok">[definition] at [wordplay]</span>
+      <br>
+      <span class="clue not-ok">[wordplay] at [definition]</span>
+    </td>
+    <td>
+      I can't see <i>wordplay</i> and <i>definition</i> as locations <i>at</i>
+      which the other thing happens.
+    </td>
+  </tr>
+
+  <tr>
+    <td><span class="clue">to</span></td>
+    <td>
+      <span class="clue not-ok">[wordplay] to [definition]</span>
+    </td>
+    <td>
+      While <i>leads to</i> is fine, just <i>to</i> by itself seems
+      weird to me.
+    </td>
+  </tr>
+
+  <tr>
+    <td><span class="clue">on</span></td>
+    <td>
+      <span class="clue not-ok">[definition] on [wordplay]</span>
+    </td>
+    <td>
+    </td>
+  </tr>
+
+  <tr>
+    <td><span class="clue">upon</span></td>
+    <td>
+      <span class="clue not-ok">[definition] upon [wordplay]</span>
+    </td>
+    <td>
+      For both <i>on</i> and <i>upon</i>, I can see how they can
+      work in some restricted scenarios, such as
+      <span class="clue">[definition] upon [mixing something]</span>,
+      but in those cases, for me it's more natural to think of
+      all of <span class="clue">upon mixing</span> as the anagrind,
+      without any linking word.
+    </td>
+  </tr>
+
+</table>
+
+<h2>References</h2>
+
+<p>
+  Many others have written on this topic, and as expected, there are some
+  disaagreements to be found. Please do go through these excellent links!
+</p>
+
+<ul>
+  <li>
+    Alberich (the late great Neil Shepherd) has written this excellent piece titled,
+    <a href="https://www.alberich-crosswords.com/more-articles/link-words">Link Words</a>,
+    that I reach out for all the time.
+  </li>
+  <li>
+    Shuchismita Upadhyay (within her excellent <i>Crossword Unclued</i> blog) has a
+    blogpost on this topic, titled
+    <a href="https://www.crosswordunclued.com/2009/07/connectors.html">Thoughts on
+      Connectors</a>.
+  </li>
+  <li>
+    Joshua Kosman and Henri Picciotto discuss linking words in Chapter 12
+    ("Parts One And Two") of their guide to cryptic crosswords,
+    <a href="https://www.almanaq.com/left-field-store"><i>Word Salad</i></a>.
+  </li>
+</ul>
+
+</body>
+</html>
