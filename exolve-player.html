@@ -425,11 +425,11 @@ function xlvpSaveGetDetails() {
     ret.contentType = 'text/html;charset=UTF-8';
   } else if (xlvpSaveType.value == 'puz') {
     ret.filename = xlvpSavePrefix.value + '.puz';
-    ret.data = exolveToPuz(xlvpPuz, xlvpPuz.hasEnums);
+    ret.data = exolveToPuz(xlvpPuz);
     ret.contentType = 'application/x-crossword';
   } else if (xlvpSaveType.value == 'ipuz') {
     ret.filename = xlvpSavePrefix.value + '.ipuz';
-    ret.data = exolveToIpuz(xlvpPuz, xlvpPuz.hasEnums);
+    ret.data = exolveToIpuz(xlvpPuz);
     ret.contentType = 'application/x-crossword';
   }
   return ret;

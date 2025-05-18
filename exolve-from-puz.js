@@ -70,7 +70,7 @@ function exolveFromPuz(buffer, fname='') {
     for (let j = 0; j < width; j++) {
       let solution = decoder.decode(buffer.slice(offset, offset + 1));
       offset++;
-      exolveGrid += solution
+      exolveGrid += (!solution || solution == '0') ? '?' : solution;
     }
     exolveGrid += '\n';
   }
