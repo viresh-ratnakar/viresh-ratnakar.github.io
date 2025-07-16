@@ -551,14 +551,16 @@ function xlvpEndFromTextWorker() {
 }
 
 function xlvpShowText(text, fname='provided text') {
+  xlvpInferMsg.innerHTML = 'Generating candidates...';
   xlvpInfer.innerHTML = 'Working! [click to cancel]';
   xlvpInfer.className = 'xlvp-button-working';
-  xlvpInferMsg.innerHTML = '';
+  xlvpInferMsg.offsetHeight;
   /** Try to get the UI to update */
   setTimeout(xlvpShowTextInner, 0, text, fname);
 }
 
 function xlvpShowTextInner(text, fname) {
+  xlvpInferMsg.style.display = '';  /** force repaint */
   if (xlvpFromTextActive) {
     /* New text data, kill the old worker if active */
     xlvpEndFromTextWorker();
