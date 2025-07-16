@@ -530,17 +530,20 @@ function xlvpDrag(ev) {
 
 function xlvpOnText() {
   if (xlvpFromTextActive) {
-    /* Cancel as been clicked */
+    /* Cancel has been clicked */
     xlvpEndFromTextWorker();
     return;
   }
   xlvpShowText(xlvpText.value);
 }
 
-function xlvpEndFromTextWorker() {
+function xlvpRestoreInferDisplay() {
   xlvpInfer.innerHTML = xlvpInferHTML;
   xlvpInfer.className = 'xlvp-button';
   xlvpInferMsg.innerHTML = '';
+}
+
+function xlvpEndFromTextWorker() {
   if (xlvpFromTextActive) {
     xlvpFromTextActive.worker.terminate();
     xlvpFromTextActive = null;
@@ -548,13 +551,18 @@ function xlvpEndFromTextWorker() {
 }
 
 function xlvpShowText(text, fname='provided text') {
+  xlvpInfer.innerHTML = 'Working! [click to cancel]';
+  xlvpInfer.className = 'xlvp-button-working';
+  xlvpInferMsg.innerHTML = '';
+  /** Try to get the UI to update */
+  setTimeout(xlvpShowTextInner, 0, text, fname);
+}
+
+function xlvpShowTextInner(text, fname) {
   if (xlvpFromTextActive) {
     /* New text data, kill the old worker if active */
     xlvpEndFromTextWorker();
   }
-  xlvpInfer.className = 'xlvp-button-working';
-  xlvpInfer.innerHTML = 'Working! [click to cancel]';
-
   const w = xlvpW.value;
   const h = xlvpH.value;
 
@@ -565,6 +573,7 @@ function xlvpShowText(text, fname='provided text') {
                      ' grid from ' + fname + ': ' + worker;
     alert(alertMsg);
     xlvpEndFromTextWorker();
+    xlvpRestoreInferDisplay();
     return;
   }
   xlvpFromTextActive = {
@@ -592,6 +601,7 @@ function xlvpHandleFromTextMessage(message) {
   const saved = xlvpFromTextActive;
 
   xlvpEndFromTextWorker();
+  xlvpRestoreInferDisplay();
 
   const matches = message.results || [];
   if (matches.length == 0) {
