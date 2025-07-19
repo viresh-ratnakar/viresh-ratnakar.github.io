@@ -8891,16 +8891,32 @@ Exolve.prototype.handleAfterPrint = function() {
   this.printingChanges = null;
 }
 
+Exolve.prototype.parseFontSize = function(str) {
+  const ret = {
+    number: NaN,
+    unit: '',
+    str: str,
+  };
+  const strStart = str.search(/[a-zA-Z]/);
+  if (strStart < 0) return ret;
+  ret.number = parseFloat(str.substr(0, strStart));
+  ret.unit = str.substr(strStart);
+  return ret;
+}
+
 Exolve.prototype.setPrintFont = function(fromMenu) {
   if (!this.printFontMenu || !this.printFontInput) return;
   if (fromMenu && this.printFontMenu.value != 'other') {
     this.printFontInput.value = this.printFontMenu.value;
   }
-  if (!this.printFontInput.value) {
-    this.printFontInput.value = '18px';
-  }
   if (this.printFontInput.value != this.printFontInput.value.toLowerCase()) {
     this.printFontInput.value = this.printFontInput.value.toLowerCase();
+  }
+  const parsedFont = this.parseFontSize(this.printFontInput.value);
+  if (isNaN(parsedFont.number)) {
+    this.printFontInput.value = '18px';
+  } else {
+    this.printFontInput.value = '' + parsedFont.number + parsedFont.unit;
   }
   if (!fromMenu) {
     if (['18px', '22px', '26px', '14px'].includes(this.printFontInput.value)) {
@@ -8912,7 +8928,7 @@ Exolve.prototype.setPrintFont = function(fromMenu) {
 }
 
 /**
- * Given an img elelemt, make it point to a QR code for the
+ * Given an img element, make it point to a QR code for the
  * given URL. Set the size (width, height) of the image to
  * dim
  */
@@ -9029,7 +9045,8 @@ Exolve.prototype.getPrintSettings = function() {
                    ((page == 'B4') ? 353.0/25.4 :
                    ((page == 'legal') ? 14.0 :
                    ((page == 'ledger') ? 17.0 : 11.0)))))))));
-  const font = (this.printFontInput ? this.printFontInput.value : '18px') || '18px';
+  const font = this.parseFontSize(
+      (this.printFontInput ? this.printFontInput.value : '18px') || '18px');
 
   const scope = document.getElementById(this.prefix + '-print-scope').value;
   const inksaver = document.getElementById(this.prefix + '-print-inksaver').checked;
@@ -9294,7 +9311,16 @@ Exolve.prototype.handleBeforePrint = function() {
     #${this.prefix}-frame div,
     #${this.prefix}-frame table {
       color: black;
-      font-size: ${settings.font};
+      font-size: ${settings.font.str};
+    }
+    #${this.prefix}-frame .xlv-title {
+      font-size: ${settings.font.number * 1.5}${settings.font.unit};
+    }
+    #${this.prefix}-frame .xlv-anno-text {
+      font-size: ${settings.font.number * 0.75}${settings.font.unit} !important;
+    }
+    #${this.prefix}-frame .xlv-copyright {
+      font-size: ${settings.font.number * 0.625}${settings.font.unit} !important;
     }
     .xlv-button,
     .xlv-clear-area,
