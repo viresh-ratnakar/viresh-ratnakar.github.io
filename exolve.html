@@ -9932,6 +9932,9 @@ Exolve.prototype.printGridSvg = function() {
 
   /* Capture colours as SVG rects. Hacky. */
   for (const g of [this.ninaGroup, this.colourGroup]) {
+    if (g.style.display == 'none') {
+      continue;
+    }
     for (const r of g.children) {
       const x = parseFloat(r.style.left);
       const y = parseFloat(r.style.top);
