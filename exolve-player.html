@@ -441,16 +441,8 @@ function xlvpSave() {
     alert("Could not export data to the desired format");
     return;
   }
-  const a = document.createElement("a");
-  a.style.display = "none";
-  document.body.appendChild(a);
-  a.href = window.URL.createObjectURL(
-    new Blob([saveDetails.data], {type: saveDetails.contentType})
-  );
-  a.setAttribute("download", saveDetails.filename);
-  a.click();
-  window.URL.revokeObjectURL(a.href);
-  document.body.removeChild(a);
+  Exolve.prototype.fileDownload(
+      saveDetails.data, saveDetails.contentType, saveDetails.filename);
 }
 
 function xlvpShowIpuz(specs, fname) {
@@ -554,7 +546,7 @@ function xlvpShowText(text, fname='provided text') {
   xlvpInferMsg.innerHTML = 'Generating candidates...';
   xlvpInfer.innerHTML = 'Working! [click to cancel]';
   xlvpInfer.className = 'xlvp-button-working';
-  xlvpInferMsg.offsetHeight;
+  xlvpInferMsg.offsetHeight;  /** hack to force repaint */
   /** Try to get the UI to update */
   setTimeout(xlvpShowTextInner, 0, text, fname);
 }
