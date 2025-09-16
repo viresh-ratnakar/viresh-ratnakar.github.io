@@ -5,7 +5,7 @@ Copyright (c) 2022 Viresh Ratnakar
 
 See the full Exet license notice in exet.js.
 
-Current version: v0.94, October 6, 2024
+Current version: v0.97, September 16, 2025
 */
 
 /**
@@ -591,7 +591,7 @@ class ExetAnalysis {
   }
 
   /**
-   * Finds minThroughCuts() along both dimensions and returns truw iff both
+   * Finds minThroughCuts() along both dimensions and returns true iff both
    * are at least as big as one-fourth of the size along that dimension.
    */
   throughCutsBigEnough() {

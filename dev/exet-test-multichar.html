@@ -10,19 +10,37 @@ Copyright (c) 2020 Viresh Ratnakar
 
 See the full license notice in exet.js.
 
-Current version: v0.84 April 3, 2023
+Current version: v0.97, September 16, 2025
 -->
 
 <link rel="stylesheet" type="text/css" href="exolve-m.css"/>
 <link rel="stylesheet" type="text/css" href="exet.css"/>
 
+<script>
+/**
+ * Language-specific parameters.
+ */
+exetConfig = {
+  defaultDimension: 7,
+  defaultPopularity: 0,
+  researchTools: [],
+  extraTabs: [],
+  listsLinks: [],
+};
+</script>
+
 <script src="exolve-m.js"></script>
 <script src="exolve-from-puz.js"></script>
+<script src="exolve-from-ipuz.js"></script>
+<script src="exolve-to-puz.js"></script>
+<script src="exolve-to-ipuz.js"></script>
 
 <script defer src="lufz-en-lexicon-test-multichar.js"></script>
-<script src="exet-lexicon.js"></script>
 
+<script src="exet-analysis.js"></script>
+<script src="exet-autofill.js"></script>
 <script src="exet.js"></script>
+<script src="exet-lexicon.js"></script>
 
 <title>Exet Test: Multi-char Letters</title>
 
