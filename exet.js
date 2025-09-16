@@ -142,7 +142,7 @@ function Exet() {
      <blockquote>exolve-option: ignore-enum-mismatch</blockquote>
      using
      <i>Edit &gt; Add/Edit special sections: &gt; Other Exolve sections</i>.`,
-    `You can specify up to a ${this.MAX_PREFLEX} desired words to fill, using
+    `You can specify up to ${this.MAX_PREFLEX} desired words to fill, using
      the <span style="color:green">"Set preferred fills"</span> button near
      the bottom. These words will be prioritized in autofill as well
      as in the suggested fills list.`,
