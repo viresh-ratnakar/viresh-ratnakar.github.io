@@ -2,7 +2,7 @@
 
 ## A web app for crossword construction
 
-#### Version: Exet v0.95, March 12, 2025
+#### Version: Exet v0.96, May 18, 2025
 
 #### Author: Viresh Ratnakar
 
@@ -35,6 +35,7 @@ These are all the files needed from this repository:
 - [`exet-analysis.js`](https://raw.githubusercontent.com/viresh-ratnakar/exet/master/exet-analysis.js),
 - [`exet.css`](https://raw.githubusercontent.com/viresh-ratnakar/exet/master/exet.css),
 - [`exet-lexicon.js`](https://raw.githubusercontent.com/viresh-ratnakar/exet/master/exet-lexicon.js),
+- [`exet-storage.js`](https://raw.githubusercontent.com/viresh-ratnakar/exet/master/exet-storage.js),
 - [`about-exet.html`](https://raw.githubusercontent.com/viresh-ratnakar/exet/master/about-exet.html),
 - [`exet-version.txt`](https://raw.githubusercontent.com/viresh-ratnakar/exet/master/exet-version.txt),
 - [`no-unches.png`](https://raw.githubusercontent.com/viresh-ratnakar/exet/master/no-unches.png),
@@ -47,6 +48,9 @@ And here are the files needed from Exolve:
 - [`exolve-m.css`](https://raw.githubusercontent.com/viresh-ratnakar/exolve/master/exolve-m.css),
 - [`exolve-m.js`](https://raw.githubusercontent.com/viresh-ratnakar/exolve/master/exolve-m.js),
 - [`exolve-from-puz.js`](https://raw.githubusercontent.com/viresh-ratnakar/exolve/master/exolve-from-puz.js).
+- [`exolve-to-puz.js`](https://raw.githubusercontent.com/viresh-ratnakar/exolve/master/exolve-to-puz.js).
+- [`exolve-from-ipuz.js`](https://raw.githubusercontent.com/viresh-ratnakar/exolve/master/exolve-from-ipuz.js).
+- [`exolve-to-ipuz.js`](https://raw.githubusercontent.com/viresh-ratnakar/exolve/master/exolve-to-ipuz.js).
 
 Exet comes with a permissive MIT license. The full license notice is provided in
 the [`LICENSE`](license) file as well as reproduced at the bottom of this file.
@@ -104,6 +108,8 @@ following modifications to the UKACD words list:
   implementation in
   [wink-porter2-stemmer](https://github.com/winkjs/wink-porter2-stemmer).
   Details are in the Lufz README file.
+- I have been periodically updating the lexicon, adding words and
+  phrases scoured from various web sources.
 
 ### Hindi
 
@@ -143,6 +149,27 @@ by loading two script files.
 This provides functionality such as getting anagrams, homophones, spoonerisms,
 and words/phrases matching a pattern.
 
+### Custom wordlists are *not* supported (*but*):
+
+Exet is a webapp. Most of the memory usage comes from the large lexicon and
+supporting indices (for word look-ups, anagrams, pronunciations, etc.).
+Allowing users to point to a wordlist file of their own and have that be used
+instead of Exet's default lexicon *is* possible, in theory. It would bring in
+a whole bunch of additional complexity. Like, using `indexedDB` to store the
+base lexicon and variants, so that the user can switch between lexicons.
+Like, adding background workers to "prepare" a new wordlist before it can
+be used, which would involve building indices, borrowing pronunciations from
+the base lexicon where possible, etc.). I did go down this path and was about
+60% done, before deciding to abandon it, in September 2025.
+
+I believe custom wordlists are commonly used by setters of U.S.-style
+(non-cryptic) crosswords), but so far, Exet anyway has found more traction with
+setters of cryptic crosswords. But I abandoned the custom wordlists path
+primarily because it would have brought in too much additional complexity
+without commensurate pay-off. Users already have the ability to specify a long
+list of "preferred" lexicon entries (I have increased the maximum allowed
+size of this to 10,000 now, instead of the old limit of 100).
+
 ## Crossword construction walk-through
 
 To use Exet, you simply open a link to `exet.html`, such as [this one on
@@ -157,10 +184,12 @@ After it loads, your browser screen should look something like this:
 
 Normally, Exet would start with the last crossword that you were working
 on. When you open Exet for the very first time, it creates a 15x15
-blocked grid of the British variety, with blocks added "automagically"
-(see below). You can pass a URL option to default to a completely blank grid
-as the first grid it creates:
-[exet.html?newgrid=blank](exet.html?newgrid=blank).
+blocked grid of the "Commonwealth" variety (i.e., a standard chequered grid,
+as opposed to a U.S.-style grid where each square is doubly checked), with
+blocks added "automagically" (see below). You can pass a URL option to default
+to a completely blank grid as the first grid it creates:
+[exet.html?newgrid=blank](exet.html?newgrid=blank). You can always use the
+menu to create a "New" grid of the sort you need.
 
 There are three phases in crossword construction:
 
@@ -178,33 +207,42 @@ made by Debsamita Basu.
 
 ### Constructing the grid
 
-The "Open" menu allows you to start with several "New grid" options:
+The "New" menu allows you to start with several "new grid" options:
 
-- New blank grid (add blocks/bars later)
-  - This is a completely blank grid to which you would manually add blocks
-    or bars (or both). For barred grids, or for blocked grids that you want
-    to craft yourselves, this is where you should start.
-- New blocked lattice grid (no added blocks)
-  - This allows you to create one of four variants of a chequered grid, wih
-    no further blocks added.
 - New blocked lattice grid (with blocks added)
   - This allows you to create one of four variants of a chequered grid, wih
     blocks added to create a reasonable grid. You can always edit it further
-    by adding or removing blocks.
+    by adding or removing blocks. This is the standard blocked grid used
+    in "commonwealth" puzzles (i.e., non-U.S.-style).
+- New blocked lattice grid (no added blocks)
+  - This allows you to create one of four variants of a chequered grid, wih
+    no further blocks added. You can add blocks to such a grid manually or
+    "automagically" at any later point in time.
 - New US-style doubly checked grid (with blocks added)
-  - This creates a US style crossword, with blocks added to create a reasonable
-    grid. You can always edit it firther by adding or removing blocks.
-After creating a grid, you can customize it by manually adding/removing
-blocks/bars, or by letting the software automatically add blocks.
+  - This creates a U.S.-style crossword (each square is doubly checked), with
+    blocks added to create a reasonable grid. You can always edit it further
+    by adding or removing blocks.
+- New blank grid (add blocks/bars later)
+  - This is a completely blank grid to which you would manually add blocks
+    or bars (or both). For barred grids, or for blocked grids that you want
+    to craft yourselves, this is where you should start. A sub-menu lets You
+    choose whether you want the grid to be a U.S.-style puzzle without enums.
 
-You can also create a 3-D grid from the "Open" menu. In a 3-D grid, there are
-multiple "layers", with "down" clues running through the layers and "across"
+After creating a grid, you can customize it by manually adding/removing
+blocks/bars, or by letting the software "automagically" add blocks.
+
+You can also create a 3-D grid from the "New" menu. In a 3-D grid, there are
+multiple "layers," with "down" clues running through the layers and "across"
 and "away" clues within the layers. See the
 [Exolve documentation](https://github.com/viresh-ratnakar/exolve/blob/master/README.md)
 for details on 3-D crosswords.
 
-The "Open" menu also lets you open previously created crosswords, or return to
-an older revision of the current crossword, or open a .puz file or Exolve file.
+The "Open" menu lets you open previously created crosswords, or return to
+an older revision of the current crossword, or open an Exolve file or a
+.puz/.ipuz file. When you open an existing HTML file that contains a puzzle
+in the Exolve format, the software remembers the HTML part that comes before
+and after the Exolve part, and will replicate it whenever you save again
+in the Exolve format.
 
 Next to the "Open" menu is the "Edit" menu, useful for tweaking the grid,
 autofilling it, and adding/modifying crossword features such as ninas:
@@ -249,11 +287,6 @@ two formats is the state of the grid at that time. "Add automagic blocks"
 can be used repeatedly. More details on what "Add automagic blocks" does
 are [provided in the appendix](#automagic-blocks).
 
-You can also open a .puz file, or any existing HTML file that contains a puzzle
-in the Exolve format (when you save such a crossword after editing it, the saved
-Exolve file will replicate whatever is there before and after the Exolve part in
-the original HTML file that you opened).
-
 #### Reversing the current light
 When you choose the option to reverse a light from the Edit menu, the
 orientation of the cell is reversed. This entails the following direction changes:
@@ -284,6 +317,9 @@ If you modify the enum part in the clue to something that indicates a multi-word
 phrase (for example, by changing "(10)" to "(4,6)") then the grid-fill
 suggestions will be reordered to prefer entries that match the implied
 punctuation, i.e., the presence of interword space/dash/apostrophe characters.
+
+Note that if you start with a US-style crossword, enums are not shown in clues,
+unless you explicitly add them.
 
 To the right of the fill suggestions table, near the top, you have some
 settings that control the nature of fill suggestions. These are:
@@ -489,15 +525,13 @@ In the clues list in the Exet panel (to the right of the grid), clues in
 draft mode get shown with a `[DRAFT]` marker and their clue numbers get shown
 coloured gray.
 
-You can also edit the enum part of the clue, but the software will reset it
-to the previous value if it does not add up to the needed number. For example,
-if a light spans 10 cells, and you edit the enum part to be "(5-4)," the
-software will reset it to "(10)," (or "(5,5)" or whatever was the last value).
-When it does this, Exet will also surface a relevant tip under the "Tips"
-area, showing how you can use `exolve-option: ignore-enum-mismatch` to avoid
-this strict checking, if desired.
-Note that when you save the crossword to Exolve or PUZ or PDF formats,
-you can always chose to not list the enums (using a checkbox in the Save menu).
+In a puzzle where enums are required (i.e., non-US-style), you can also edit the
+enum part of the clue, but the software will reset it to the previous value if
+it does not add up to the needed number. For example, if a light spans 10
+cells, and you edit the enum part to be "(5-4)," the software will reset it to
+"(10)," (or "(5,5)" or whatever was the last value). When it does this, Exet
+will also surface a relevant tip under the "Tips" area, showing how you can use
+`exolve-option: ignore-enum-mismatch` to avoid this strict checking, if desired.
 
 You can also leave an enum incompletely specified, as in these examples:
 "(one word)", "(2 wds)". You can specify the total length and omit the
@@ -769,46 +803,54 @@ edited. Similarly, you can edit the copyright notice for the puzzle. All three
 of these editable fields are optional, and you can simply edit them to be
 empty.
 
-### Downloading Exolve or .puz files
+### Downloading Exolve or .puz or .ipuz files
 
 The "Save" menu lets you download or grab the puzzle in various ways. In the
 following, \<title\> in a filename stands for the puzzle title.
 
+- **Download Exolve HTML file...**
+  - **With solutions (exet-exolve-\<title\>.html)**:
+    Download an HTML file that uses Exolve and that allows solvers to check/see
+    solutions.  Such files can also be opened by Exet from the "Open" menu and
+    can be further edited. This might be useful, for example, when you want to
+    edit an old crossword that you have deleted from Exet's limited local
+    storage.
+  - **Without solutions (exet-exolve-\<title\>-sans-solutions.html)**:
+    Download an HTML file that uses Exolve and does not allow solvers to
+    check/see solutions.
+- **Print or download PDF file...**
+  - *With solutions**: Print the crossword, or save
+    it as a PDF file, in a compact, two-column format, with solutions.
+  - **Without solutions**: Print the crossword, or save
+    it as a PDF file, in a compact, two-column format, without solutions.
 - **Download PUZ file (exet-\<title\>.puz)**: Download a .puz file. Note that
   .puz does not support many crossword features (afaik) such as barred grids.
   The software will alert you if it is not able to provide a .puz download.
   Note also that when exporting the crossword in the .puz format, any rich
   formatting in clues will get stripped out as the .puz format does not support
   it (.puz does not support annotations either).
-- **Download Exolve file with solutions
-  (exet-exolve-\<title\>-with-solutions.html)**:
-  Download an HTML file that uses Exolve and that allows solvers to check/see
-  solutions.  Such files can also be opened by Exet from the "Open" menu and
-  can be further edited. This might be useful, for example, when you want to
-  edit an old crossword that you have deleted from Exet's limited local storage.
-- **Download Exolve file without solutions
-  (exet-exolve-\<title\>-sans-solutions.html)**:
-  Download an HTML file that uses Exolve and does not allow solvers to check/see
-  solutions.
-- **Copy Exolve widget code with solutions 📋**: Copy (into the clipboard)
-  embeddable Exolve widget HTML code (with solvers able to check/see solutions).
-- **Copy Exolve widget code without solutions 📋**: Copy (into the clipboard)
-  embeddable Exolve widget HTML code (with solvers not able to check/see
-  solutions).
-- **Print or download PDF file with solutions**: Print the crossword, or save
-  it as a PDF file, in a compact, two-column format, with solutions.
-- **Print or download PDF file without solutions**: Print the crossword, or save
-  it as a PDF file, in a compact, two-column format, without solutions.
+- **Download IPUZ file (exet-\<title\>.ipuz)**: Download a .ipuz file. Note that
+  .puz does not support many crossword features (afaik). The software will alert
+  you if it is not able to provide a .ipuz download.
+- **Download grid image SVG file...**
+  - *With solutions (exet-\>title\>-solution-grid.svg)**: Download
+    the grid image as an SVG file, with solution letters (and ninas).
+  - *Without solutions (exet-\>title\>-blank-grid.svg)**: Download
+    the blank grid image as an SVG file, without solution letters or ninas.
+- **Copy Exolve widget code...**
+  - **With solutions 📋**: Copy (into the clipboard)
+    embeddable Exolve widget HTML code (with solvers able to check/see solutions).
+  - **Without solutions 📋**: Copy (into the clipboard)
+    embeddable Exolve widget HTML code (with solvers not able to check/see
+    solutions).
 
-In the first three "download" variants, a file with the name shown will be
+In the "Save" options that download a file, a file with the name shown will be
 downloaded into the browser's Downloads directory/folder. If there already
 exists a file with that name, the system will use a variant of the name
-as per its usual conventions.
+as per its usual conventions (such as appending "(1)" to the name).
 
-The Save menu also lets you change a couple of settings:
+The Save menu also lets you change some settings:
 
-- **Show enums in clues**: You can turn this off to download American-style
-  puzzles that do not show enums in clues.
 - **Exolve URL prefix**: You can change this to your own custom location
   of the `exolve-m.css` and `exolve-m.js` files in downloaded Exolve files.
   You can press the Escape key inside the text entry area to revert to the
@@ -856,8 +898,8 @@ just the latest version of each crossword (instead of its full revision
 history). The revisions are _merged_: in the sense that if a revision already
 exists then it is not duplicated.
 
-Exet also keeps track of when you last did a back up, and the alerts you if
-over a week has passed since you backed up.
+Exet also keeps track of when you last did a back up, and alerts you if over
+a week has passed since you backed up.
 
 ## Analysis
 
@@ -1170,6 +1212,8 @@ creating a new blank grid or whether you invoke it on an existing grid):
   grid has barred cells, then "Add automagic blocks" does not make any changes.
 - It makes 0 or 1 random change to each row, and then 0 or 1 random change to
   each column, while maintaining certain grid properties as listed below.
+  The rows and columns are visited in shuffled order to better randomize the
+  created grids.
 - If an existing grid is of the American variety with every white square
   being a part of an across light as well as a down light (i.e., is "checked"),
   then, ensure that:
@@ -1189,7 +1233,8 @@ creating a new blank grid or whether you invoke it on an existing grid):
 - No cell where you've already entered a grid-fill letter will be turned into a
   block.
 - The above procedure loops until a heuristically-determined minimum number of
-  lights is reached.
+  lights is reached, when a new grid is being created. There is no target set
+  if you use the "Edit > Add automagic blocks" option.
 
 ## Copyright notices
 
