@@ -5,7 +5,7 @@ Copyright (c) 2022 Viresh Ratnakar
 
 See the full Exet license notice in exet.js.
 
-Current version: v0.94, October 6, 2024
+Current version: v0.97, September 16, 2025
 */
 
 /**
@@ -1133,30 +1133,5 @@ function exetLexiconInit() {
 
   exetLexicon.getHomophones = function(phrase) {
     return this.getHomophonesInner(phrase, this.getPhones(phrase));
-  }
-
-  /**
-   * Get just the core data (including all indices), for saving to db.
-   */
-  exetLexicon.getCoreData = function() {
-    const copy = {
-      id: this.id,
-      letters: this.letters,
-      script: this.script,
-      language: this.language,
-      lexicon: this.lexicon,
-      index: this.index,
-      anagrams: this.anagrams,
-      phones: this.phones,
-      phindex: this.phindex
-    };
-    if (this.stems) {
-      copy.stems = this.stems;
-      copy.stemsId = this.stemsId;
-    }
-    if (this.custlex) {
-      copy.custlex = this.custlex;
-    }
-    return copy;
   }
 }

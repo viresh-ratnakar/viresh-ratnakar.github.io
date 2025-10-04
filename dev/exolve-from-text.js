@@ -24,7 +24,7 @@ SOFTWARE.
 The latest code and documentation for Exolve can be found at:
 https://github.com/viresh-ratnakar/exolve
 
-Version: Exolve v1.60 February 22, 2025
+Version: Exolve v1.63, May 13, 2025
 */
 
 /**
@@ -108,8 +108,8 @@ exolveFromText = function(w, h, text, fname='') {
 
   const lines = exolveFromTextClean(text).split('\n');
 
-  const clueStartRE = /^\s*\d{1,2}(?!\d)([ ]*[,&][ ]*[aAdD][^ ]*)*/;
-  const clueRE = /^\s*\d{1,2}(?!\d)([ ]*[,&][ ]*[aAdD][^ ]*)*.*\([0-9, '-]+\)/;
+  const clueStartRE = /^\s*\d{1,2}(?!\d)/; /* 1 or 2 digits at the beginning */
+  const clueRE = /^\s*\d{1,2}(?!\d).*\([0-9, '-]+\)/;
   const childRE = /^\s*\d{1,2}(?!\d)[\s\.:]*see /i;
   const wordsRE = /[a-zA-Z]+/;
   const copyrightRE = /^\s*(copyright|\(c\)|Ⓒ)/i;
@@ -233,6 +233,11 @@ exolveFromTextClean = function(s) {
    * some leading space after a newline ("bullets" are often found here).
    */
   s = s.replace(/\n\s+[^\w"',\.\(\)-]*([1-9][0-9]*)/g, '\n $1');
+
+  /**
+   * If an enum has been split by a newline, remove that newline.
+   */
+  s = s.replace(/\(([0-9 ,'-]*)\n([0-9 ,'-]*)\)/g, '($1$2)');
 
   /**
    * Remove end-of-line hyphenations.
@@ -362,44 +367,89 @@ ExolveGridSkeleton.prototype.expandLinkedGroups = function() {
   const choices = [];
   for (let par of this.parents) {
     const clue = this.lights[par[0]][par[1]].clue;
-    const phParts = clue.placeholder.split(/[ -]/);
+    const origPh = clue.placeholder;
+    /**
+     * Combine any tiny groups at the beginning or end.
+     */
+    let revisedPh = '';
+    for (let i = 0; i < origPh.length; i++) {
+      const ch = origPh.charAt(i);
+      if (((i < 3) || (origPh.length - 1 - i < 3)) &&
+          ((ch == ' ') || (ch == '-'))) {
+        continue;
+      }
+      revisedPh += ch;
+    }
+    const phParts = revisedPh.split(/[ -]/);
     const grp = par[2];
+    console.assert(grp.length >= 2, grp.length);
+
     if (grp.length > phParts.length) {
       /* See if this is still workable as a special case */
       const special = [];
       if (grp.length == 2 && phParts.length == 1) {
-        if (clue.placeholder.length == 6) {
+        if (revisedPh.length == 6) {
           special.push([3,3])
-        } else if (clue.placeholder.length == 7) {
+        } else if (revisedPh.length == 7) {
           special.push([3,4])
           special.push([4,3])
-        } else if (clue.placeholder.length == 8) {
+        } else if (revisedPh.length == 8) {
           special.push([3,5])
           special.push([4,4])
           special.push([5,3])
+        } else if (revisedPh.length == 9) {
+          special.push([3,6])
+          special.push([4,5])
+          special.push([5,4])
+          special.push([6,3])
         }
       } else if (grp.length == 3 && phParts.length == 1 &&
-                 clue.placeholder.length == 9) {
+                 revisedPh.length == 9) {
         special.push([3,3,3])
       }
       if (special.length > 0) {
         choices.push(special);
         continue;
       }
-      console.log('Clue ' + par[1] + par[0] + ' has ' + grp.length + ' linked parts but enum only has ' + phParts.length);
+      console.log('Clue ' + par[1] + par[0] + ' has ' + grp.length +
+                  ' linked parts but enum only has ' + phParts.length);
       return [];
     }
-    if (grp.length < phParts.length - 1) {
-      console.log('Clue ' + par[1] + par[0] + ' has ' + grp.length + ' linked parts and enum has too many more parts: ' + phParts.length);
+    console.assert(grp.length <= phParts.length, grp.length, phParts.length);
+
+    if ((grp.length < phParts.length - 1) && (grp.length != 2)) {
+      console.log('Clue ' + par[1] + par[0] + ' has ' + grp.length +
+                  ' linked parts (>2) and enum has too many more parts: ' +
+                  phParts.length);
       return [];
     }
     const myChoices = [];
     const phPartsLens = [];
-    for (let phPart of phParts) phPartsLens.push(phPart.length);
+    for (const phPart of phParts) {
+      phPartsLens.push(phPart.length);
+    }
     if (grp.length == phPartsLens.length) {
       myChoices.push(phPartsLens);
+    } else if (grp.length < phParts.length - 1) {
+      console.assert(grp.length == 2, grp.length);
+      /**
+       * Try all possible splits when grp.length == 2.
+       * We'll pick one of the boundaries in each split-choice.
+       */
+      for (let i = 0; i < phPartsLens.length - 1; i++) {
+        let first = 0;
+        for (let j = 0; j <= i; j++) {
+          first += phPartsLens[j];
+        }
+        let second = 0;
+        for (let j = i + 1; j < phPartsLens.length; j++) {
+          second += phPartsLens[j];
+        }
+        myChoices.push([first, second]);
+      }
     } else {
-      console.assert(grp.length == phPartsLens.length - 1, grp.length, phPartsLens.length);
+      console.assert(grp.length == phPartsLens.length - 1,
+                     grp.length, phPartsLens.length);
       /* We'll skip one of the boundaries in each split-choice. */
       for (let skip = 1; skip < phPartsLens.length; skip++) {
         const myChoicesEntry = [];
@@ -712,6 +762,8 @@ ${sections.preamble}`;
     candidate.name = 'Non-chequered-2x2-white-OK';
     candidate.appendWithSyms(ret.candidates);
   }
+  console.log('Creating background worker to try ' + ret.candidates.length +
+              ' baseline candidates.');
   return ret;
 }
 
@@ -1058,10 +1110,10 @@ ExolveGridInferrer.prototype.mapLight = function(dir, len, rowcolStart) {
 }
 
 /**
- * This does a postMessage(0 with an update on the status. We show this status
+ * This does a postMessage() with an update on the status. We show this status
  * anchored to every new placement of the first 10 lights. For each such
  * combination, we show the max # of lights that could be placed (when this
- * max reaches the total number og lights, we're done).
+ * max reaches the total number of lights, we're done).
  */
 ExolveGridInferrer.prototype.inferShowProgress = function() {
   const LIGHTS_MAPPED_PREFIX = 10;

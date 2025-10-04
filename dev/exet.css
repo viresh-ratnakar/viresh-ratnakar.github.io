@@ -576,6 +576,9 @@
 #xet-unpreflex-input {
   color: chocolate;
 }
+.xet-smaller-text {
+  font-size: 11px;
+}
 #xet-preamble,
 #xet-explanations,
 #xet-other-sections {

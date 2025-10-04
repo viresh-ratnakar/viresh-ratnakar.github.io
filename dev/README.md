@@ -603,14 +603,16 @@ applicable).
 
 | Format | Keystrokes | Context | Notes          |
 |--------|------------|---------|----------------|
-| Def | Ctrl-D | Clue | Toggles wrapping/unwrapping in the def wrapper, `~{...}~` |
-| _I_      | Ctrl-I | Clue/Anno | Toggles wrapping/unwrapping in `<i>...</i>` |
-| **B**        | Ctrl-B | Anno | Toggles wrapping/unwrapping in `<b>...</b>` |
-| <u>U</u>   | Ctrl-U | Anno | Toggles wrapping/unwrapping in `<u>...</u>` |
-| ~S~ | Ctrl-S | Anno | Toggles wrapping/unwrapping in `<s>...</s>` |
+| Def | Ctrl-d | Clue | Toggles wrapping/unwrapping in the def wrapper, `~{...}~` |
+| _I_      | Ctrl-i | Clue/Anno | Toggles wrapping/unwrapping in `<i>...</i>` |
+| **B**        | Ctrl-b | Anno | Toggles wrapping/unwrapping in `<b>...</b>` |
+| <u>U</u>   | Ctrl-u | Anno | Toggles wrapping/unwrapping in `<u>...</u>` |
+| ~S~ | Ctrl-s | Anno | Toggles wrapping/unwrapping in `<s>...</s>` |
 | CAPs   |  | Anno | Toggles capitalization of letters |
 | **A**l**T**s   |  | Anno | Marks every odd letter as bold and in upper case |
 | ~_*T*_~   |  | Clue/Anno | Clears formatting |
+
+On Macs, the Cmd key can be used instead of the Ctrl key.
 
 This feature is not intended to be a fancy WYSIWYG editor, and has some
 idiosyncrasies:
@@ -811,10 +813,11 @@ following, \<title\> in a filename stands for the puzzle title.
 - **Download Exolve HTML file...**
   - **With solutions (exet-exolve-\<title\>.html)**:
     Download an HTML file that uses Exolve and that allows solvers to check/see
-    solutions.  Such files can also be opened by Exet from the "Open" menu and
+    solutions. Such files can also be opened by Exet from the "Open" menu and
     can be further edited. This might be useful, for example, when you want to
     edit an old crossword that you have deleted from Exet's limited local
-    storage.
+    storage. **Shortcut: Ctrl-s** (this most common saving operation overrides
+    the browser's default "Save").
   - **Without solutions (exet-exolve-\<title\>-sans-solutions.html)**:
     Download an HTML file that uses Exolve and does not allow solvers to
     check/see solutions.
@@ -833,11 +836,11 @@ following, \<title\> in a filename stands for the puzzle title.
   .puz does not support many crossword features (afaik). The software will alert
   you if it is not able to provide a .ipuz download.
 - **Download grid image SVG file...**
-  - **With solutions (exet-\>title\>-solution-grid.svg)**: Download
+  - **With solutions (exet-\<title\>-solution-grid.svg)**: Download
     the grid image as an SVG file, with solution letters (and ninas).
-  - **Without solutions (exet-\>title\>-blank-grid.svg)**: Download
+  - **Without solutions (exet-\<title\>-blank-grid.svg)**: Download
     the blank grid image as an SVG file, without solution letters or ninas.
-- **Copy Exolve widget code...**
+- **Copy Exolve HTML widget code...**
   - **With solutions 📋**: Copy (into the clipboard)
     embeddable Exolve widget HTML code (with solvers able to check/see solutions).
   - **Without solutions 📋**: Copy (into the clipboard)
@@ -848,6 +851,11 @@ In the "Save" options that download a file, a file with the name shown will be
 downloaded into the browser's Downloads directory/folder. If there already
 exists a file with that name, the system will use a variant of the name
 as per its usual conventions (such as appending "(1)" to the name).
+
+Note that Ctrl-s/Cmd-s would not save the crossword when you're editing
+a clue annotation (Ctrl-s is used for adding "strike-through" formatting in that
+context). You can simply click somewhere outside the annotation-editing box
+and then use Ctrl-s to save the crossword, if desired.
 
 The Save menu also lets you change some settings:
 

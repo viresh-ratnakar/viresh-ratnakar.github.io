@@ -83,21 +83,33 @@ function ExetRevManager() {
   this.previewId = `exet-preview-${Math.random().toString(36).substring(2, 8)}`;
 };
 
+ExetRevManager.prototype.sizeOfPrefUnpref = function(id) {
+  let sz = 0;
+  for (isPref of [true, false]) {
+    const key = this.keyPrefUnpref(id, isPref);
+    let data = window.localStorage.getItem(key);
+    if (data) {
+      sz += data.length;
+    }
+  }
+  return sz;
+}
+
 ExetRevManager.prototype.choosePuzRev = function(manageStorage,
                                                  puz, elt, callback) {
   let choices = [];
   if (puz) {
     let stored = window.localStorage.getItem(puz.id);
-    let lsUsed = stored.length;
+    let lsUsed = stored.length + this.sizeOfPrefUnpref(puz.id);
     choices = [{id: puz.id, title: puz.title, space: lsUsed}];
   } else {
     for (let idx = 0; idx < window.localStorage.length; idx++) {
       let id = window.localStorage.key(idx);
-      let stored = window.localStorage.getItem(id);
-      let lsUsed = stored.length;
       if (id.startsWith(this.SPECIAL_KEY_PREFIX)) {
         continue;
       }
+      let stored = window.localStorage.getItem(id);
+      let lsUsed = stored.length + this.sizeOfPrefUnpref(id);
       try {
         stored = JSON.parse(stored);
       } catch (err) {

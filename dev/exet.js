@@ -65,7 +65,7 @@ ExetModals.prototype.hide = function() {
 }
 
 function Exet() {
-  this.version = 'v0.97, September 16, 2025';
+  this.version = 'v0.97.1, September 21, 2025';
   this.puz = null;
   this.prefix = '';
   this.suffix = '';
@@ -142,12 +142,12 @@ function Exet() {
      <blockquote>exolve-option: ignore-enum-mismatch</blockquote>
      using
      <i>Edit &gt; Add/Edit special sections: &gt; Other Exolve sections</i>.`,
-    `You can specify up to a ${this.MAX_PREFLEX} desired words to fill, using
+    `You can specify up to ${this.MAX_PREFLEX} desired words to fill, using
      the <span style="color:green">"Set preferred fills"</span> button near
      the bottom. These words will be prioritized in autofill as well
      as in the suggested fills list.`,
     `In a cryptic clue, you can specify a part of the clue to be the definition
-     part using Ctrl-D after selecting it. This part gets underlined when
+     part using Ctrl-d after selecting it. This part gets underlined when
      the solution is revealed.`,
     `When looking at any list of indicators through the "Lists" tab, you
      can type a topic word that describes the clue surface that you're
@@ -167,6 +167,9 @@ function Exet() {
     `Wordplay tabs such as "Charades" and "Anagrams" show candidate wordplays
      for the currently selected entry. However, you can edit the fodder text
      directly in the tab to experiment with alternatives.`,
+    `Saving the crossword as HTML (Exolve format) with solutions included
+     can be done using the keyboard shortcut Ctrl-s (Cmd-s on Mac). Exet
+     overrides the browser's default "save" functionality.`,
     `You can use autofill to create pangrams, and even <i>constrained</i>
      pangrams, where all the letters in the alphabet get used over some
      specified cells, such as circled cells and unchecked cells.`,
@@ -1152,7 +1155,7 @@ Exet.prototype.makeExetTab = function() {
             Download Exolve HTML file...
             <div class="xet-dropdown-submenu">
               <div class="xet-dropdown-subitem" onclick="exet.download(true)">
-                With solutions<br>
+                With solutions (Ctrl-s)<br>
                 (exet-exolve-<span class="xet-filetitle"></span>.html)
               </div>
               <div class="xet-dropdown-subitem" onclick="exet.download(false)">
@@ -1194,7 +1197,7 @@ Exet.prototype.makeExetTab = function() {
             </div>
           </div>
           <div class="xet-dropdown-item">
-            Copy Exolve widget code...
+            Copy Exolve HTML widget code...
             <div class="xet-dropdown-submenu">
               <div class="xet-dropdown-div">
                 <textarea rows="15" cols="32" id="xet-xlv-widget">
@@ -1310,8 +1313,9 @@ Exet.prototype.makeExetTab = function() {
           `and use in the grid-fill" class="xet-long-button">
         <button class="xlv-small-button" style="padding:5px 4px"
           id="xet-edit-preflex">Set preferred fills</button>
-        <span id="xet-preflex-used">0</span>/<span
-          id="xet-preflex-size">${this.preflex.length}</span> used
+        <span class="xet-smaller-text">
+          <span id="xet-preflex-used">0</span>/<span id="xet-preflex-size">${this.preflex.length}</span> used
+        </span>
       </div>
       <div title="You can provide words/phrases to exclude from the ` +
         `grid-fill, set a minimum popularity, and include/exclude proper nouns"
@@ -1319,7 +1323,9 @@ Exet.prototype.makeExetTab = function() {
         <button class="xlv-small-button"
             style="padding:5px 4px;color:chocolate"
             id="xet-edit-unpreflex">Set fill exclusions</button>
-        <span id="xet-unpreflex-size">${this.unpreflex.length}</span> set
+        <span class="xet-smaller-text">
+          <span id="xet-unpreflex-size">${this.unpreflex.length}</span> set
+        </span>
       </div>
       <div class="xet-text-editor"
           title="Click anywhere outside this box to dismiss it"
@@ -3262,7 +3268,7 @@ Exet.prototype.printWindower = function(actionScript, solved) {
         'onload="' +
         revealer +
         actionScript +
-        'window.close();">\n' +
+        'pxlv.destroy(true);window.close();">\n' +
         '<script>\n' +
         'const pxlv = createExolve(`' +  '\n' +
         this.getExolve(tempId, false, solved) +
@@ -3285,7 +3291,11 @@ Exet.prototype.saveGridSvg = function(solved=true) {
 }
 
 Exet.prototype.print = function(solved=true) {
-  const actionScript = 'window.print();';
+  /**
+   * Using 'window.print();' directly does not work because of some bug
+   * in Windows (Chrome/Edge).
+   */
+  const actionScript = 'document.execCommand(\'print\');';
   this.printWindower(actionScript, solved);
   exetModals.hide()
 }
@@ -4278,7 +4288,7 @@ Exet.prototype.makeClueEditable = function() {
           <div class="xet-format-panel" id="xet-format-b-preview">
             ${previewPanel}
             <div class="xet-small-action">
-              Keyboard shortcut: Ctrl-B
+              Keyboard shortcut: Ctrl-b
             </div>
           </div>
         </button>
@@ -4288,7 +4298,7 @@ Exet.prototype.makeClueEditable = function() {
           <div class="xet-format-panel" id="xet-format-i-preview">
             ${previewPanel}
             <div class="xet-small-action">
-              Keyboard shortcut: Ctrl-I
+              Keyboard shortcut: Ctrl-i
             </div>
           </div>
         </button>
@@ -4298,7 +4308,7 @@ Exet.prototype.makeClueEditable = function() {
           <div class="xet-format-panel" id="xet-format-u-preview">
             ${previewPanel}
             <div class="xet-small-action">
-              Keyboard shortcut: Ctrl-U
+              Keyboard shortcut: Ctrl-u
             </div>
           </div>
         </button>
@@ -4308,7 +4318,7 @@ Exet.prototype.makeClueEditable = function() {
           <div class="xet-format-panel" id="xet-format-s-preview">
             ${previewPanel}
             <div class="xet-small-action">
-              Keyboard shortcut: Ctrl-S
+              Keyboard shortcut: Ctrl-s
             </div>
           </div>
         </button>
@@ -4318,7 +4328,7 @@ Exet.prototype.makeClueEditable = function() {
           <div class="xet-format-panel" id="xet-format-def-preview">
             ${previewPanel}
             <div class="xet-small-action">
-              Keyboard shortcut: Ctrl-D
+              Keyboard shortcut: Ctrl-d
             </div>
           </div>
         </button>
@@ -4327,7 +4337,7 @@ Exet.prototype.makeClueEditable = function() {
   this.puz.currClue.appendChild(format)
 
   const formatShortcut = (e) => {
-    if (!e.ctrlKey) return true;
+    if (!e.ctrlKey && !e.metaKey) return true;
     const tag = (e.key == 'd') ? 'def' : e.key.toLowerCase();
     if (tag != 'b' && tag != 'i' && tag != 'u' && tag != 's' && tag != 'def') {
       return true;
@@ -5506,26 +5516,26 @@ Exet.prototype.refreshAutofill = function() {
 
 // Can be called with e as an event or as a key directly
 Exet.prototype.handleKeyDown = function(e) {
-  let key = e.key || e
+  let key = e.key || e;
   if (key == '=') {
-    this.acceptAll()
-    return
+    this.acceptAll();
+    return;
   }
-  let gridCell = this.puz.currCell()
+  let gridCell = this.puz.currCell();
   if (!gridCell) {
-    return
+    return;
   }
 
   if (key == '$') {
     this.toggleNina(e);
-    return
+    return;
   } else if (key == '^') {
     this.toggleColour(e);
-    return
+    return;
   }
 
-  let row = this.puz.currRow
-  let col = this.puz.currCol
+  let row = this.puz.currRow;
+  let col = this.puz.currCol;
 
   let revType = exetRevManager.REV_GRID_CHANGE;
 
@@ -7885,6 +7895,16 @@ Exet.prototype.finishSetup = function() {
 
   const formatRevealer = this.maybeShowFormat.bind(this);
   document.addEventListener('selectionchange', formatRevealer);
+
+  /**
+   * Override the browser's Save function.
+   */
+  document.addEventListener("keydown", function(e) {
+    if ((e.metaKey || e.ctrlKey) && e.code === "KeyS") {
+      e.preventDefault();
+      exet.download(true);
+    }
+  });
 }
 
 function exetFromHistory(exetRev) {
