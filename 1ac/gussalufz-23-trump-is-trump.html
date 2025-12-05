@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<link rel="stylesheet" type="text/css" href="https://viresh-ratnakar.github.io/exolve-m.css"/>
+<script src="https://viresh-ratnakar.github.io/exolve-m.js"></script>
+<title>Trump is Trump</title>
+<style>
+.xlv-frame .xlv-clues td:first-child:not(.xlv-filler) {
+  text-align: center;
+}
+.xlv-23-decode {
+  font-weight: bold;
+}
+.xlv-23-decode span,
+.xlv-23-decode select,
+.xlv-23-decode select option {
+  color: dodgerblue;
+  font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+<script>
+
+let xlv = null;
+
+const cryptoClues = [];
+
+const letters = [
+  'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+  'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+];
+
+function decrypt(changed='') {
+  const decoder = {};
+  if (changed) {
+    /* remove the new value of changed if it is in use somewhere else */
+    const value = document.getElementById(
+        `xlv-23-key-${changed}`).value.trim();
+    if (value) {
+      for (const letter of letters) {
+        if (letter == changed) {
+          continue;
+        }
+        const id = `xlv-23-key-${letter}`;
+        const select = document.getElementById(id);
+        if (select.value == value) {
+          select.value = '';
+          break;
+        }
+      }
+    }
+  }
+  let keyToSave = '';
+  const mapped = new Set;
+  for (const letter of letters) {
+    const id = `xlv-23-key-${letter}`;
+    const select = document.getElementById(id);
+    const decoded = select.value.trim();
+    if (!decoded) {
+      keyToSave += ' ';
+      continue;
+    }
+    mapped.add(decoded);
+    keyToSave += decoded;
+    decoder[letter] = decoded;
+    decoder[letter.toLowerCase()] = decoded.toLowerCase();
+  }
+
+  /* Reduce choices for unmapped letters */
+  const unMapped = [];
+  for (const letter of letters) {
+    if (!mapped.has(letter)) {
+      unMapped.push(letter);
+    }
+  }
+  for (const letter of letters) {
+    const id = `xlv-23-key-${letter}`;
+    const select = document.getElementById(id);
+    const value = select.value.trim();
+    const choices = value ? letters : unMapped;
+    let html = '<option value=""></option>';
+    for (const val of choices) {
+      html += `<option value="${val}">${val}</option>`;
+    }
+    select.innerHTML = html;
+    select.value = value;
+  }
+
+  xlv.answersList[0].input.value = keyToSave;
+  xlv.updateAndSaveState();
+  for (const key in cryptoClues) {
+    const clue = cryptoClues[key];
+    let decryptedClue = '';
+    for (const letter of clue) {
+      if (decoder.hasOwnProperty(letter)) {
+        decryptedClue += decoder[letter];
+      } else {
+        decryptedClue += letter;
+      }
+    }
+    const xlvClue = xlv.clues[key];
+    xlvClue.clue = decryptedClue;
+    xlv.renderClueSpan(xlvClue, xlvClue.clueSpan);
+  }
+}
+
+function restoreDecoder() {
+  let savedKey = xlv.answersList[0].input.value;
+  let i = 0;
+  for (const letter of letters) {
+    const id = `xlv-23-key-${letter}`;
+    const select = document.getElementById(id);
+    let html = '<option value=""></option>';
+    for (const val of letters) {
+      html += `<option value="${val}">${val}</option>`;
+    }
+    select.innerHTML = html;
+    if (i < savedKey.length) {
+      select.value = savedKey[i].trim().toUpperCase();
+    } else {
+      select.value = '';
+    }
+    i = i + 1;
+  }
+}
+
+function revealAll() {
+  if (!Exolve.prototype.revealAll.call(xlv, true)) {
+    return;
+  }
+  restoreDecoder();
+  decrypt();
+  /* Second call, without confirmation to render clue annos again. */
+  Exolve.prototype.revealAll.call(xlv, false);
+}
+
+function clearAll() {
+  if (!Exolve.prototype.clearAll.call(xlv, true)) {
+    return;
+  }
+  restoreDecoder();
+  decrypt();
+  /* Second call, without confirmation to clear clue solutions. */
+  Exolve.prototype.clearAll.call(xlv, false);
+}
+
+function customizeExolve(puz) {
+  xlv = puz;
+  xlv.revealAll = revealAll;
+  xlv.clearAll = clearAll;
+
+  const div = document.getElementById('xlv-23-cryptogram');
+  div.style.fontSize = '12px';
+  const letters1 = letters.slice(0, 9);
+  const letters2 = letters.slice(9, 18);
+  const letters3 = letters.slice(18);
+  letters3.push('*');  /* For Clear */
+  let html = '<table>';
+  for (const lettersRange of [letters1, letters2, letters3]) {
+    html += '<tr>';
+    for (const letter of lettersRange) {
+      if (letter == '*') {
+        html += '<td style="vertical-align:bottom"><button id="xlv-23-reset" class="xlv-small-button">Reset</button></td>';
+        continue;
+      }
+      const id = `xlv-23-key-${letter}`;
+      html += `<td><b>${letter}</b> &rarr; <select id="${id}" name="${id}">`;
+      html += '<option value="" selected></option>';
+      for (const val of letters) {
+        html += `<option value="${val}">${val}</option>`;
+      }
+    }
+    html += '</tr>';
+  }
+  html += '</table>';
+  div.innerHTML = html;
+
+  for (const letter of letters) {
+    const id = `xlv-23-key-${letter}`;
+    const select = document.getElementById(id);
+    const handler = (evt) => {
+      decrypt(letter);
+    };
+    select.addEventListener('change', handler);
+  }
+
+  const reset = document.getElementById('xlv-23-reset');
+  reset.addEventListener('click', (evt) => {
+    if (!confirm('Are you sure you want to reset the cryptogram?')) {
+      return;
+    }
+    for (const letter of letters) {
+      const id = `xlv-23-key-${letter}`;
+      document.getElementById(id).value = '';
+    }
+    decrypt();
+  });
+
+  for (const key in xlv.clues) {
+    if (!key.startsWith('X')) {
+      continue;
+    }
+    cryptoClues[key] = xlv.clues[key].clue;
+  }
+  xlv.questions.style.display = 'none';
+  restoreDecoder();
+  decrypt();
+}
+
+createExolve(`
+======REPLACE WITH YOUR PUZZLE BELOW======
+  exolve-begin
+    exolve-width: 15
+    exolve-height: 15
+  exolve-colour: #7c9fff e5 e6 e7 e8 e9 e10 e11
+  exolve-colour: #7c9fff f5 f6 f7 f8 f9 f10 f11
+  exolve-colour: #7c9fff g5 g6 g7 g8 g9 g10 g11
+  exolve-colour: #7c9fff h5 h6 h7 h8 h9 h10 h11
+  exolve-colour: #7c9fff i5 i6 i7 i8 i9 i10 i11
+  exolve-colour: #7c9fff j5 j6 j7 j8 j9 j10 j11
+  exolve-colour: #7c9fff k5 k6 k7 k8 k9 k10 k11
+
+  exolve-force-hyphen-right: a4
+  exolve-force-hyphen-below: n5
+  exolve-id: gussalufz-23
+  exolve-title: Trump is Trump
+  exolve-setter: Gussalufz
+  exolve-option: webifi
+  exolve-copyright: 1 Across crossword magazine
+  exolve-grid: 
+    .   J   .   .   .   F   .   .   .   V   .   Z   .   H   .   
+    Q   U   E   S   T   I   O   N   .   I   C   E   B   O   X   
+    .   V   .   P   .   C   .   E   .   C   .   A   .   V   .   
+    D   E   P   A   R   T   M   E   N   T   .   L   E   E   K   
+    .   N   .   G   .*  I*  .*  D*  .*  I*  .*  .   .   R   .   
+    W   I   S   H   B*  O*  N*  E*  .*  M*  U*  C   U   S   .   
+    .   L   .   E   .*  N*  .*  D*  .*  .*  .*  R   .   .   .   
+    B   E   R   T   H*  S*  .*  .*  .*  P*  O*  I   S   O   N   
+    .   .   .   T   .*  .*  .*  R*  .*  R*  .*  T   .   P   .   
+    .   G   U   I   L*  T*  .*  U*  N*  E*  D*  I   T   E   D   
+    .   A   .   .   .*  R*  .*  B*  .*  S*  .*  C   .   N   .   
+    X   R   A   Y   .   A   B   B   R   E   V   I   A   T   E   
+    .   L   .   A   .   M   .   L   .   N   .   S   .   O   .   
+    K   I   D   N   A   P   .   E   N   C   A   M   P   E   D   
+    .   C   .   K   .   S   .   .   .   E   .   .   .   D   .   
+  exolve-postscript:
+    <iframe style="width:100%;height:400px;border:none"
+        src="https://gussalufz.com/index.html"
+        title="Links to all puzzles by Gussalufz (and doppelgängers)">
+      <a href="https://gussalufz.com/index.html">All puzzles by
+        Gussalufz (and doppelgängers)</a>
+    </iframe>
+  exolve-question: Hidden key (26) JFVZHQSNIDLWMCBPORGTUXYAKE
+  exolve-preamble:
+    <center>
+    <i>
+    This crossword was first published in
+    <a href="https://www.1across.co.uk/">1 Across</a> crossword magazine in
+    August, 2021. It is posted here with kind permission from 1 Across.
+    </i>
+    </center>
+    <p>
+    A 7&times;7 area at the centre has been left diagramless.
+    All clues that begin in this area have been encrypted
+    as a cryptogram and the order of these clues has been jumbled. You can
+    try to decipher the cryptogram directly (using common likely phrases,
+    etc.), but you can also find the key elsewhere in the puzzle.
+    <span class="xlv-dont-print">You can use the spacebar key to place
+    blocks in diagramless cells.</span>
+    </p>
+    <p class="xlv-dont-print">
+    As you work out the cryptogram key mappings, you can choose the appropriate
+    letters in the cryptogram keys menus at the top of the "Scrambled" clues
+    section, to have them be applied to the scrambled clues.
+    </p>
+  exolve-explanations:
+    The cryptogram key is found in the 26 cells that mark the beginnings
+    of across and down lights. For e.g., the solution letter
+    <b>J</b> in the cell marked <b>A</b> indicates
+    <b class="xlv-23-decode">A &rarr; <span>J</span></b> in the cryptogram. For the five
+    letters that mark cells inside the central area, the key is provided by
+    the title: <b class="xlv-23-decode">T &rarr; <span>T</span></b>,
+    <b class="xlv-23-decode">R &rarr; <span>R</span></b>, ... This is also useful
+    in figuring out the correct order of the scrambled clues as well as the
+    locations of the blocked cells within the central area.
+    <p>
+    The full key for the cryptogram is:
+    <span class="xlv-23-decode">
+  A → <span>J</span>, B → <span>F</span>, C → <span>V</span>, D → <span>Z</span>, E → <span>H</span>,
+  F → <span>Q</span>, G → <span>S</span>, H → <span>N</span>, I → <span>I</span>, J → <span>D</span>,
+  K → <span>L</span>, L → <span>W</span>, M → <span>M</span>, N → <span>C</span>, O → <span>B</span>,
+  P → <span>P</span>, Q → <span>O</span>, R → <span>R</span>, S → <span>G</span>, T → <span>T</span>,
+  U → <span>U</span>, V → <span>X</span>, W → <span>Y</span>, X → <span>A</span>, Y → <span>K</span>,
+  Z → <span>E</span>.
+    </span>
+    </p>
+  exolve-across: 
+  #a14 [F] Equations worked out without a ~{problem}~ (8) EQU<s>a</s>TIONS* {... worked out} {... without a}.
+  #j14 [I] Setter's caught an unpleasant smell in old ~{fridge compartment}~ (6) I {setter} + {'s = has} C {caught} + (BO {an unpleasant smell} in EX {old}).
+  #a12 [J] ~{Office}~ of miserable PR team employed by famous hitchhiker (10) PRTEAM* {miserable ...} in {... employed by ...} DENT {famous hitchhiker}.
+  #l12 [K] ~{A Welsh symbol}~ some spoke eloquently about (4) Reversed {... about} hidden answer {some ...}: <s>spo</s>KE EL<s>oquently</s> <<.
+  #a10 [L] Rubbery sinew covering essentially the parabolic front ~{part of a bird's skeleton}~ (?) SINEW* {rubbery ...} around {... covering ...} <s>t</s>H<s>e</s> <s>para</s>B<s>olic</s> <s>fr</s>O<s>nt</s> {essentially ...}.
+  #a8 [O] ~{Posts}~ announcing babies coming into this world (?) Homophone of {announcing ...} BIRTHS {babies coming into this world}.
+  #b6 [S] Alliance cut short by Tory in the lead? ~{Disgrace}~! (?) GUIL<s>d</s> {alliance} {... cut short} + {by} T<s>ory</s> {... in the lead}.
+  #a4 [V] Times editor sorry at last after embracing a ~{revealing photograph}~ (1-3) X {times} <s>edito</s>R <s>sorr</s>Y {... at last} around {... after embracing ...} A.
+  #f4 [X] ~{Reduce}~ incoherent verbiage bloat, trimming chaotic log (10) VERBIAGEBLOAT* {incoherent ...} - LOG* {... trimming ...} {chaotic ...}.
+  #a2 [Y] ~{Shanghai}~ Craftsmanship and Ikebana exhibits coming back! (6) Reversed {... coming back} hidden answer {... exhibits}: <s>Craftsmanshi</s>P AND IK<s>ebana</s> <<.
+  #h2 [Z] Men paced about and ~{set up tents}~ (8) MENPACED* {... about}.
+  exolve-down: 
+  #b15 [A]  ~{Green}~ samples from Jupiter and Venus? Nothing conclusive, ultimately (8) JU<s>piter</s> VE<s>nus</s> {samples from ... and ...}. NIL {nothing} <s>conclusiv</s>E {..., ultimately}.
+  #f15 [B]  ~{Lies}~ convulsively in cot—is under fellow (?) INCOTIS* {convulsively ...} under F {fellow}.
+  #j15 [C] ~{One afflicted}~ with Spooner's twitching energy (?) Spoonerism of {Spooner's}: TIC {twitching} VIM {energy}.
+  #l15 [D] Booze: a liquid filled with ~{warmth}~ (4) Hidden answer {... filled with}: <s>boo</s>ZE A L<s>iquid</s>.
+  #n15 [E] ~{Floats}~ high above top of skyline (6) H {high} OVER {above} S<s>kyline</s> {top of ...}.
+  #d14 [G] Quarter past eight ~{meal}~? (9) PASTEIGHT* {quarter ...}.
+  #h14 [H] Ragged, lacking money that is ~{required}~ (?) NEED<s>l</s>ED {ragged} {..., lacking ...} {money = L}.
+  #l10 [N] ~{Blame}~ crime as cities' engineers vigorously ease out (9) CRIMEASCITIES* {... engineers} - EASE* {... out} {vigorously ...}.
+  #n8 [Q] Do not pee wearing this ~{kind of shoe}~ (4-4) DONOTPEE* {... wearing}.
+  #b6 [S] Fish segment, when skinned, makes ~{an excellent pizza topping}~ (6) GAR {fish} <s>s</s>LIC<s>e</s> {segment, when skinned}.
+  #d4 [W] ~{Jerk}~ starts to kiss, never asking? Yuck, revolting! (4) Reversed {... revolting} acrostic {starts to ...}: K<s>iss</s> N<s>ever</s> A<s>sking</s> Y<s>uck</s> <<.
+  exolve-nodir: Scrambled
+  <div id="xlv-23-cryptogram" class="xlv-dont-print xlv-23-decode"></div>
+  [?] Riset, x tzkzgnqpz litequt itg tqp pxrt ig ~{auhy}~ (?) [h7 h6 h5 h4 h3 h2] <br><b>R (down).</b> Right, a telescope without its top part is <span class="xlv-definition">junk</span> &#40;6&#41; R {right} <s>h</s>UBBLE {a telescope} {... without its top part}.
+  [?] ~{Nqrrupt}~ prqbitg jqlh, qjjkw (?) [j8 k8 l8 m8 n8 o8] <br><b>P (across).</b> <span class="xlv-definition">Corrupt</span> profits down, oddly &#40;6&#41; Alternate letters from {..., oddly}: P<s>r</s>O<s>f</s>I<s>t</s>S <s>d</s>O<s>w</s>N.
+  [?] ~{Rxl}~, hujz, ruhhihs likj, qczrnqmihs zrzntikz jwgbuhntiqh priqr tq gzv (?) [h6 i6 j6 k6 l6 m6 n6 o6] <br><b>U (across).</b> <span class="xlv-definition">Raw</span>, nude, running wild, overcoming erectile dysfunction prior to sex &#40;8&#41; NUDE* {..., running wild} around {... overcoming ...} (ED {erectile dysfunction} + {prior to} IT {sex}).
+  [?] ~{Nqmpxhw}~ cigiqh hqt prihnipkzj xt itg nqrz (?) [j8 j7 j6 j5 j4 j3 j2 j1] <br><b> P (down).</b> <span class="xlv-definition">Company</span> vision not principled at its core &#40;8&#41; PRES<s>ci</s>ENCE {vision} {not <s>prin</s>CI<s>pled</s> at its core}.
+  [?] ~{Jignexrsz}~ oxnylxrj, nqhtzmptiokz pzqpkz ozgizsihs uhiczrgitw (?) [j10 k10 l10 m10 n10] <br><b>M (across).</b> <span class="xlv-definition">Discharge</span> backward, contemptible people besieging university &#40;5&#41; SCUM << {contemptible people} {backward, ...} around {... besieging ...} U {university}.
+  [?] Mqjzk qh nxtlxky exg x oit qb gnqlk xhj ~{lxkyg lite x ezxcw gtzp}~ (?) [f6 f5 f4 f3 f2 f1] <br><b>T (down).</b> Model on catwalk has a bit of scowl and <span class="xlv-definition">walks with a heavy step</span> &#40;6&#41; T {model} + {on} RAMP {catwalk} + {has} S<s>cowl</s> {a bit of ...}.
+  exolve-email: viresh@gmail.com
+exolve-end
+  
+======REPLACE WITH YOUR PUZZLE ABOVE======
+`);
+</script>
+</body>
+</html>
