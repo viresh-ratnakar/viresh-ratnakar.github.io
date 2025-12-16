@@ -356,14 +356,14 @@ class ExolveExost {
       return;
     }
     const fr = new FileReader(); 
-    fr.onload = function(){ 
+    fr.onload = (e => { 
       if (this.setFromBuffer(fr.result)) {
         this.uploadStatusElt.innerHTML = 'Ready to upload';
       } else {
         this.uploadStatusElt.innerHTML = 'Could not parse';
         this.uploadFileElt.value = '';
       }
-    }
+    });
     this.uploadFileName = f.name;
     fr.readAsArrayBuffer(f);
   }
