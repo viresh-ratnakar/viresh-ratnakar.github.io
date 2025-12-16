@@ -1,0 +1,366 @@
+/*
+MIT License
+      
+Copyright (c) 2025 Viresh Ratnakar
+    
+See the full license notice in exolve-m.js.
+*/  
+
+/**
+ * Library for setting up client UI for Exost crossword hosting at:
+ *
+ *   https://xlufz.ratnakar.org/exost.html
+ *
+ * The main two functions are requestPwd() and uploadExolve(). These are
+ * used from Exolve Player as well as Exet.
+ *
+ * This library is also used from the Exost site. There, apert from the above,
+ * there is additionally a management interface for viewing all your crosswords
+ * and possibly deleting specific crosswords. Further, it supports reading
+ * puz/ipuz/exolve files (which also works in Exolve Player, but only needs
+ * to use uploadExolve() from there). For reading from files, apart from
+ * passing a config entry for uploadFileEltId, you should have script tags in
+ * your HTML * file that load exolve-from-{puz,ipuz}.js.
+ */
+class ExolveExost {
+  /**
+   * Config fields: {
+   *   // Required:
+   *   exostServer: 'https://xlufz.ratnakar.org/exost.html',
+   *   apiServer: 'https://xlufz.ratnakar.org/exost.php',
+   *   emailEltId: 'xst-email',
+   *   pwdEltId: 'xst-pwd',
+   *   pwdStatusEltId: 'xst-pwd-status',
+   *   uploadStatusEltId: 'xst-upload-status',
+   *
+   *   // Optional:
+   *   listEltId: 'xst-list',
+   *   listContainerEltId: 'xst-list-container',
+   *   listStatusEltId: 'xst-list-status',
+   *   uploadFileEltId: 'xst-upload-file',
+   *   uploadCallback: 1-arg callback function
+   * }
+   */
+  constructor(config) {
+    this.exostServer = config.exostServer;
+    this.apiServer = config.apiServer;
+    this.emailElt = document.getElementById(config.emailEltId);
+    this.pwdElt = document.getElementById(config.pwdEltId);
+    this.pwdStatusElt = document.getElementById(config.pwdStatusEltId);
+    this.uploadStatusElt = document.getElementById(config.uploadStatusEltId) || null;
+    if (!this.exostServer || !this.apiServer ||
+        !this.emailElt || !this.pwdElt ||
+        !this.pwdStatusElt || !this.uploadStatusElt) {
+      this.showStatus('Invalid ExolveExost config');
+      return;
+    }
+
+    this.listElt = document.getElementById(config.listEltId) ?? null;
+    this.listContainerElt = document.getElementById(config.listContainerEltId) ?? null;
+    this.listStatusElt = document.getElementById(config.listStatusEltId) ?? null;
+
+    this.uploadFileElt = document.getElementById(config.uploadFileEltId) ?? null;
+    this.uploadCallback = config.uploadCallback ?? null;
+
+    this.uploadFileName = '';
+    this.uploadData = '';
+  }
+  showStatus(msg, type = 'success') {
+    console.log('showStatus: ' + msg + ': ' + type);
+    if (type === 'error') {
+      alert(msg);
+    }
+  }
+  /**
+   * Convenience function to convert a puzzle URL to an iframe embed code.
+   */
+  getIframeEmbedding(url) {
+    return `
+    <iframe height="780px" width="100%" allowfullscreen="true"
+      style="border:none; width: 100% !important; position: static;display: block !important; margin: 0 !important;"
+      src="${url}">
+    </iframe>
+    `;
+  }
+  requestPwd() {
+    const email = this.emailElt.value.trim();
+    if (!email) {
+      this.showStatus('Please enter your email address.', 'error');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('op', 'auth');
+    formData.append('email', email);
+
+    fetch(this.apiServer, { method: 'POST', body: formData })
+    .then(r => r.text())
+      .then(t => {
+        if (!t.includes('Error')) {
+          this.pwdStatusElt.innerHTML =
+            'Last requested: ' + (new Date()).toLocaleString();
+        }
+        this.showStatus(t, t.includes('Error') ? 'error' : 'success');
+      })
+    .catch(e => this.showStatus(e.message, 'error'));
+  }
+
+  fetchList() {
+    if (!this.listElt || !this.listContainerElt || !this.listStatusElt) {
+      return;  /** unsuported */
+    }
+    const email = this.emailElt.value.trim();
+    const pwd = this.pwdElt.value.trim();
+    if (!email || !pwd) {
+      this.showStatus("Email and password required.", 'error');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('op', 'list');
+    formData.append('email', email);
+    formData.append('pwd', pwd);
+
+    fetch(this.apiServer, { method: 'POST', body: formData })
+    .then(r => r.json()) // Expect JSON now
+    .then(data => {
+      if(data.error) {
+        this.showStatus("Error: " + data.error, 'error');
+        this.listElt.style.display = 'none';
+      } else {
+        this.renderList(data);
+        this.listStatusElt.innerHTML =
+          'Last refreshed: ' + (new Date()).toLocaleString();
+        this.showStatus("List updated.", 'success');
+      }
+    })
+    .catch(e => this.showStatus("Request failed (invalid JSON?): " + e.message, 'error'));
+  }
+
+  /**
+   * Helper used by fetchList().
+   */
+  renderList(items) {
+    this.listElt.innerHTML = '';
+    this.listContainerElt.style.display = 'block';
+
+    if (items.length === 0) {
+      this.listElt.innerHTML = '<p>No crosswords found.</p>';
+      return;
+    }
+    // Create table structure for better data display
+    const table = document.createElement('table');
+    table.style.width = '100%';
+    table.style.borderCollapse = 'collapse';
+    table.innerHTML = `
+      <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>Size</th>
+        <th>Created</th>
+        <th>Updated</th>
+        <th>Actions</th>
+      </tr>
+    `;
+
+    items.forEach(item => {
+      const tr = document.createElement('tr');
+      tr.style.borderBottom = '1px solid #eee';
+
+      // Format size
+      const sizeKB = (item.size / 1024).toFixed(1) + ' KB';
+      // Format Date (simplified)
+      const createdStr = new Date(item.created).toLocaleString();
+      const updatedStr = new Date(item.updated).toLocaleString();
+
+      // TODO: Actions to copy URL, embed code
+      // TODO bind
+      tr.innerHTML = `
+        <td>
+          <a href="${item.url}" target="_blank">${item.id}</a>
+        </td>
+        <td>${item.title}</td>
+        <td>${sizeKB}</td>
+        <td>${createdStr}</td>
+        <td>${updatedStr}</td>
+        <td>
+          <button onclick="deletePuzzle('${item.id}')">Delete</button>
+        </td>
+      `;
+      table.appendChild(tr);
+    });
+
+    this.listElt.appendChild(table);
+  }
+
+  deletePuzzle(id) {
+    const email = this.emailElt.value.trim();
+    const pwd = this.pwdElt.value.trim();
+    if (!email || !pwd) {
+      this.showStatus("Email and password required.", 'error');
+      return;
+    }
+    if (!confirm(`Are you sure you want to delete puzzle "${id}"?`)) {
+      return;
+    }
+    const formData = new FormData();
+    formData.append('op', 'delete');
+    formData.append('email', email);
+    formData.append('pwd', pwd);
+    formData.append('id', id);
+
+    fetch(this.apiServer, { method: 'POST', body: formData })
+    .then(r => r.text())
+    .then(text => {
+      if (text.includes('Success')) {
+        this.fetchList(); // Refresh list on success
+        this.showStatus("Delete succeeded.", 'success');
+      } else {
+        this.showStatus(text, 'error');
+      }
+    })
+    .catch(e => this.showStatus(e.message, 'error'));
+  }
+
+  upload() {
+    if (!this.uploadStatusElt) {
+      return;  /** unsuported */
+    }
+    if (!this.uploadData) {
+      this.showStatus('No valid crossword data has been set.', 'error');
+      return;
+    }
+    const email = this.emailElt.value.trim();
+    const pwd = this.pwdElt.value.trim();
+    if (!email || !pwd) {
+      this.showStatus("Email and password required.", 'error');
+      return;
+    }
+    const formData = new FormData();
+    formData.append('op', 'upload');
+    formData.append('email', email);
+    formData.append('pwd', pwd);
+    formData.append('data', this.uploadData);
+
+    fetch(this.apiServer, { method: 'POST', body: formData })
+    .then(r => r.json()) // Expect JSON now
+    .then(data => {
+      if(data.error) {
+        this.showStatus("Error: " + data.error, 'error');
+      } else {
+        if (this.uploadCallback) {
+          this.uploadCallback(data);
+        }
+        this.fetchList(); // Refresh list on success
+        this.showStatus("Upload succeeded.", 'success');
+        this.uploadStatusElt.innerHTML = 'Uploaded at: ' +
+          (new Date()).toLocaleString();
+      }
+    })
+    .catch(e => this.showStatus(e.message, 'error'));
+  }
+
+  uploadExolve(specs) {
+    if (!this.setExolve(specs)) {
+      this.showStatus("Invalid Exolve data.", 'error');
+      return;
+    }
+    this.upload();
+  }
+
+  function setExolve(specs) {
+    let start = specs.indexOf('exolve-begin')
+    let end = specs.indexOf('exolve-end')
+    if (start < 0 || end < 0 || start >= end) {
+      return false;
+    }
+    while (start > 0 && specs.charAt(start - 1) == ' ') {
+      start--;
+    }
+    const dataSansEnd = specs.substring(start, end);
+
+    let puz = null;
+    try {
+      puz = new Exolve(dataSansEnd + 'exolve-end',
+        'xst-temp-xlv', null, false, 0, 0, false);
+    } catch (err) {
+      console.log(err);
+      puz = null;
+    }
+    if (puz) {
+      this.uploadData = dataSansEnd;
+      this.uploadData += `  exolve-host: <a href="${this.exostServer}">Exost</a>\n`;
+      if (dataSansEnd.indexOf('exolve-id:') < 0) {
+        /** Insert auto-generated ID */
+        this.uploadData += `  exolve-id: ${puz.id}\n`;
+      }
+      this.uploadData += 'exolve-end';
+      puz.destroy();
+      return true;
+    }
+    return false;
+  }
+  function setIpuz(specs) {
+    let start = specs.indexOf('{')
+    let end = specs.lastIndexOf('}')
+    if (start < 0 || end < 0 || start >= end) {
+      return false;
+    }
+    const ipuzJSON = specs.substring(start, end) + '}';
+    try {
+      const ipuz = JSON.parse(ipuzJSON);
+      const exolve = exolveFromIpuz(ipuz, this.uploadFileName);
+      if (!exolve) {
+        return false;
+      }
+      return setExolve(exolve, true);
+    } catch (err) {
+      console.log(err);
+    }
+    return false;
+  }
+  function setPuz(buffer) {
+    const exolve = exolveFromPuz(buffer, this.uploadFileName);
+    if (!exolve) {
+      return false;
+    }
+    return setExolve(exolve, true);
+  }
+  function setFromBuffer(buffer) {
+    let utf8decoder = new TextDecoder();
+    specs = utf8decoder.decode(buffer);
+    if (setExolve(specs)) {
+      return true;
+    }
+    if (setIpuz(specs)) {
+      return true;
+    }
+    if (setPuz(buffer)) {
+      return true;
+    }
+    return false;
+  }
+  function openFile(ev) {
+    if (!this.uploadFileElt || !this.uploadStatusElt) {
+      return;  /** unsuported */
+    }
+    const f = this.uploadFileElt.files[0];
+    this.uploadData = '';
+    this.uploadStatusElt.innerHTML = 'Reading...';
+    if (!f) {
+      this.uploadStatusElt.innerHTML = '';
+      return;
+    }
+    const fr = new FileReader(); 
+    fr.onload = function(){ 
+      if (this.setFromBuffer(fr.result)) {
+        this.uploadStatusElt.innerHTML = 'Ready to upload';
+      } else {
+        this.uploadStatusElt.innerHTML = 'Could not parse';
+        this.uploadFileElt.value = '';
+      }
+    }
+    this.uploadFileName = f.name;
+    fr.readAsArrayBuffer(f);
+  }
+}
