@@ -268,7 +268,7 @@ class ExolveExost {
     this.upload();
   }
 
-  function setExolve(specs) {
+  setExolve(specs) {
     let start = specs.indexOf('exolve-begin')
     let end = specs.indexOf('exolve-end')
     if (start < 0 || end < 0 || start >= end) {
@@ -300,7 +300,8 @@ class ExolveExost {
     }
     return false;
   }
-  function setIpuz(specs) {
+
+  setIpuz(specs) {
     let start = specs.indexOf('{')
     let end = specs.lastIndexOf('}')
     if (start < 0 || end < 0 || start >= end) {
@@ -313,34 +314,37 @@ class ExolveExost {
       if (!exolve) {
         return false;
       }
-      return setExolve(exolve, true);
+      return this.setExolve(exolve, true);
     } catch (err) {
       console.log(err);
     }
     return false;
   }
-  function setPuz(buffer) {
+
+  setPuz(buffer) {
     const exolve = exolveFromPuz(buffer, this.uploadFileName);
     if (!exolve) {
       return false;
     }
-    return setExolve(exolve, true);
+    return this.setExolve(exolve, true);
   }
-  function setFromBuffer(buffer) {
+
+  setFromBuffer(buffer) {
     let utf8decoder = new TextDecoder();
     specs = utf8decoder.decode(buffer);
-    if (setExolve(specs)) {
+    if (this.setExolve(specs)) {
       return true;
     }
-    if (setIpuz(specs)) {
+    if (this.setIpuz(specs)) {
       return true;
     }
-    if (setPuz(buffer)) {
+    if (this.setPuz(buffer)) {
       return true;
     }
     return false;
   }
-  function openFile(ev) {
+
+  openFile(ev) {
     if (!this.uploadFileElt || !this.uploadStatusElt) {
       return;  /** unsuported */
     }
