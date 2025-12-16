@@ -331,7 +331,7 @@ class ExolveExost {
 
   setFromBuffer(buffer) {
     let utf8decoder = new TextDecoder();
-    specs = utf8decoder.decode(buffer);
+    const specs = utf8decoder.decode(buffer);
     if (this.setExolve(specs)) {
       return true;
     }
