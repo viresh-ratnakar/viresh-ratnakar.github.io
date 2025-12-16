@@ -38,7 +38,8 @@ class ExolveExost {
    *   listContainerEltId: 'xst-list-container',
    *   listStatusEltId: 'xst-list-status',
    *   uploadFileEltId: 'xst-upload-file',
-   *   uploadCallback: 1-arg callback function
+   *   uploadCallback: 1-arg callback function,
+   *   varName: 'exost'  // name of global ExolveExost var (assumed to be 'exost' if missing)
    * }
    */
   constructor(config) {
@@ -54,6 +55,7 @@ class ExolveExost {
       this.showStatus('Invalid ExolveExost config');
       return;
     }
+    this.varName = config.varName ?? 'exost';
 
     this.listElt = document.getElementById(config.listEltId) ?? null;
     this.listContainerElt = document.getElementById(config.listContainerEltId) ?? null;
@@ -71,17 +73,7 @@ class ExolveExost {
       alert(msg);
     }
   }
-  /**
-   * Convenience function to convert a puzzle URL to an iframe embed code.
-   */
-  getIframeEmbedding(url) {
-    return `
-    <iframe height="780px" width="100%" allowfullscreen="true"
-      style="border:none; width: 100% !important; position: static;display: block !important; margin: 0 !important;"
-      src="${url}">
-    </iframe>
-    `;
-  }
+
   requestPwd() {
     const email = this.emailElt.value.trim();
     if (!email) {
@@ -173,8 +165,6 @@ class ExolveExost {
       const createdStr = new Date(item.created).toLocaleString();
       const updatedStr = new Date(item.updated).toLocaleString();
 
-      // TODO: Actions to copy URL, embed code
-      // TODO bind
       tr.innerHTML = `
         <td>
           <a href="${item.url}" target="_blank">${item.id}</a>
@@ -184,7 +174,12 @@ class ExolveExost {
         <td>${createdStr}</td>
         <td>${updatedStr}</td>
         <td>
-          <button onclick="deletePuzzle('${item.id}')">Delete</button>
+          <button onclick="navigator.clipboard.writeText('${item.url}')"
+            title="Copy crossword URL">&#128279;</button>
+          <button onclick="navigator.clipboard.writeText('${this.iframeEmbed(item.url)}')"
+            title="Copy crossword iframe embed code">&lt;/&gt;</button>
+          <button onclick="${this.varName}.deleteCrossword('${item.id}')"
+            title="Delete crossword">Delete</button>
         </td>
       `;
       table.appendChild(tr);
@@ -193,7 +188,7 @@ class ExolveExost {
     this.listElt.appendChild(table);
   }
 
-  deletePuzzle(id) {
+  deleteCrossword(id) {
     const email = this.emailElt.value.trim();
     const pwd = this.pwdElt.value.trim();
     if (!email || !pwd) {
@@ -220,6 +215,18 @@ class ExolveExost {
       }
     })
     .catch(e => this.showStatus(e.message, 'error'));
+  }
+
+  /**
+   * Convenience function to convert a puzzle URL to an iframe embed code.
+   */
+  iframeEmbed(url) {
+    return `
+    <iframe height="780px" width="100%" allowfullscreen="true"
+      style="border:none; width: 100% !important; position: static;display: block !important; margin: 0 !important;"
+      src="${url}">
+    </iframe>
+    `;
   }
 
   upload() {
