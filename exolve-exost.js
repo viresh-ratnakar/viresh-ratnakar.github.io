@@ -118,7 +118,6 @@ class ExolveExost {
     .then(data => {
       if(data.error) {
         this.showStatus("Error: " + data.error, 'error');
-        this.listElt.style.display = 'none';
       } else {
         this.renderList(data);
         this.listStatusElt.innerHTML =
