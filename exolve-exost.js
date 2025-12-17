@@ -32,6 +32,7 @@ class ExolveExost {
    *   pwdEltId: 'xst-pwd',
    *   pwdStatusEltId: 'xst-pwd-status',
    *   uploadStatusEltId: 'xst-upload-status',
+   *   tempEltId: 'xst-temp-xlv',
    *
    *   // Optional:
    *   listEltId: 'xst-list',
@@ -49,9 +50,11 @@ class ExolveExost {
     this.pwdElt = document.getElementById(config.pwdEltId);
     this.pwdStatusElt = document.getElementById(config.pwdStatusEltId);
     this.uploadStatusElt = document.getElementById(config.uploadStatusEltId) || null;
+    this.tempEltId = config.tempEltId;
+    this.tempElt = document.getElementById(this.tempEltId) || null;
     if (!this.exostURL || !this.apiServer ||
-        !this.emailElt || !this.pwdElt ||
-        !this.pwdStatusElt || !this.uploadStatusElt) {
+        !this.emailElt || !this.pwdElt || !this.pwdStatusElt ||
+        !this.uploadStatusElt || !this.tempEltId || !this.tempElt) {
       this.showStatus('Invalid ExolveExost config');
       return;
     }
@@ -297,7 +300,7 @@ class ExolveExost {
     let puz = null;
     try {
       puz = new Exolve(dataSansEnd + 'exolve-end',
-        'xst-temp-xlv', null, false, 0, 0, false);
+        this.tempEltId, null, false, 0, 0, false);
     } catch (err) {
       console.log(err);
       puz = null;
@@ -311,6 +314,7 @@ class ExolveExost {
       }
       this.uploadData += 'exolve-end';
       puz.destroy();
+      this.tempElt.innerHTML = '';
       return true;
     }
     return false;
