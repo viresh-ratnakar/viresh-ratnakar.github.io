@@ -179,7 +179,7 @@ class ExolveExost {
           <button onclick="${this.varName}.copyURL('${item.url}', true)"
             title="Copy crossword iframe embed code">&lt;/&gt;</button>
           <button onclick="${this.varName}.deleteCrossword('${item.id}')"
-            title="Delete crossword">Delete</button>
+            title="Delete crossword">&#xe020;</button>
         </td>
       `;
       table.appendChild(tr);
