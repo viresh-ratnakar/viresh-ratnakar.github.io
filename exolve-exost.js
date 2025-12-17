@@ -26,7 +26,7 @@ class ExolveExost {
   /**
    * Config fields: {
    *   // Required:
-   *   exostServer: 'https://xlufz.ratnakar.org/exost.html',
+   *   exostURL: 'https://xlufz.ratnakar.org/exost.html',
    *   apiServer: 'https://xlufz.ratnakar.org/exost.php',
    *   emailEltId: 'xst-email',
    *   pwdEltId: 'xst-pwd',
@@ -43,13 +43,13 @@ class ExolveExost {
    * }
    */
   constructor(config) {
-    this.exostServer = config.exostServer;
+    this.exostURL = config.exostURL;
     this.apiServer = config.apiServer;
     this.emailElt = document.getElementById(config.emailEltId);
     this.pwdElt = document.getElementById(config.pwdEltId);
     this.pwdStatusElt = document.getElementById(config.pwdStatusEltId);
     this.uploadStatusElt = document.getElementById(config.uploadStatusEltId) || null;
-    if (!this.exostServer || !this.apiServer ||
+    if (!this.exostURL || !this.apiServer ||
         !this.emailElt || !this.pwdElt ||
         !this.pwdStatusElt || !this.uploadStatusElt) {
       this.showStatus('Invalid ExolveExost config');
@@ -304,7 +304,7 @@ class ExolveExost {
     }
     if (puz) {
       this.uploadData = dataSansEnd;
-      this.uploadData += `  exolve-host: <a href="${this.exostServer}">Exost</a>\n`;
+      this.uploadData += `  exolve-host: <a href="${this.exostURL}">Exost</a>\n`;
       if (dataSansEnd.indexOf('exolve-id:') < 0) {
         /** Insert auto-generated ID */
         this.uploadData += `  exolve-id: ${puz.id}\n`;
