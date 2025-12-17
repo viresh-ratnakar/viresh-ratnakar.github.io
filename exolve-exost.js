@@ -174,9 +174,9 @@ class ExolveExost {
         <td>${createdStr}</td>
         <td>${updatedStr}</td>
         <td>
-          <button onclick="navigator.clipboard.writeText('${item.url}')"
+          <button onclick="${this.varName}.copyURL('${item.url}', false)"
             title="Copy crossword URL">&#128279;</button>
-          <button onclick="navigator.clipboard.writeText('TODO')"
+          <button onclick="${this.varName}.copyURL('${item.url}', true)"
             title="Copy crossword iframe embed code">&lt;/&gt;</button>
           <button onclick="${this.varName}.deleteCrossword('${item.id}')"
             title="Delete crossword">Delete</button>
@@ -227,6 +227,15 @@ class ExolveExost {
       src="${url}">
     </iframe>
     `;
+  }
+
+  /**
+   * Convenience function to copy a URL or iframe embed code to the clipboard.
+   */
+  copyURL(url, embed) {
+    const text = embed ? this.iframeEmbed(url) : url;
+    navigator.clipboard.writeText(text);
+    console.log('Copied: ' + text);
   }
 
   upload() {
