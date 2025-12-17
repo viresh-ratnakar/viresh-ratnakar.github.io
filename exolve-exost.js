@@ -55,7 +55,7 @@ class ExolveExost {
     if (!this.exostURL || !this.apiServer ||
         !this.emailElt || !this.pwdElt || !this.pwdStatusElt ||
         !this.uploadStatusElt || !this.tempEltId || !this.tempElt) {
-      this.showStatus('Invalid ExolveExost config');
+      this.showError("Invalid ExolveExost config");
       return;
     }
     this.varName = config.varName ?? 'exost';
@@ -70,17 +70,16 @@ class ExolveExost {
     this.uploadFileName = '';
     this.uploadData = '';
   }
-  showStatus(msg, type = 'success') {
-    console.log('showStatus: ' + msg + ': ' + type);
-    if (type === 'error') {
-      alert(msg);
-    }
+
+  showError(msg) {
+    console.log('showError: ' + msg);
+    alert(msg);
   }
 
   requestPwd() {
     const email = this.emailElt.value.trim();
     if (!email) {
-      this.showStatus('Please enter your email address.', 'error');
+      this.showError("Email missing");
       return;
     }
 
@@ -89,15 +88,16 @@ class ExolveExost {
     formData.append('email', email);
 
     fetch(this.apiServer, { method: 'POST', body: formData })
-    .then(r => r.text())
-      .then(t => {
-        if (!t.includes('Error')) {
-          this.pwdStatusElt.innerHTML =
-            'Last requested: ' + (new Date()).toLocaleString();
-        }
-        this.showStatus(t, t.includes('Error') ? 'error' : 'success');
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) {
+        this.showError("Error from 'auth': " + data.error);
+      } else {
+        console.log(data);
+        this.pwdStatusElt.innerHTML =
+          'Last requested: ' + (new Date()).toLocaleString();
       })
-    .catch(e => this.showStatus(e.message, 'error'));
+    .catch(e => this.showError("Error in fetch/auth: " + e.message));
   }
 
   fetchList() {
@@ -107,7 +107,7 @@ class ExolveExost {
     const email = this.emailElt.value.trim();
     const pwd = this.pwdElt.value.trim();
     if (!email || !pwd) {
-      this.showStatus("Email and password required.", 'error');
+      this.showError("Email or password missing");
       return;
     }
 
@@ -117,18 +117,17 @@ class ExolveExost {
     formData.append('pwd', pwd);
 
     fetch(this.apiServer, { method: 'POST', body: formData })
-    .then(r => r.json()) // Expect JSON now
+    .then(r => r.json())
     .then(data => {
-      if(data.error) {
-        this.showStatus("Error: " + data.error, 'error');
+      if (data.error) {
+        this.showError("Error from 'list': " + data.error);
       } else {
         this.renderList(data);
         this.listStatusElt.innerHTML =
           'Last refreshed: ' + (new Date()).toLocaleString();
-        this.showStatus("List updated.", 'success');
       }
     })
-    .catch(e => this.showStatus("Request failed (invalid JSON?): " + e.message, 'error'));
+    .catch(e => this.showError("Error in fetch/list: " + e.message));
   }
 
   /**
@@ -194,7 +193,7 @@ class ExolveExost {
     const email = this.emailElt.value.trim();
     const pwd = this.pwdElt.value.trim();
     if (!email || !pwd) {
-      this.showStatus("Email and password required.", 'error');
+      this.showError("Email or password missing");
       return;
     }
     if (!confirm(`Are you sure you want to delete puzzle "${id}"?`)) {
@@ -207,16 +206,15 @@ class ExolveExost {
     formData.append('id', id);
 
     fetch(this.apiServer, { method: 'POST', body: formData })
-    .then(r => r.text())
-    .then(text => {
-      if (text.includes('Success')) {
-        this.fetchList(); // Refresh list on success
-        this.showStatus("Delete succeeded.", 'success');
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) {
+        this.showError("Error from 'delete': " + data.error);
       } else {
-        this.showStatus(text, 'error');
+        this.fetchList();
       }
     })
-    .catch(e => this.showStatus(e.message, 'error'));
+    .catch(e => this.showError("Error in fetch/delete: " + e.message));
   }
 
   /**
@@ -245,13 +243,13 @@ class ExolveExost {
       return;  /** unsuported */
     }
     if (!this.uploadData) {
-      this.showStatus('No valid crossword data has been set.', 'error');
+      this.showError("No valid crossword data has been set");
       return;
     }
     const email = this.emailElt.value.trim();
     const pwd = this.pwdElt.value.trim();
     if (!email || !pwd) {
-      this.showStatus("Email and password required.", 'error');
+      this.showError("Email or password missing");
       return;
     }
     const formData = new FormData();
@@ -264,23 +262,22 @@ class ExolveExost {
     .then(r => r.json()) // Expect JSON now
     .then(data => {
       if(data.error) {
-        this.showStatus("Error: " + data.error, 'error');
+        this.showError("Error from 'upload': " + data.error);
       } else {
         if (this.uploadCallback) {
           this.uploadCallback(data);
         }
-        this.fetchList(); // Refresh list on success
-        this.showStatus("Upload succeeded.", 'success');
+        this.fetchList();
         this.uploadStatusElt.innerHTML = 'Uploaded at: ' +
           (new Date()).toLocaleString();
       }
     })
-    .catch(e => this.showStatus(e.message, 'error'));
+    .catch(e => this.showError("Error in fetch/upload: " + e.message));
   }
 
   uploadExolve(specs) {
     if (!this.setExolve(specs)) {
-      this.showStatus("Invalid Exolve data.", 'error');
+      this.showError("Invalid Exolve data");
       return;
     }
     this.upload();
