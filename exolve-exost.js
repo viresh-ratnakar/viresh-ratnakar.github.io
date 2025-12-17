@@ -176,7 +176,7 @@ class ExolveExost {
         <td>
           <button onclick="navigator.clipboard.writeText('${item.url}')"
             title="Copy crossword URL">&#128279;</button>
-          <button onclick="navigator.clipboard.writeText('${this.iframeEmbed(item.url)}')"
+          <button onclick="navigator.clipboard.writeText('TODO')"
             title="Copy crossword iframe embed code">&lt;/&gt;</button>
           <button onclick="${this.varName}.deleteCrossword('${item.id}')"
             title="Delete crossword">Delete</button>
