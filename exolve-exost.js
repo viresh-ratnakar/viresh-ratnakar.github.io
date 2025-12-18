@@ -32,13 +32,13 @@ class ExolveExost {
    *   pwdEltId: 'xst-pwd',
    *   pwdStatusEltId: 'xst-pwd-status',
    *   uploadStatusEltId: 'xst-upload-status',
-   *   tempEltId: 'xst-temp-xlv',
    *
    *   // Optional:
    *   listEltId: 'xst-list',
    *   listContainerEltId: 'xst-list-container',
    *   listStatusEltId: 'xst-list-status',
    *   uploadFileEltId: 'xst-upload-file',
+   *   tempEltId: 'xst-temp-xlv',
    *   uploadCallback: 1-arg callback function,
    *   varName: 'exost'  // name of global ExolveExost var (assumed to be 'exost' if missing)
    * }
@@ -49,12 +49,10 @@ class ExolveExost {
     this.emailElt = document.getElementById(config.emailEltId);
     this.pwdElt = document.getElementById(config.pwdEltId);
     this.pwdStatusElt = document.getElementById(config.pwdStatusEltId);
-    this.uploadStatusElt = document.getElementById(config.uploadStatusEltId) || null;
-    this.tempEltId = config.tempEltId;
-    this.tempElt = document.getElementById(this.tempEltId) || null;
+    this.uploadStatusElt = document.getElementById(config.uploadStatusEltId);
     if (!this.exostURL || !this.apiServer ||
         !this.emailElt || !this.pwdElt || !this.pwdStatusElt ||
-        !this.uploadStatusElt || !this.tempEltId || !this.tempElt) {
+        !this.uploadStatusElt) {
       this.showError("Invalid ExolveExost config");
       return;
     }
@@ -66,6 +64,9 @@ class ExolveExost {
 
     this.uploadFileElt = document.getElementById(config.uploadFileEltId) ?? null;
     this.uploadCallback = config.uploadCallback ?? null;
+    this.tempEltId = config.tempEltId ?? '';
+    this.tempElt = this.tempEltId ?
+      (document.getElementById(this.tempEltId) ?? null) : null;
 
     this.uploadFileName = '';
     this.uploadData = '';
@@ -276,8 +277,8 @@ class ExolveExost {
     .catch(e => this.showError("Error in fetch/upload: " + e.message));
   }
 
-  uploadExolve(specs) {
-    if (!this.setExolve(specs)) {
+  uploadExolve(specs, skipRendering=false) {
+    if (!this.setExolve(specs, skipRendering)) {
       this.showError("Invalid Exolve data");
       return;
     }
@@ -303,7 +304,10 @@ class ExolveExost {
         /^\s*exolve-id:.*$/m, '  exolve-id: ' + goodId);
   }
 
-  setExolve(specs) {
+  /**
+   * Pass skipRendering as true if you already know that the specs are good.
+   */
+  setExolve(specs, skipRendering=false) {
     let start = specs.indexOf('exolve-begin')
     let end = specs.indexOf('exolve-end')
     if (start < 0 || end < 0 || start >= end) {
@@ -314,36 +318,51 @@ class ExolveExost {
     }
     const dataSansEnd = specs.substring(start, end);
 
-    let puz = null;
-    try {
-      puz = new Exolve(dataSansEnd + 'exolve-end',
-        this.tempEltId, null, false, 0, 0, false);
-    } catch (err) {
-      console.log(err);
-      puz = null;
-    }
-    if (puz) {
-      this.uploadData = dataSansEnd;
-      this.uploadData += `  exolve-host: <a href="${this.exostURL}">Exost</a>\n`;
-      if (dataSansEnd.indexOf('exolve-id:') < 0) {
-        /** Insert auto-generated ID */
-        this.uploadData += `  exolve-id: ${puz.id}\n`;
+    let idFromPuz = '';
+    if (!skipRendering) {
+      if (!this.tempElt) {
+        if (!this.tempEltId) {
+          this.tempEltEd = 'xst-temp-xlv-elt';
+        }
+        this.tempElt = document.createElement("div");
+        this.tempElt.id = this.tempEltId;
+        this.tempElt.style.display = 'none';
       }
-      this.uploadData += 'exolve-end';
+      let puz = null;
+      try {
+        puz = new Exolve(dataSansEnd + 'exolve-end',
+          this.tempEltId, null, false, 0, 0, false);
+      } catch (err) {
+        console.log(err);
+        puz = null;
+      }
+      if (!puz) {
+        return false;
+      }
+      idFromPuz = puz.id;
       puz.destroy();
       this.tempElt.innerHTML = '';
-
-      /** Convert to alphanumeric id if needed */
-      const idRegex = /^\s*exolve-id:\s*(.+)\s*$/m;
-      const match = this.uploadData.match(idRegex);
-      console.assert(match && match.length > 1);
-      const id = match[1];
-      if (!this.idGoodForExost(id)) {
-        this.uploadData = this.makeIdGoodForExost(this.uploadData, id);
-      }
-      return true;
     }
-    return false;
+    this.uploadData = dataSansEnd;
+    this.uploadData += `  exolve-host: <a href="${this.exostURL}">Exost</a>\n`;
+    if (idFromPuz && (dataSansEnd.indexOf('exolve-id:') < 0)) {
+      /** Insert idFromPuz (must have been auto-generated) */
+      this.uploadData += `  exolve-id: ${idFromPuz}\n`;
+    }
+    this.uploadData += 'exolve-end';
+
+    /** Convert to alphanumeric id if needed */
+    const idRegex = /^\s*exolve-id:\s*(.+)\s*$/m;
+    const match = this.uploadData.match(idRegex);
+    if (!match || match.length <= 1) {
+      console.log('No exolve-id found in crossword specs.');
+      return false;
+    }
+    const id = match[1];
+    if (!this.idGoodForExost(id)) {
+      this.uploadData = this.makeIdGoodForExost(this.uploadData, id);
+    }
+    return true;
   }
 
   setIpuz(specs) {
@@ -359,7 +378,7 @@ class ExolveExost {
       if (!exolve) {
         return false;
       }
-      return this.setExolve(exolve, true);
+      return this.setExolve(exolve);
     } catch (err) {
       console.log(err);
     }
