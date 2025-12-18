@@ -167,7 +167,7 @@ class ExolveExost {
 
     items.forEach(item => {
       const tr = document.createElement('tr');
-      tr.style.borderBottom = '1px solid #eee';
+      tr.style.borderBottom = '1px solid #aaa';
 
       // Format size
       const sizeKB = (item.size / 1024).toFixed(1) + ' KB';
