@@ -254,12 +254,13 @@ class ExolveExost {
       if (elt) {
         const saved = elt.innerHTML;
         elt.innerHTML = '&#128203;';
+        elt.disabled = true;
         setTimeout(() => {
           elt.innerHTML = saved;
-        }, 1200);
+          elt.disabled = false;
+        }, 1000);
       }
     }
-    console.log('Copied: ' + text);
   }
 
   upload() {
