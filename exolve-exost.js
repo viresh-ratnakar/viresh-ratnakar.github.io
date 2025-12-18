@@ -95,8 +95,12 @@ class ExolveExost {
         console.log(data);
         this.showError("Error from 'auth': " + data.error);
       } else {
+        console.log(data);
+        const sentDate = data.sent ? new Date(data.sent * 1000) : new Date();
         this.pwdStatusElt.innerHTML =
-          'Last requested: ' + (new Date()).toLocaleString();
+          (data.throttled ?
+            'Please wait, emailed recently at ' : 'Emailed at ') +
+          (sentDate).toLocaleString();
       }
     })
     .catch(e => this.showError("Error in fetch/auth: " + e.message));
