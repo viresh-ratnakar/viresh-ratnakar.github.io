@@ -96,7 +96,8 @@ class ExolveExost {
         console.log(data);
         this.pwdStatusElt.innerHTML =
           'Last requested: ' + (new Date()).toLocaleString();
-      })
+      }
+    })
     .catch(e => this.showError("Error in fetch/auth: " + e.message));
   }
 
