@@ -277,8 +277,11 @@ class ExolveExost {
     .catch(e => this.showError("Error in fetch/upload: " + e.message));
   }
 
-  uploadExolve(specs, skipRendering=false) {
-    if (!this.setExolve(specs, skipRendering)) {
+  /**
+   * Pass a rendered puzzle if one already exists.
+   */
+  uploadExolve(specs, puz=null) {
+    if (!this.setExolve(specs, puz)) {
       this.showError("Invalid Exolve data");
       return;
     }
@@ -305,9 +308,9 @@ class ExolveExost {
   }
 
   /**
-   * Pass skipRendering as true if you already know that the specs are good.
+   * Pass puz as non-NULL if you already have it rendered.
    */
-  setExolve(specs, skipRendering=false) {
+  setExolve(specs, puz=null) {
     let start = specs.indexOf('exolve-begin')
     let end = specs.indexOf('exolve-end')
     if (start < 0 || end < 0 || start >= end) {
@@ -319,28 +322,31 @@ class ExolveExost {
     const dataSansEnd = specs.substring(start, end);
 
     let idFromPuz = '';
-    if (!skipRendering) {
+    if (puz) {
+      idFromPuz = puz.id;
+    } else {
       if (!this.tempElt) {
         if (!this.tempEltId) {
-          this.tempEltEd = 'xst-temp-xlv-elt';
+          this.tempEltId = 'xst-temp-xlv-elt';
         }
         this.tempElt = document.createElement("div");
         this.tempElt.id = this.tempEltId;
         this.tempElt.style.display = 'none';
       }
-      let puz = null;
+      let tempPuz = null;
       try {
-        puz = new Exolve(dataSansEnd + 'exolve-end',
+        tempPuz = new Exolve(dataSansEnd + 'exolve-end',
           this.tempEltId, null, false, 0, 0, false);
       } catch (err) {
         console.log(err);
-        puz = null;
+        tempPuz = null;
       }
-      if (!puz) {
+      if (!tempPuz) {
+        console.log('Crossword specs invalid: could not create Exolve object');
         return false;
       }
-      idFromPuz = puz.id;
-      puz.destroy();
+      idFromPuz = tempPuz.id;
+      tempPuz.destroy();
       this.tempElt.innerHTML = '';
     }
     this.uploadData = dataSansEnd;
