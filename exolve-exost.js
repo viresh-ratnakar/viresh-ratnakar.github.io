@@ -190,7 +190,7 @@ class ExolveExost {
           <button id="${idBase}-u"
             onclick="${this.varName}.copyURL('${item.url}', false, '${idBase}-u')"
             title="Copy crossword URL">&#128279;</button>
-          <button id=${idBase}-e"
+          <button id="${idBase}-e"
             onclick="${this.varName}.copyURL('${item.url}', true, '${idBase}-e')"
             title="Copy crossword iframe embed code">&lt;/&gt;</button>
           <button onclick="${this.varName}.deleteCrossword('${item.id}')"
