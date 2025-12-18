@@ -91,9 +91,9 @@ class ExolveExost {
     .then(r => r.json())
     .then(data => {
       if (data.error) {
+        console.log(data);
         this.showError("Error from 'auth': " + data.error);
       } else {
-        console.log(data);
         this.pwdStatusElt.innerHTML =
           'Last requested: ' + (new Date()).toLocaleString();
       }
@@ -284,6 +284,25 @@ class ExolveExost {
     this.upload();
   }
 
+  idGoodForExost(id) {
+    const regex = /^[a-zA-Z0-9_-]+$/;
+    return regex.test(id);
+  }
+
+  makeIdGoodForExost(specs, id) {
+    const safeSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-";
+    const regex = /[a-zA-Z0-9_-]/;
+    const dashRegex = /[ ()!@#$%^&*+~`=]/;
+    const goodId = id.split('').map(ch => {
+      if (regex.test(ch)) return ch;
+      if (dashRegex.test(ch)) return '-';
+      const index = ch.charCodeAt(0) % 64;
+      return safeSet[index];
+    }).join('');
+    return specs.replace(
+        /^\s*exolve-id:.*$/m, '  exolve-id: ' + goodId);
+  }
+
   setExolve(specs) {
     let start = specs.indexOf('exolve-begin')
     let end = specs.indexOf('exolve-end')
@@ -313,6 +332,15 @@ class ExolveExost {
       this.uploadData += 'exolve-end';
       puz.destroy();
       this.tempElt.innerHTML = '';
+
+      /** Convert to alphanumeric id if needed */
+      const idRegex = /^\s*exolve-id:\s*(.+)\s*$/m;
+      const match = this.uploadData.match(idRegex);
+      console.assert(match && match.length > 1);
+      const id = match[1];
+      if (!this.idGoodForExost(id)) {
+        this.uploadData = this.makeIdGoodForExost(this.uploadData, id);
+      }
       return true;
     }
     return false;
