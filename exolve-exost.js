@@ -162,6 +162,9 @@ class ExolveExost {
       </tr>
     `;
 
+    const randId = 'xstid-' + Math.random().toString(36).substring(3, 9);
+    let ctr = 0;
+
     items.forEach(item => {
       const tr = document.createElement('tr');
       tr.style.borderBottom = '1px solid #eee';
@@ -172,6 +175,9 @@ class ExolveExost {
       const createdStr = new Date(item.created).toLocaleString();
       const updatedStr = new Date(item.updated).toLocaleString();
 
+      ctr += 1;
+      const idBase = randId + '-' + ctr;
+
       tr.innerHTML = `
         <td>
           <a href="${item.url}" target="_blank">${item.id}</a>
@@ -181,9 +187,11 @@ class ExolveExost {
         <td>${createdStr}</td>
         <td>${updatedStr}</td>
         <td>
-          <button onclick="${this.varName}.copyURL('${item.url}', false)"
+          <button id="${idBase}-u"
+            onclick="${this.varName}.copyURL('${item.url}', false, '${idBase}-u')"
             title="Copy crossword URL">&#128279;</button>
-          <button onclick="${this.varName}.copyURL('${item.url}', true)"
+          <button id=${idBase}-e"
+            onclick="${this.varName}.copyURL('${item.url}', true, '${idBase}-e')"
             title="Copy crossword iframe embed code">&lt;/&gt;</button>
           <button onclick="${this.varName}.deleteCrossword('${item.id}')"
             title="Delete crossword">&#128465;</button>
@@ -238,9 +246,19 @@ class ExolveExost {
   /**
    * Convenience function to copy a URL or iframe embed code to the clipboard.
    */
-  copyURL(url, embed) {
+  copyURL(url, embed, eltId=null) {
     const text = embed ? this.iframeEmbed(url) : url;
     navigator.clipboard.writeText(text);
+    if (eltId) {
+      const elt = document.getElementById(eltId);
+      if (elt) {
+        const saved = elt.innerHTML;
+        elt.innerHTML = '&#128203;';
+        setTimeout(() => {
+          elt.innerHTML = saved;
+        }, 1200);
+      }
+    }
     console.log('Copied: ' + text);
   }
 
