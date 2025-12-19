@@ -155,10 +155,9 @@ class ExolveExost {
       <tr>
         <th>ID</th>
         <th>Title</th>
-        <th>Size</th>
-        <th>Created</th>
-        <th>Updated</th>
         <th>Actions</th>
+        <th>Size</th>
+        <th>Created / Updated</th>
       </tr>
     `;
 
@@ -174,6 +173,8 @@ class ExolveExost {
       // Format Date (simplified)
       const createdStr = new Date(item.created).toLocaleString();
       const updatedStr = new Date(item.updated).toLocaleString();
+      const crup = createdStr +
+        (createdStr == updatedStr ? '' : '<br>' + updatedStr);
 
       ctr += 1;
       const idBase = randId + '-' + ctr;
@@ -183,9 +184,6 @@ class ExolveExost {
           <a href="${item.url}" target="_blank">${item.id}</a>
         </td>
         <td>${item.title}</td>
-        <td>${sizeKB}</td>
-        <td>${createdStr}</td>
-        <td>${updatedStr}</td>
         <td>
           <button id="${idBase}-u"
             onclick="${this.varName}.copyURL('${item.url}', false, '${idBase}-u')"
@@ -196,6 +194,8 @@ class ExolveExost {
           <button onclick="${this.varName}.deleteCrossword('${item.id}')"
             title="Delete crossword">&#128465;</button>
         </td>
+        <td>${sizeKB}</td>
+        <td>${crup}</td>
       `;
       table.appendChild(tr);
     });
