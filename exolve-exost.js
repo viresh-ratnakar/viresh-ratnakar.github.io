@@ -159,6 +159,9 @@ class ExolveExost {
         .xst-url-list tr {
           border-bottom: 1px solid #aaa;
         }
+        .xst-url-list td {
+          vertical-align: top;
+        }
         .xst-small {
           font-size: 80%;
         }
