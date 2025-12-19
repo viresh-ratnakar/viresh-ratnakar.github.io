@@ -153,20 +153,21 @@ class ExolveExost {
     table.innerHTML = `
       <style>
         .xst-url-list {
-          width: 100%
-          border-collapse: collapse
+          width: 100%;
+          border-collapse: collapse;
         }
         .xst-url-list tr {
-          border-bottom: 1px solid #aaa
+          border-bottom: 1px solid #aaa;
         }
         .xst-url-list th {
-          text-align: left
+          text-align: left;
         }
-        .xst-url-list td {
-          vertical-align: top
+        .xst-url-list td,
+        .xst-url-list th {
+          vertical-align: top;
         }
         .xst-small {
-          font-size: 80%
+          font-size: 80%;
         }
       </style>
       <tr>
