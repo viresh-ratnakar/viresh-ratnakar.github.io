@@ -153,25 +153,28 @@ class ExolveExost {
     table.innerHTML = `
       <style>
         .xst-url-list {
-          width: 100%,
-          border-collapse: collapse;
+          width: 100%
+          border-collapse: collapse
         }
         .xst-url-list tr {
-          border-bottom: 1px solid #aaa;
+          border-bottom: 1px solid #aaa
+        }
+        .xst-url-list th {
+          text-align: left
         }
         .xst-url-list td {
-          vertical-align: top;
+          vertical-align: top
         }
         .xst-small {
-          font-size: 80%;
+          font-size: 80%
         }
       </style>
       <tr>
         <th>ID</th>
         <th>Title</th>
-        <th>Actions</th>
-        <th>Size</th>
-        <th>Created / Updated</th>
+        <th>Copy URL/Embed, Delete</th>
+        <th>KB</th>
+        <th>Created, Updated</th>
       </tr>
     `;
 
@@ -182,7 +185,7 @@ class ExolveExost {
       const tr = document.createElement('tr');
 
       // Format size
-      const sizeKB = (item.size / 1024).toFixed(1) + ' KB';
+      const sizeKB = (item.size / 1024).toFixed(1);
       // Format Date (simplified)
       const createdStr = new Date(item.created).toLocaleString();
       const updatedStr = new Date(item.updated).toLocaleString();
