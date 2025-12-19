@@ -149,9 +149,20 @@ class ExolveExost {
     }
     // Create table structure for better data display
     const table = document.createElement('table');
-    table.style.width = '100%';
-    table.style.borderCollapse = 'collapse';
+    table.className = 'xst-url-list';
     table.innerHTML = `
+      <style>
+        .xst-url-list {
+          width: 100%,
+          border-collapse: collapse;
+        }
+        .xst-url-list tr {
+          border-bottom: 1px solid #aaa;
+        }
+        .xst-small {
+          font-size: 80%;
+        }
+      </style>
       <tr>
         <th>ID</th>
         <th>Title</th>
@@ -166,7 +177,6 @@ class ExolveExost {
 
     items.forEach(item => {
       const tr = document.createElement('tr');
-      tr.style.borderBottom = '1px solid #aaa';
 
       // Format size
       const sizeKB = (item.size / 1024).toFixed(1) + ' KB';
@@ -195,7 +205,7 @@ class ExolveExost {
             title="Delete crossword">&#128465;</button>
         </td>
         <td>${sizeKB}</td>
-        <td>${crup}</td>
+        <td class="xst-small">${crup}</td>
       `;
       table.appendChild(tr);
     });
