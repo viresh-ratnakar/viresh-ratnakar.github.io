@@ -5,7 +5,7 @@ Copyright (c) 2019 Viresh Ratnakar
 
 See the full license notice in exolve-m.js.
 
-Version: Exolve v1.64, November 25, 2025
+Version: Exolve v1.66, January 5, 2026
 */
 
 @media (max-width: 500px) {
@@ -148,6 +148,10 @@ Version: Exolve v1.64, November 25, 2025
   vertical-align: top;
   white-space: normal !important;
 }
+.xlv-frame .xlv-clues-table tr {
+  max-height: 200px;
+  overflow-y: auto;
+}
 .xlv-frame .xlv-clues-table .xlv-clue-label {
   background-image: none !important;
   box-sizing: content-box;
@@ -255,6 +259,7 @@ Version: Exolve v1.64, November 25, 2025
 }
 .xlv-curr-clue-inner {
   padding: 2px 0 8px 0 !important;
+  position: relative;
 }
 .xlv-curr-orphan,
 .xlv-curr-clue-label {
@@ -403,6 +408,7 @@ Version: Exolve v1.64, November 25, 2025
 }
 .xlv-question {
   margin: 12px 0 2px 0 !important;
+  position: relative;
 }
 .xlv-input,
 .xlv-answer {
@@ -443,6 +449,7 @@ Version: Exolve v1.64, November 25, 2025
 }
 .xlv-hint-bulb {
   cursor: pointer;
+  float: right;
   font-weight: normal;
 }
 .xlv-hint-bulb:hover {
@@ -584,6 +591,27 @@ a.xlv-link:hover {
 }
 @media not print {
   .xlv-only-print {
+    display: none;
+  }
+  .xlv-long-clue-trimmable {
+    display: none;
+  }
+  .xlv-long-clue-ellipsis {
+    color: dodgerblue;
+    display: inline;
+  }
+  .xlv-curr-clue .xlv-long-clue-trimmable {
+    display: inline;
+  }
+  .xlv-curr-clue .xlv-long-clue-ellipsis {
+    display: none;
+  }
+}
+@media print {
+  .xlv-long-clue-trimmable {
+    display: inline;
+  }
+  .xlv-long-clue-ellipsis {
     display: none;
   }
 }
