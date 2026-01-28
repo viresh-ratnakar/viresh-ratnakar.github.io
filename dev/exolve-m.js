@@ -85,7 +85,7 @@ function Exolve(puzzleSpec,
                 visTop=0,
                 maxDim=0,
                 notTemp=true) {
-  this.VERSION = 'Exolve v1.66.1, January 22, 2026';
+  this.VERSION = 'Exolve v1.66.2, January 28, 2026';
   this.id = '';
 
   this.puzzleText = puzzleSpec;
@@ -319,6 +319,7 @@ function Exolve(puzzleSpec,
     'light-label-input': 'black',
     'light-text': 'black',
     'light-text-input': 'black',
+    'long-clue-ellipsis': 'dodgerblue',
     'orphan': 'linen',
     'overwritten-end': '#bb00bb',
     'overwritten-start': '#ff00ff',
@@ -567,7 +568,7 @@ function Exolve(puzzleSpec,
     'show-notes-seq': 'Show clue-solving sequence:',
     'show-notes-entries': 'Show entered solutions:',
     'show-notes-times': 'Show clue-solving times:',
-    'long-clue-ellipsis.hover': 'Some clue text has been trimmed here for brevity. You can see the full clue above the grid when this clue is selected as the current clue.',
+    'long-clue-summary.hover': 'Some clue text has been trimmed here for brevity. You can see the full clue by clicking on it.',
   };
 
   /**
@@ -5002,20 +5003,19 @@ Exolve.prototype.stripLineBreaks = function(s) {
   return s.replace(/<\/br\s*>/gi, "")
 }
 
-Exolve.prototype.renderLongClueTrimmers = function(s, pos) {
+Exolve.prototype.renderLongClueSummary = function(s, pos) {
   const prefix = s.substr(0, pos);
   const endPos = s.indexOf('}...', pos);
   if (endPos < 0) {
-    return [s, s.length];
+    return s;
   }
-  const trimmable = s.substring(pos + 4, endPos);
+  const summary = s.substring(pos + 4, endPos);
   const suffix = s.substr(endPos + 4);
-  const renderedTrimmable =
-    '<span class="xlv-long-clue-ellipsis" ' +
-    `title="${this.textLabels['long-clue-ellipsis.hover']}">&hellip;</span>` +
-    '<span class="xlv-long-clue-trimmable">' + trimmable + '</span>';
-  const result = prefix + renderedTrimmable + suffix;
-  return [result, renderedTrimmable.length];
+  return `<span class="xlv-long-clue-summary"
+    title="${this.textLabels['long-clue-summary.hover']}">` + summary +
+    `<span style="color:${this.colorScheme['long-clue-ellipsis']}">` +
+    '&hellip;</span></span>' +
+    '<span class="xlv-long-clue">' + prefix + suffix + '</span>';
 }
 
 Exolve.prototype.renderClueSpan = function(clue, elt, inCurrClue=false) {
@@ -5030,11 +5030,9 @@ Exolve.prototype.renderClueSpan = function(clue, elt, inCurrClue=false) {
   if (inCurrClue) {
     clueText = this.stripLineBreaks(clueText);
   }
-  let longClueTrimPos = clueText.indexOf('...{');
-  while (longClueTrimPos >= 0) {
-    trimmingRes = this.renderLongClueTrimmers(clueText, longClueTrimPos);
-    clueText = trimmingRes[0];
-    longClueTrimPos = clueText.indexOf('...{', longClueTrimPos + trimmingRes[1]);
+  const longClueSummaryPos = clueText.indexOf('...{');
+  if (longClueSummaryPos >= 0) {
+    clueText = this.renderLongClueSummary(clueText, longClueSummaryPos);
   }
   let html = '';
   let idx = clueText.indexOf('~{');
@@ -6021,6 +6019,7 @@ Exolve.prototype.maybeConfirm = function(msg) {
 Exolve.prototype.deactivateCurrClue = function() {
   for (let x of this.activeClues) {
     x.style.background = 'inherit';
+    x.classList.remove('xlv-active-clue');
   }
   this.activeClues = [];
   this.currClueIndex = null;
@@ -6375,6 +6374,7 @@ Exolve.prototype.cnavToInner = function(activeClueIndex, grabFocus = false) {
       continue;
     }
     theClue.clueTR.style.background = colour;
+    theClue.clueTR.classList.add('xlv-active-clue');
     if (this.cluesPanelLines > 0) {
       this.scrollIfNeeded(theClue.clueTR);
     }
@@ -6932,27 +6932,27 @@ Exolve.prototype.retreatCursorInLight = function() {
 Exolve.prototype.toggleClueSolvedState = function(clueIndex) {
   if (this.allCellsKnown(clueIndex)) {
     this.log('toggleClueSolvedState() called on ' + clueIndex +
-                ' with all cells known')
-      return
+                ' with all cells known');
+      return;
   }
-  let clue = this.clues[clueIndex]
+  const clue = this.clues[clueIndex];
   if (!clue || !clue.clueTR) {
-    return
+    return;
   }
-  let cls = clue.clueTR.className
-  let currLab = null
+  const hasSolvedClass = clue.clueTR.classList.contains('xlv-solved');
+  let currLab = null;
   if (clueIndex == this.currClueIndex) {
-    currLab = document.getElementById(this.prefix + '-curr-clue-label')
+    currLab = document.getElementById(this.prefix + '-curr-clue-label');
   }
-  if (cls == 'xlv-solved') {
-    clue.clueTR.className = ''
+  if (hasSolvedClass) {
+    clue.clueTR.classList.remove('xlv-solved');
     if (currLab) {
-      currLab.className = 'xlv-curr-clue-label'
+      currLab.className = 'xlv-curr-clue-label';
     }
   } else {
-    clue.clueTR.className = 'xlv-solved'
+    clue.clueTR.classList.add('xlv-solved');
     if (currLab) {
-      currLab.className = 'xlv-curr-clue-label xlv-solved'
+      currLab.className = 'xlv-curr-clue-label xlv-solved';
     }
   }
 }
@@ -6983,13 +6983,13 @@ Exolve.prototype.updateClueState =
     return;
   }
   let solved = false;
-  if (clue && clue.clueTR && clue.clueTR.className == 'xlv-solved') {
+  if (clue && clue.clueTR && clue.clueTR.classList.contains('xlv-solved')) {
     solved = true;
   }
   let numFilled = 0;
   let numPrefilled = 0;
   for (const ci of cis) {
-    const theClue = this.clues[ci]
+    const theClue = this.clues[ci];
     if (!theClue.clueTR) {
       numFilled = 0;
       break;
@@ -7026,7 +7026,11 @@ Exolve.prototype.updateClueState =
   let cls = solved ? 'xlv-solved' : '';
   for (const ci of cis) {
     if (this.clues[ci].clueTR) {
-      this.clues[ci].clueTR.setAttributeNS(null, 'class', cls);
+      if (solved) {
+        this.clues[ci].clueTR.classList.add('xlv-solved');
+      } else {
+        this.clues[ci].clueTR.classList.remove('xlv-solved');
+      }
     }
     if (ci == this.currClueIndex) {
       let currLab = document.getElementById(this.prefix + '-curr-clue-label');

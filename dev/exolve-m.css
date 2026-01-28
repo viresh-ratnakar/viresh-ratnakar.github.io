@@ -148,10 +148,6 @@ Version: Exolve v1.66, January 5, 2026
   vertical-align: top;
   white-space: normal !important;
 }
-.xlv-frame .xlv-clues-table tr {
-  max-height: 200px;
-  overflow-y: auto;
-}
 .xlv-frame .xlv-clues-table .xlv-clue-label {
   background-image: none !important;
   box-sizing: content-box;
@@ -593,25 +589,26 @@ a.xlv-link:hover {
   .xlv-only-print {
     display: none;
   }
-  .xlv-long-clue-trimmable {
+  .xlv-long-clue {
     display: none;
   }
-  .xlv-long-clue-ellipsis {
-    color: dodgerblue;
+  .xlv-long-clue-summary {
     display: inline;
   }
-  .xlv-curr-clue .xlv-long-clue-trimmable {
+  .xlv-active-clue .xlv-long-clue,
+  .xlv-curr-clue .xlv-long-clue {
     display: inline;
   }
-  .xlv-curr-clue .xlv-long-clue-ellipsis {
+  .xlv-active-clue .xlv-long-clue-summary,
+  .xlv-curr-clue .xlv-long-clue-summary {
     display: none;
   }
 }
 @media print {
-  .xlv-long-clue-trimmable {
+  .xlv-long-clue {
     display: inline;
   }
-  .xlv-long-clue-ellipsis {
+  .xlv-long-clue-summary {
     display: none;
   }
 }
