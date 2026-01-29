@@ -592,15 +592,15 @@ a.xlv-link:hover {
   .xlv-long-clue {
     display: none;
   }
-  .xlv-long-clue-summary {
+  .xlv-concise-clue {
     display: inline;
   }
   .xlv-active-clue .xlv-long-clue,
   .xlv-curr-clue .xlv-long-clue {
     display: inline;
   }
-  .xlv-active-clue .xlv-long-clue-summary,
-  .xlv-curr-clue .xlv-long-clue-summary {
+  .xlv-active-clue .xlv-concise-clue,
+  .xlv-curr-clue .xlv-concise-clue {
     display: none;
   }
 }
@@ -608,7 +608,7 @@ a.xlv-link:hover {
   .xlv-long-clue {
     display: inline;
   }
-  .xlv-long-clue-summary {
+  .xlv-concise-clue {
     display: none;
   }
 }

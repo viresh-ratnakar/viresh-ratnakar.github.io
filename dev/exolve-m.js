@@ -85,7 +85,7 @@ function Exolve(puzzleSpec,
                 visTop=0,
                 maxDim=0,
                 notTemp=true) {
-  this.VERSION = 'Exolve v1.66.2, January 28, 2026';
+  this.VERSION = 'Exolve v1.66.2, January 29, 2026';
   this.id = '';
 
   this.puzzleText = puzzleSpec;
@@ -300,6 +300,7 @@ function Exolve(puzzleSpec,
     'active': 'mistyrose',
     'active-clue': 'mistyrose',
     'anno': 'darkgreen',
+    'concise-clue': 'darkred',
     'hint': 'dodgerblue',
     'hint-bulb': 'dodgerblue',
     'arrow': 'white',
@@ -319,7 +320,6 @@ function Exolve(puzzleSpec,
     'light-label-input': 'black',
     'light-text': 'black',
     'light-text-input': 'black',
-    'long-clue-ellipsis': 'dodgerblue',
     'orphan': 'linen',
     'overwritten-end': '#bb00bb',
     'overwritten-start': '#ff00ff',
@@ -568,7 +568,7 @@ function Exolve(puzzleSpec,
     'show-notes-seq': 'Show clue-solving sequence:',
     'show-notes-entries': 'Show entered solutions:',
     'show-notes-times': 'Show clue-solving times:',
-    'long-clue-summary.hover': 'Some clue text has been trimmed here for brevity. You can see the full clue by clicking on it.',
+    'concise-clue.hover': 'Some clue text has been trimmed here for brevity. You can see the full clue by clicking on it.',
   };
 
   /**
@@ -4103,6 +4103,14 @@ Exolve.prototype.parseClueLists = function() {
         lastDirClue.hints.push(clueLine.substr(5).trim());
         continue;
       }
+      if (clueLine.substr(0, 8).toLowerCase() == 'concise:') {
+        if (!lastDirClue) {
+          this.throwErr(
+              '[Concise: ...] line without any preceding clue: ' + clueLine);
+        }
+        lastDirClue.concise = clueLine.substr(8).trim();
+        continue;
+      }
       const clue = this.parseClue(clueDirection, clueLine);
       if (clue.isFiller) {
         filler = filler + clueLine + '\n';
@@ -5003,19 +5011,11 @@ Exolve.prototype.stripLineBreaks = function(s) {
   return s.replace(/<\/br\s*>/gi, "")
 }
 
-Exolve.prototype.renderLongClueSummary = function(s, pos) {
-  const prefix = s.substr(0, pos);
-  const endPos = s.indexOf('}...', pos);
-  if (endPos < 0) {
-    return s;
-  }
-  const summary = s.substring(pos + 4, endPos);
-  const suffix = s.substr(endPos + 4);
-  return `<span class="xlv-long-clue-summary"
-    title="${this.textLabels['long-clue-summary.hover']}">` + summary +
-    `<span style="color:${this.colorScheme['long-clue-ellipsis']}">` +
-    '&hellip;</span></span>' +
-    '<span class="xlv-long-clue">' + prefix + suffix + '</span>';
+Exolve.prototype.renderLongClue = function(concise, full) {
+  return `<span class="xlv-concise-clue"
+    style="color:${this.colorScheme['concise-clue']}"
+    title="${this.textLabels['concise-clue.hover']}">` + concise + '</span>' +
+    '<span class="xlv-long-clue">' + full + '</span>';
 }
 
 Exolve.prototype.renderClueSpan = function(clue, elt, inCurrClue=false) {
@@ -5030,9 +5030,8 @@ Exolve.prototype.renderClueSpan = function(clue, elt, inCurrClue=false) {
   if (inCurrClue) {
     clueText = this.stripLineBreaks(clueText);
   }
-  const longClueSummaryPos = clueText.indexOf('...{');
-  if (longClueSummaryPos >= 0) {
-    clueText = this.renderLongClueSummary(clueText, longClueSummaryPos);
+  if (clue.concise) {
+    clueText = this.renderLongClue(clue.concise, clueText);
   }
   let html = '';
   let idx = clueText.indexOf('~{');
