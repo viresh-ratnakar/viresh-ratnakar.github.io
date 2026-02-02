@@ -201,10 +201,12 @@ Version: Exolve v1.66, January 5, 2026
 }
 .xlv-preamble-link {
   display: none;
+  font-size: 80%;
+  font-weight: normal;
 }
 .xlv-phone-display .xlv-title {
   display: inline-block;
-  font-size: 1.2em;
+  font-size: 120%;
   margin: 2px 4px 2px 2px;
 }
 .xlv-phone-display .xlv-setter,

@@ -668,8 +668,8 @@ Exolve.prototype.init = function() {
       <div id="${this.prefix}-title-setter" class="xlv-title-setter">
         <div id="${this.prefix}-title" class="xlv-title"></div>
         <div id="${this.prefix}-setter" class="xlv-setter"></div>
-        <a id="${this.prefix}-preamble-link"
-          href="#${this.prefix}-preamble" class="xlv-preamble-link">Preamble</a>
+        <a id="${this.prefix}-preamble-link" href="#${this.prefix}-preamble"
+            class="xlv-preamble-link xlv-link">Preamble</a>
       </div>
       <div id="${this.prefix}-preamble" class="xlv-preamble"></div>
       <div id="${this.prefix}-clear-area" class="xlv-clear-area"></div>
