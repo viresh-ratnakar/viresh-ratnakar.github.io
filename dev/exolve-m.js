@@ -85,7 +85,7 @@ function Exolve(puzzleSpec,
                 visTop=0,
                 maxDim=0,
                 notTemp=true) {
-  this.VERSION = 'Exolve v1.66.2, January 29, 2026';
+  this.VERSION = 'Exolve v1.66.3, February 2, 2026';
   this.id = '';
 
   this.puzzleText = puzzleSpec;
@@ -665,8 +665,10 @@ Exolve.prototype.init = function() {
 
   const basicHTML = `
     <div class="xlv-frame xlv-flex-col" tabindex="-1" id="${this.prefix}-frame">
-      <h2 id="${this.prefix}-title" class="xlv-title"></h2>
-      <div id="${this.prefix}-setter" class="xlv-setter"></div>
+      <div id="${this.prefix}-title-setter" class="xlv-title-setter">
+        <div id="${this.prefix}-title" class="xlv-title"></div>
+        <div id="${this.prefix}-setter" class="xlv-setter"></div>
+      </div>
       <div id="${this.prefix}-preamble" class="xlv-preamble"></div>
       <div id="${this.prefix}-clear-area" class="xlv-clear-area"></div>
       <div id="${this.prefix}-grid-and-clues" class="xlv-grid-and-clues-flex">
@@ -1331,6 +1333,37 @@ Exolve.prototype.init = function() {
   const maxlen = this.hasRebusCells ?
                  this.MAX_REBUS_SIZE : (2 * this.langMaxCharCodes);
   this.gridInput.maxLength = '' + maxlen;
+
+  this.phoneDisplayTweaks();
+}
+
+Exolve.prototype.phoneDisplayTweaks = function() {
+  if (!this.notTemp || this.viewportDim > 500) {
+    return;
+  }
+  const touchCheck = ('ontouchstart' in window) ||
+                     (navigator.maxTouchPoints > 0);
+  if (!touchCheck) {
+    return;
+  }
+  this.phoneDisplay = true;
+  this.frame.classList.add('xlv-phone-display');
+  this.cluesContainer.insertAdjacentElement('beforebegin', this.preambleElt);
+}
+
+Exolve.prototype.undoPhoneTweaksForPrinting = function() {
+  if (!this.phoneDisplay) {
+    return;
+  }
+  this.frame.classList.remove('xlv-phone-display');
+  this.clearArea.insertAdjacentElement('beforebegin', this.preambleElt);
+}
+Exolve.prototype.redoPhoneTweaksForPrinting = function() {
+  if (!this.phoneDisplay) {
+    return;
+  }
+  this.frame.classList.add('xlv-phone-display');
+  this.cluesContainer.insertAdjacentElement('beforebegin', this.preambleElt);
 }
 
 Exolve.prototype.log = function(msg) {
@@ -9163,6 +9196,9 @@ Exolve.prototype.handleAfterPrint = function() {
     if (this.printingChanges.pageYOffset) {
       window.scrollTo({top: this.printingChanges.pageYOffset});
     }
+    if (this.printingChanges.undoPhoneTweaks) {
+      this.redoPhoneTweaksForPrinting();
+    }
   }
   this.printingChanges = null;
 }
@@ -9655,6 +9691,11 @@ Exolve.prototype.preprint = function(settings) {
   `;
   this.frame.appendChild(customStyles);
   this.printingChanges.extras.push(customStyles);
+
+  if (this.phoneDisplay) {
+    this.undoPhoneTweaksForPrinting();
+    this.printingChanges.undoPhoneTweaks = true;
+  }
 
   if (settings.onlyGrid) {
     this.printOnlyGrid(settings);

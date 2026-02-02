@@ -186,6 +186,9 @@ Version: Exolve v1.66, January 5, 2026
   display: flex;
   flex-flow: column wrap;
 }
+.xlv-title-setter {
+  text-align: center;
+}
 .xlv-title {
   text-align: center;
   font-weight: bold;
@@ -195,6 +198,15 @@ Version: Exolve v1.66, January 5, 2026
 .xlv-setter {
   text-align: center;
   margin: 4px 0 8px 0;
+}
+.xlv-phone-display .xlv-title {
+  display: inline-block;
+  font-size: 1.2em;
+  margin: 2px 4px 2px 2px;
+}
+.xlv-phone-display .xlv-setter {
+  display: inline-block;
+  margin: 2px 2px 2px 4px;
 }
 .xlv-preamble {
   padding: 0;
