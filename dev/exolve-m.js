@@ -569,6 +569,7 @@ function Exolve(puzzleSpec,
     'show-notes-entries': 'Show entered solutions:',
     'show-notes-times': 'Show clue-solving times:',
     'concise-clue.hover': 'Some clue text has been trimmed here for brevity. You can see the full clue by clicking on it.',
+    'preamble-link': 'Preamble',
   };
 
   /**
@@ -669,7 +670,7 @@ Exolve.prototype.init = function() {
         <div id="${this.prefix}-title" class="xlv-title"></div>
         <div id="${this.prefix}-setter" class="xlv-setter"></div>
         <a id="${this.prefix}-preamble-link" href="#${this.prefix}-preamble"
-            class="xlv-preamble-link xlv-link">Preamble</a>
+            class="xlv-preamble-link xlv-link">${this.textLabels['preamble-link']}</a>
       </div>
       <div id="${this.prefix}-preamble" class="xlv-preamble"></div>
       <div id="${this.prefix}-clear-area" class="xlv-clear-area"></div>

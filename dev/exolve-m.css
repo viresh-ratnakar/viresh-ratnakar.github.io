@@ -201,7 +201,7 @@ Version: Exolve v1.66, January 5, 2026
 }
 .xlv-preamble-link {
   display: none;
-  font-size: 80%;
+  font-size: 90%;
   font-weight: normal;
 }
 .xlv-phone-display .xlv-title {
@@ -577,6 +577,9 @@ a.xlv-link:visited {
 }
 a.xlv-link:hover {
   font-weight: bold;
+}
+.xlv-phone-display a.xlv-preamble-link:hover {
+  font-weight: normal;
 }
 .xlv-toggleable {
   margin-top: 6px !important;
