@@ -217,6 +217,9 @@ Version: Exolve v1.66, January 5, 2026
 .xlv-preamble {
   padding: 0;
 }
+.xlv-phone-display .xlv-preamble {
+  padding: 4px;
+}
 .xlv-frame .xlv-preamble table {
   margin: 0;
   width: auto;
