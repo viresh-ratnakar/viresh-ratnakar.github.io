@@ -9,12 +9,15 @@ See the full license notice in exolve-m.js.
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<link rel="stylesheet" type="text/css" href="exolve-m.css?v1.61"/>
-<script src="exolve-m.js?v1.61"></script>
-<script src="exolve-from-ipuz.js?v1.61"></script>
-<script src="exolve-from-puz.js?v1.61"></script>
-<script src="exolve-from-text.js?v1.61"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content"/>
+<link rel="stylesheet" type="text/css" href="exolve-m.css?v1.66"/>
+<script src="exolve-m.js?v1.66"></script>
+<script src="exolve-from-ipuz.js?v1.66"></script>
+<script src="exolve-from-puz.js?v1.66"></script>
+<script src="exolve-from-text.js?v1.66"></script>
+<script src="exolve-to-ipuz.js?v1.66"></script>
+<script src="exolve-to-puz.js?v1.66"></script>
+<script src="exolve-exost.js?v1.66"></script>
 
 <style>
 .xlvp-wait {
@@ -96,11 +99,16 @@ pre,
   border-bottom: 1px solid black;
 }
 #xlvp-save,
-#xlvp-view {
+#xlvp-view,
+#xlvp-exost {
   margin-top: 10px;
 }
 #xlvp-last-crossword {
   float: right;
+}
+.xlvp-xst-status {
+  font-size: 80%;
+  font-size: italic;
 }
 </style>
 
@@ -119,7 +127,7 @@ pre,
   <h2><b>Exolve Player</b></h2>
   <h3><b>Interactively solve a crossword</b></h3>
   <ul class="xlvp-list">
-    <li><b>Drag and drop a crossword file in any of these formats: Exolve, ipuz, puz, text</b></li>
+    <li><b>Drag and drop a crossword file in any of these formats: exolve, ipuz, puz, text</b></li>
     <li><b>Or:</b> <input id="xlvp-file" onchange="xlvpOnOpenFile();" type="file"></input></li>
     <li><b>Or: Enter crossword text (selected from a PDF file, for example):</b>
       <br>
@@ -184,9 +192,87 @@ pre,
         There isn't a current crossword. Perhaps open one?
       </pre>
     </details>
-    <button id="xlvp-save" class="xlvp-button" disabled onclick="xlvpSave()">
-       Save Exolve-converted crossword as exolve-player-output.html
-    </button>
+    <details id="xlvp-exost">
+      <summary>
+        Upload/update this crossword for hosting on Exost
+      </summary>
+      <div style="margin-left:2em;padding:4px;font-size:80%">
+        <table>
+          <tr>
+            <td colspan="2">
+              <label for="xlvp-xst-email">Email: </label>
+              <input type="email" class="xlv-answer" id="xlvp-xst-email" size="32" placeholder="your@email.address">
+            </td>
+          </tr>
+          <tr>
+            <td colspan="2">
+              <label for="xlvp-xst-pwd">Password: </label>
+              <input type="password" class="xlv-answer" id="xlvp-xst-pwd" size="28" placeholder="Retrievable via email">
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Get your password emailed to you:
+            </td>
+            <td>
+              <button onclick="exost.requestPwd()">Go!</button>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="2">
+              <span class="xlvp-xst-status" id="xlvp-xst-pwd-status"></span>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Upload/update Exost-hosted version:
+            </td>
+            <td>
+              <button onclick="exost.uploadExolve(xlvpData, xlvpPuz)">Go!</button>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="2">
+              <span class="xlvp-xst-status" id="xlvp-xst-upload-status"></span>
+            </td>
+          </tr>
+          <tr id="xlvp-xst-url-row">
+            <td colspan="2">
+              Exost URL: <a class="xlvp-xst-status" target="_blank" id="xlvp-xst-url"></a>
+              <button id="xlvp-xst-cpurl-u" onclick="exost.copyURL(xlvpXstUrl, false, 'xlvp-xst-cpurl-u')"
+                title="Copy Exost URL">&#128279;</button>
+              <button id="xlvp-xst-cpurl-e" onclick="exost.copyURL(xlvpXstUrl, true, 'xlvp-xst-cpurl-e')"
+                title="Copy Exost iframe embed code">&lt;/&gt;</button>
+            </td>
+          </tr>
+        </table>
+
+        <p style="font-size:90%;font-style:italic">
+          You can view the list of all your uploaded crosswords (and delete any,
+          if you wish to) at the <a target="_blank"
+              href="https://xlufz.ratnakar.org/exost.html">Exost</a> site.
+          Please note that by uploading your crossword, you're agreeing to
+          the simple terms and conditions listed on the Exost site. In
+          particular, please note that if you've opened someone else's
+          crossword on this page, you shouldn't be uploading it for hosting
+          anywhere unless you've received explicit permission from them.
+        </p>
+      </div>
+    </details>
+    <div>
+      <button id="xlvp-save" class="xlvp-button" disabled onclick="xlvpSave()">
+         Save crossword as:
+      </button>
+      <input id="xlvp-save-prefix" name="xlvp-save-prefix" type="text"
+          size="40" title="Enter filename without suffix"
+          style="text-align:right" value="exolve-player-output"/>
+      <select id="xlvp-save-type" name="xlvp-save-type"
+          title="Choose among .html (Exolve), .puz, .ipuz formats" value="html">
+        <option value="html">.html (Exolve format)</option>
+        <option value="puz">.puz</option>
+        <option value="ipuz">.ipuz</option>
+      </select>
+    </div>
   </div>
   <div id="xlvp-links" style="font-size:80%">
     <p><b>Links</b></p>
@@ -206,6 +292,8 @@ let xlvpFromTextActive = null;
 const xlvpFrame = document.getElementById('xlvp-frame');
 const xlvpSrc = document.getElementById('xlvp-src');
 const xlvpSaveButton = document.getElementById('xlvp-save');
+const xlvpSavePrefix = document.getElementById('xlvp-save-prefix');
+const xlvpSaveType = document.getElementById('xlvp-save-type');
 const xlvpFile = document.getElementById('xlvp-file');
 const xlvpText = document.getElementById('xlvp-text');
 const xlvpW = document.getElementById('xlvp-w');
@@ -222,13 +310,26 @@ let xlvpChoices = [];
 
 const xlvpStateKey = '42-xlvp-player-state';
 
+const exost = new ExolveExost({
+    exostURL: 'https://xlufz.ratnakar.org/exost.html',
+    apiServer: 'https://xlufz.ratnakar.org/exost.php',
+    emailEltId: 'xlvp-xst-email',
+    pwdEltId: 'xlvp-xst-pwd',
+    pwdStatusEltId: 'xlvp-xst-pwd-status',
+    uploadStatusEltId: 'xlvp-xst-upload-status',
+    uploadCallback: xlvpXstUploadCallback
+});
+const xlvpXstUrlRow = document.getElementById('xlvp-xst-url-row');
+const xlvpXstUrlElt = document.getElementById('xlvp-xst-url');
+const xlvpXstUploadStatus = document.getElementById('xlvp-xst-upload-status');
+let xlvpXstUrl = '';
+
 function xlvpSaveState() {
   const state = {
     'data': xlvpData,
     'textW': xlvpW.value,
     'textH': xlvpH.value,
     'textData': xlvpText.value,
-    'saveDisabled': xlvpSaveButton.disabled,
   };
   try {
     window.localStorage.setItem(xlvpStateKey, JSON.stringify(state));
@@ -249,7 +350,7 @@ function xlvpRestoreState() {
     if (state.textH) xlvpH.value = state.textH;
     if (state.textData) xlvpText.value = state.textData;
     if (state.data) {
-      xlvpShowExolveInner(state.data, !state.saveDisabled, true);
+      xlvpShowExolveInner(state.data, true);
     }
     console.log('Successfully restored exolve-player state');
   } catch (err) {
@@ -299,15 +400,15 @@ xlvpLastCrossword.addEventListener('click', xlvpToggleMinimizeCurrent);
 
 xlvpRestoreState();
 
-function xlvpShowExolve(specs, converted=false, hideChooser=true) {
-  const ret = xlvpShowExolveInner(specs, converted, hideChooser);
+function xlvpShowExolve(specs, hideChooser=true) {
+  const ret = xlvpShowExolveInner(specs, hideChooser);
   if (ret) {
     xlvpSaveState();
   }
   return ret;
 }
 
-function xlvpShowExolveInner(specs, converted, hideChooser) {
+function xlvpShowExolveInner(specs, hideChooser) {
   let start = specs.indexOf('exolve-begin')
   let end = specs.indexOf('exolve-end')
   if (start < 0 || end < 0 || start >= end) {
@@ -337,7 +438,7 @@ function xlvpShowExolveInner(specs, converted, hideChooser) {
                                 'exolve-option: ' +
                                 xlvpPuz.optionsForWarningFixes.join(' ') +
                                 '\nexolve-end'; 
-        xlvpShowExolve(noWarningsSpecs, converted, hideChooser);
+        xlvpShowExolve(noWarningsSpecs, hideChooser);
       });
     }
   } catch (err) {
@@ -355,10 +456,26 @@ function xlvpShowExolveInner(specs, converted, hideChooser) {
     }
   }
 
+
   xlvpData = data;
   xlvpSrc.innerText = xlvpData;
-  xlvpSaveButton.disabled = !converted;
+  let xlvpSavePrefixValue = xlvpPuz.title;
+  if (xlvpPuz.setter) {
+    xlvpSavePrefixValue += '-by-' + xlvpPuz.setter;
+  }
+  if (!xlvpSavePrefixValue) {
+    xlvpSavePrefixValue = 'exolve-player-output';
+  } else {
+    xlvpSavePrefixValue = xlvpSavePrefixValue.replace(/\s+/g, '-');
+  }
+  xlvpSavePrefix.value = xlvpSavePrefixValue;
+  xlvpSaveButton.disabled = false;
   xlvpFrame.style.display = '';
+
+  xlvpXstUrl = '';
+  xlvpXstUrlRow.style.display = 'none';
+  xlvpXstUploadStatus.innerHTML = '';
+
   xlvpShowing = true;
   xlvpLastCrossword.innerHTML = 'Hide current crossword';
   xlvpLastCrossword.disabled = false;
@@ -366,16 +483,29 @@ function xlvpShowExolveInner(specs, converted, hideChooser) {
   return true;
 }
 
-function xlvpSave() {
-  const data = '' +
+function xlvpXstUploadCallback(result) {
+  if (result.error) {
+    console.log('Exost upload failed: ' + result.error);
+    return;
+  }
+  if (result.url) {
+    xlvpXstUrl = result.url;
+    xlvpXstUrlElt.href = xlvpXstUrl;
+    xlvpXstUrlElt.innerText = xlvpXstUrl;
+    xlvpXstUrlRow.style.display = '';
+  }
+}
+
+function xlvpSaveGetHTMLData() {
+  return '' +
     '<!DOCTYPE html>\n' +
     '<html lang="en">\n' +
     '<head>\n' +
     '<meta charset="utf-8"/>\n' +
-    '<meta name="viewport" content="width=device-width, initial-scale=1"/>\n' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content"/>\n' +
     '<link rel="stylesheet" type="text/css" ' +
-    'href="https://viresh-ratnakar.github.io/exolve-m.css?v1.61"/>\n' +
-    '<script src="https://viresh-ratnakar.github.io/exolve-m.js?v1.61">' +
+    'href="https://viresh-ratnakar.github.io/exolve-m.css"/>\n' +
+    '<script src="https://viresh-ratnakar.github.io/exolve-m.js">' +
     '<\/script>\n' +
     '<\/head>\n' +
     '<body>\n' +
@@ -386,16 +516,38 @@ function xlvpSave() {
     '<\/script>\n' +
     '<\/body>\n' +
     '<\/html>\n';
-  const a = document.createElement("a");
-  a.style.display = "none";
-  document.body.appendChild(a);
-  a.href = window.URL.createObjectURL(
-    new Blob([data], {type: "text/html;charset=UTF-8"})
-  );
-  a.setAttribute("download", 'exolve-player-output.html');
-  a.click();
-  window.URL.revokeObjectURL(a.href);
-  document.body.removeChild(a);
+}
+
+function xlvpSaveGetDetails() {
+  const ret = {
+    filename: '',
+    data: '',
+    contentType: '',
+  };
+  if (xlvpSaveType.value == 'html') {
+    ret.filename = xlvpSavePrefix.value + '.html';
+    ret.data = xlvpSaveGetHTMLData();
+    ret.contentType = 'text/html;charset=UTF-8';
+  } else if (xlvpSaveType.value == 'puz') {
+    ret.filename = xlvpSavePrefix.value + '.puz';
+    ret.data = exolveToPuz(xlvpPuz);
+    ret.contentType = 'application/x-crossword';
+  } else if (xlvpSaveType.value == 'ipuz') {
+    ret.filename = xlvpSavePrefix.value + '.ipuz';
+    ret.data = exolveToIpuz(xlvpPuz);
+    ret.contentType = 'application/x-crossword';
+  }
+  return ret;
+}
+
+function xlvpSave() {
+  const saveDetails = xlvpSaveGetDetails();
+  if (!saveDetails.data) {
+    alert("Could not export data to the desired format");
+    return;
+  }
+  Exolve.prototype.fileDownload(
+      saveDetails.data, saveDetails.contentType, saveDetails.filename);
 }
 
 function xlvpShowIpuz(specs, fname) {
@@ -475,17 +627,20 @@ function xlvpDrag(ev) {
 
 function xlvpOnText() {
   if (xlvpFromTextActive) {
-    /* Cancel as been clicked */
+    /* Cancel has been clicked */
     xlvpEndFromTextWorker();
     return;
   }
   xlvpShowText(xlvpText.value);
 }
 
-function xlvpEndFromTextWorker() {
+function xlvpRestoreInferDisplay() {
   xlvpInfer.innerHTML = xlvpInferHTML;
   xlvpInfer.className = 'xlvp-button';
   xlvpInferMsg.innerHTML = '';
+}
+
+function xlvpEndFromTextWorker() {
   if (xlvpFromTextActive) {
     xlvpFromTextActive.worker.terminate();
     xlvpFromTextActive = null;
@@ -493,13 +648,20 @@ function xlvpEndFromTextWorker() {
 }
 
 function xlvpShowText(text, fname='provided text') {
+  xlvpInferMsg.innerHTML = 'Generating candidates...';
+  xlvpInfer.innerHTML = 'Working! [click to cancel]';
+  xlvpInfer.className = 'xlvp-button-working';
+  xlvpInferMsg.offsetHeight;  /** hack to force repaint */
+  /** Try to get the UI to update */
+  setTimeout(xlvpShowTextInner, 0, text, fname);
+}
+
+function xlvpShowTextInner(text, fname) {
+  xlvpInferMsg.style.display = '';  /** force repaint */
   if (xlvpFromTextActive) {
     /* New text data, kill the old worker if active */
     xlvpEndFromTextWorker();
   }
-  xlvpInfer.className = 'xlvp-button-working';
-  xlvpInfer.innerHTML = 'Working! [click to cancel]';
-
   const w = xlvpW.value;
   const h = xlvpH.value;
 
@@ -510,6 +672,7 @@ function xlvpShowText(text, fname='provided text') {
                      ' grid from ' + fname + ': ' + worker;
     alert(alertMsg);
     xlvpEndFromTextWorker();
+    xlvpRestoreInferDisplay();
     return;
   }
   xlvpFromTextActive = {
@@ -537,6 +700,7 @@ function xlvpHandleFromTextMessage(message) {
   const saved = xlvpFromTextActive;
 
   xlvpEndFromTextWorker();
+  xlvpRestoreInferDisplay();
 
   const matches = message.results || [];
   if (matches.length == 0) {
@@ -570,7 +734,7 @@ function xlvpHandleFromTextMessage(message) {
       xlvpChoices.push(smallXlv);
       const chooser = document.getElementById(`xlvp-chooser-${i}`);
       chooser.addEventListener('click', () => {
-        xlvpShowExolve(matches[i].exolve, true, false);
+        xlvpShowExolve(matches[i].exolve, false);
         chooser.classList.add('xlvp-chooser-entry-sel');
         for (let j = 0; j < matches.length; j++) {
           if (j == i) {
