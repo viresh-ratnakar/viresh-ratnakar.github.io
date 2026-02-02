@@ -9204,7 +9204,7 @@ Exolve.prototype.handleAfterPrint = function() {
       window.scrollTo({top: this.printingChanges.pageYOffset});
     }
     if (this.printingChanges.undoPhoneTweaks) {
-      this.redoPhoneTweaksAfterPrinting();
+      this.redoPhoneTweaks();
     }
   }
   this.printingChanges = null;
