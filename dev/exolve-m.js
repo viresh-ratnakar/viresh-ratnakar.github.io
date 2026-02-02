@@ -668,6 +668,8 @@ Exolve.prototype.init = function() {
       <div id="${this.prefix}-title-setter" class="xlv-title-setter">
         <div id="${this.prefix}-title" class="xlv-title"></div>
         <div id="${this.prefix}-setter" class="xlv-setter"></div>
+        <a id="${this.prefix}-preamble-link"
+          href="#${this.prefix}-preamble" class="xlv-preamble-link">Preamble</a>
       </div>
       <div id="${this.prefix}-preamble" class="xlv-preamble"></div>
       <div id="${this.prefix}-clear-area" class="xlv-clear-area"></div>
@@ -1122,6 +1124,7 @@ Exolve.prototype.init = function() {
     this.setterElt.style.display = 'none';
   }
   this.preambleElt = document.getElementById(this.prefix + '-preamble');
+  this.preambleLinkElt = document.getElementById(this.prefix + '-preamble-link');
   this.copyrightElt = document.getElementById(this.prefix + '-copyright');
   if (this.copyright) {
     this.copyrightElt.innerHTML = 'Ⓒ ' + this.copyright;
@@ -1333,8 +1336,6 @@ Exolve.prototype.init = function() {
   const maxlen = this.hasRebusCells ?
                  this.MAX_REBUS_SIZE : (2 * this.langMaxCharCodes);
   this.gridInput.maxLength = '' + maxlen;
-
-  this.phoneDisplayTweaks();
 }
 
 Exolve.prototype.phoneDisplayTweaks = function() {
@@ -1347,23 +1348,28 @@ Exolve.prototype.phoneDisplayTweaks = function() {
     return;
   }
   this.phoneDisplay = true;
-  this.frame.classList.add('xlv-phone-display');
-  this.cluesContainer.insertAdjacentElement('beforebegin', this.preambleElt);
+  this.redoPhoneTweaks();
 }
 
-Exolve.prototype.undoPhoneTweaksForPrinting = function() {
+Exolve.prototype.undoPhoneTweaksBeforePrinting = function() {
   if (!this.phoneDisplay) {
     return;
   }
   this.frame.classList.remove('xlv-phone-display');
   this.clearArea.insertAdjacentElement('beforebegin', this.preambleElt);
+  if (this.preamble) {
+    this.preambleLinkElt.classList.remove('xlv-preamble-link-shown');
+  }
 }
-Exolve.prototype.redoPhoneTweaksForPrinting = function() {
+Exolve.prototype.redoPhoneTweaks = function() {
   if (!this.phoneDisplay) {
     return;
   }
   this.frame.classList.add('xlv-phone-display');
   this.cluesContainer.insertAdjacentElement('beforebegin', this.preambleElt);
+  if (this.preamble) {
+    this.preambleLinkElt.classList.add('xlv-preamble-link-shown');
+  }
 }
 
 Exolve.prototype.log = function(msg) {
@@ -2295,11 +2301,11 @@ Exolve.prototype.parseAndDisplayPrelude = function() {
   if (lines[0] < 0) {
     return;
   }
-  const preamble = this.extractSectionLines(lines[0], lines[1]);
-  if (!preamble) {
+  this.preamble = this.extractSectionLines(lines[0], lines[1]);
+  if (!this.preamble) {
     return;
   }
-  this.preambleElt.innerHTML = preamble;
+  this.preambleElt.innerHTML = this.preamble;
 }
 
 Exolve.prototype.parseAndDisplayPS = function() {
@@ -9197,7 +9203,7 @@ Exolve.prototype.handleAfterPrint = function() {
       window.scrollTo({top: this.printingChanges.pageYOffset});
     }
     if (this.printingChanges.undoPhoneTweaks) {
-      this.redoPhoneTweaksForPrinting();
+      this.redoPhoneTweaksAfterPrinting();
     }
   }
   this.printingChanges = null;
@@ -9693,7 +9699,7 @@ Exolve.prototype.preprint = function(settings) {
   this.printingChanges.extras.push(customStyles);
 
   if (this.phoneDisplay) {
-    this.undoPhoneTweaksForPrinting();
+    this.undoPhoneTweaksBeforePrinting();
     this.printingChanges.undoPhoneTweaks = true;
   }
 
@@ -10330,6 +10336,7 @@ Exolve.prototype.createPuzzle = function() {
   this.makeNotesPanel();
   this.resizeCurrClueAndControls();
   this.setColumnLayout();
+  this.phoneDisplayTweaks();
 
   this.restoreState();
   this.checkConsistency();
