@@ -1353,11 +1353,6 @@ Exolve.prototype.phoneDisplayTweaks = function() {
     return;
   }
   this.phoneDisplay = true;
-  this.iPhoneDisplay = /iPhone/i.test(navigator.userAgent);
-  if (this.iPhoneDisplay && this.visTop == 0) {
-    this.visTop = 100;
-    this.currClue.style.top = '100px';
-  }
   this.redoPhoneTweaks();
 }
 
