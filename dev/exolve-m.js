@@ -75,8 +75,7 @@ var exolvePuzzles;
  *    puzzle and your web page is going to destroy it for some reason during
  *    its normal course (ExolvePlayer does this, for example), then you should
  *    call destroy() on the puzzle object before removing all references to it.
- *    This will remove *    listeners for 'resize' and printing events, for
- *    example.
+ *    This will remove listeners for 'resize' and printing events, for example.
  */
 function Exolve(puzzleSpec,
                 containerId='',
@@ -1340,7 +1339,12 @@ Exolve.prototype.init = function() {
 }
 
 Exolve.prototype.phoneDisplayTweaks = function() {
-  if (!this.notTemp || this.viewportDim > 500) {
+  if (!this.notTemp || this.viewportDim > 500 ||
+      /**
+       * If there's anyway significant content above the puzzle, don't bother
+       * as the user anyway has to scroll to it.
+       */
+      this.frame.offsetTop > 16) {
     return;
   }
   const touchCheck = ('ontouchstart' in window) ||
