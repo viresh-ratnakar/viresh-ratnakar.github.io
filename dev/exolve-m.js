@@ -1353,11 +1353,6 @@ Exolve.prototype.phoneDisplayTweaks = function() {
     return;
   }
   this.phoneDisplay = true;
-  if (/iPhone/.test(navigator.userAgent)) {
-    this.gridPanel.addEventListener(
-        'mousedown', this.iPhoneInputStart.bind(this));
-    this.gridInput.addEventListener('focus', this.iPhoneInputEnd.bind(this));
-  }
   this.redoPhoneTweaks();
 }
 
@@ -1380,16 +1375,6 @@ Exolve.prototype.redoPhoneTweaks = function() {
   if (this.preamble) {
     this.preambleLinkElt.classList.add('xlv-preamble-link-shown');
   }
-}
-
-/**
- * iPhone hacks to avoid scrolling when gridInput is clicked on.
- */
-Exolve.prototype.iPhoneInputStart = function(evt) {
-  this.iPhoneTop = window.scrollY;
-}
-Exolve.prototype.iPhoneInputEnd = function(evt) {
-  window.scrollTo(0, this.iPhoneTop);
 }
 
 Exolve.prototype.log = function(msg) {
@@ -6085,6 +6070,16 @@ Exolve.prototype.deactivateCurrClue = function() {
   this.clearButton.disabled = true;
   this.checkButton.disabled = true;
   this.revealButton.disabled = true;
+
+  if (this.phoneDisplay) {
+    /**
+     * Unblur any blurred top elements.
+     */
+    const topElts = [this.titleElt, this.setterElt, this.preambleLinkElt];
+    for (const elt of topElts) {
+      elt.style.opacity = 1.0;
+    }
+  }
 }
 
 Exolve.prototype.resizeCurrClueAndControls = function() {
@@ -6110,6 +6105,26 @@ Exolve.prototype.resizeCurrClueAndControls = function() {
   const horOffset = (gPos.width >= width) ?
     gPos.left : ((gpPos.width - width) / 2);
   this.currClue.style.left = horOffset + 'px';
+
+  if (this.phoneDisplay) {
+    /**
+     * Blur any top elements obscured by currClue.
+     */
+    const cBoxFinal = this.currClue.getBoundingClientRect();
+    if (this.currClueIndex && cBoxFinal.top > 0) {
+      const top = cBoxFinal.top - this.visTop;
+      const right = cBoxFinal.right;
+      const topElts = [this.titleElt, this.setterElt, this.preambleLinkElt];
+      for (const elt of topElts) {
+        elt.style.opacity = 1.0;
+        const box = elt.getBoundingClientRect();
+        if (box.bottom >= top && box.left <= right) {
+          elt.style.opacity = 0.3;
+        }
+      }
+    }
+  }
+
 }
 
 Exolve.prototype.gnavToInner = function(cell, dir) {
