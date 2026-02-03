@@ -1353,13 +1353,11 @@ Exolve.prototype.phoneDisplayTweaks = function() {
     return;
   }
   this.phoneDisplay = true;
-  /**
-   * Stop gridInput-clicks from scrolling.
-   */
-  this.phoneDisplayTop = 0;
-  this.gridParent.addEventListener(
-      'mousedown', this.phoneEntryMouseDown.bind(this));
-  this.gridInput.addEventListener('focus', this.phoneEntryFocus.bind(this));
+  if (/iPhone/.test(navigator.userAgent)) {
+    this.gridPanel.addEventListener(
+        'mousedown', this.iPhoneInputStart.bind(this));
+    this.gridInput.addEventListener('focus', this.iPhoneInputEnd.bind(this));
+  }
   this.redoPhoneTweaks();
 }
 
@@ -1385,14 +1383,13 @@ Exolve.prototype.redoPhoneTweaks = function() {
 }
 
 /**
- * Hacks to make iOS not scroll around when input cell is clicked on.
+ * iPhone hacks to avoid scrolling when gridInput is clicked on.
  */
-Exolve.prototype.phoneEntryMouseDown = function(evt) {
-  this.phoneDisplayTop = window.scrollY;
+Exolve.prototype.iPhoneInputStart = function(evt) {
+  this.iPhoneTop = window.scrollY;
 }
-Exolve.prototype.phoneEntryFocus = function(evt) {
-  const pre = window.scrollY;
-  window.scrollY = this.phoneDisplayTop;
+Exolve.prototype.iPhoneInputEnd = function(evt) {
+  window.scrollTo(0, this.iPhoneTop);
 }
 
 Exolve.prototype.log = function(msg) {
