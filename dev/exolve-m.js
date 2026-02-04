@@ -1398,6 +1398,14 @@ Exolve.prototype.maybeEnablePhoneKB = function() {
     console.log('Phone keyboard unsupported for language: ' + lang);
     return;
   }
+  if (this.allowChars && Object.keys(this.allowChars).length > 0) {
+    console.log('Phone keyboard unsupported with special chars allowed.');
+    return;
+  }
+  if (this.hasRebusCells) {
+    console.log('Phone keyboard unsupported with rebus cells.');
+    return;
+  }
   const otherKBRows = document.getElementsByClassName('xlv-phone-kb-row');
   if (otherKBRows.length > 0) {
     console.log(
