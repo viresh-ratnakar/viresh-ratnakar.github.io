@@ -620,6 +620,7 @@ a.xlv-link:hover {
   position: fixed;
   flex-direction: column;
   gap: 4px;
+  padding: 4px 0;
   user-select: none;
   width: 100%;
 }
