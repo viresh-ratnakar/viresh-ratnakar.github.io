@@ -1369,17 +1369,7 @@ Exolve.prototype.phoneDisplayTweaks = function() {
     return;
   }
   this.phoneDisplay = true;
-  this.phoneKB = this.maybeEnablePhoneKB();
-  if (this.phoneKB) {
-    this.gridInput.inputMode = 'none';
-    const phk = this.phoneKB;
-    this.gridInput.addEventListener('focus', (evt) => {
-      /** Avoid bringing up the on-screen keyboard. */
-      evt.preventDefault();
-      evt.target.blur();
-      phk.show();
-    });
-  }
+  this.maybeEnablePhoneKB();
   this.redoPhoneTweaks();
 }
 
@@ -1407,19 +1397,30 @@ Exolve.prototype.redoPhoneTweaks = function() {
 Exolve.prototype.maybeEnablePhoneKB = function() {
   const lang = (this.language.toLowerCase() || 'en');
   if (lang != 'en' && lang != 'en-US' && lang != 'en-GB') {
-    return null;
+    console.log('Phone keyboard unsupported for language: ' + lang);
+    return;
   }
   const otherKBRows = document.getElementsByClassName('xlv-phone-kb-row');
   if (otherKBRows.length > 0) {
     console.log(
         "There's already an ExolveKeyboard, cannot have one for " + this.id);
-    return null;
+    return;
   }
   const phoneKBElt = document.getElementById(this.prefix + '-phone-kb');
   if (!phoneKBElt) {
-    return null;
+    console.log('Missing phone keyboard element: ' + this.prefix + '-phone-kb');
+    return;
   }
-  return new ExolveKeyboard(phoneKBElt, this.onPhoneKBInput.bind(this));
+  this.phoneKB = new ExolveKeyboard(phoneKBElt, this.onPhoneKBInput.bind(this));
+  this.gridInput.inputMode = 'none';
+  const phk = this.phoneKB;
+  this.gridInput.addEventListener('focus', (evt) => {
+    /** Avoid bringing up the on-screen keyboard. */
+    evt.preventDefault();
+    evt.target.blur();
+    phk.show();
+  });
+  screen.orientation.lock('portrait');  /** Does not work on iphones */
 }
 
 Exolve.prototype.onPhoneKBInput = function(ch) {
