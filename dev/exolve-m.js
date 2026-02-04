@@ -1364,6 +1364,7 @@ Exolve.prototype.phoneDisplayTweaks = function() {
   this.phoneDisplay = true;
   this.phoneKB = this.maybeEnablePhoneKB();
   if (this.phoneKB) {
+    this.gridInput.inputMode = 'none';
     const phk = this.phoneKB;
     this.gridInput.addEventListener('focus', (evt) => {
       evt.preventDefault();
