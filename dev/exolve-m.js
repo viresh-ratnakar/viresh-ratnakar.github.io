@@ -1367,6 +1367,7 @@ Exolve.prototype.phoneDisplayTweaks = function() {
     this.gridInput.inputMode = 'none';
     const phk = this.phoneKB;
     this.gridInput.addEventListener('focus', (evt) => {
+      /** Avoid bringing up the on-screen keyboard. */
       evt.preventDefault();
       evt.target.blur();
       phk.show();

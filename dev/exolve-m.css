@@ -623,7 +623,7 @@ a.xlv-link:hover {
   align-items: center;
   font-family: monospace;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: bold;
   user-select: none;
 }
 .xlv-phone-kb-row {
@@ -637,12 +637,10 @@ a.xlv-link:hover {
 .xlv-phone-kb-btn {
   width: 9.5%;
   aspect-ratio: 1;
-  
   border: 1px solid #ccc;
   background-color: #f9f9f9;
   cursor: pointer;
   transition: background-color 0.1s, transform 0.05s;
-  
   display: flex;
   align-items: center;
   justify-content: center;
