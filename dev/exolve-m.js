@@ -10455,6 +10455,9 @@ Exolve.prototype.createPuzzle = function() {
   this.setWordEndsAndHyphens();
   this.setUpGnav();
 
+  /** Done before applyStyles */
+  this.phoneDisplayTweaks();
+
   this.applyStyles();
 
   this.redisplayQuestions();
@@ -10472,7 +10475,6 @@ Exolve.prototype.createPuzzle = function() {
   this.makeNotesPanel();
   this.resizeCurrClueAndControls();
   this.setColumnLayout();
-  this.phoneDisplayTweaks();
 
   this.restoreState();
   this.checkConsistency();

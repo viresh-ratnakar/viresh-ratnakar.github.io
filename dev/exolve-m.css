@@ -614,17 +614,14 @@ a.xlv-link:hover {
  * TODO: make this tweakable.
  */
 .xlv-phone-kb {
+  align-items: center;
   background-color: whitesmoke;
   bottom: 0;
   position: fixed;
-  width: 100%;
   flex-direction: column;
   gap: 4px;
-  align-items: center;
-  font-family: monospace;
-  font-size: 16px;
-  font-weight: bold;
   user-select: none;
+  width: 100%;
 }
 .xlv-phone-kb-row {
   box-sizing: content-box;
@@ -635,15 +632,19 @@ a.xlv-link:hover {
   width: 100%;
 }
 .xlv-phone-kb-btn {
-  width: 9.5%;
   aspect-ratio: 1;
-  border: 1px solid #ccc;
-  background-color: #f9f9f9;
-  cursor: pointer;
-  transition: background-color 0.1s, transform 0.05s;
-  display: flex;
   align-items: center;
+  border: 1px solid #ccc;
+  background-color: #fafafa;
+  color: black;
+  cursor: pointer;
+  display: flex;
+  font-family: monospace;
+  font-size: 16px;
+  font-weight: bold;
   justify-content: center;
+  transition: background-color 0.1s, transform 0.05s;
+  width: 9.5%;
 }
 .xlv-phone-kb-btn:hover {
   background-color: #eef;
