@@ -329,6 +329,13 @@ function Exolve(puzzleSpec,
     'small-button-text': 'darkgreen',
     'solution': 'dodgerblue',
     'solved': 'dodgerblue',
+    'phone-kb-bg': 'whitesmoke',
+    'phone-kb-btn-border': '#ccc',
+    'phone-kb-btn-bg': '#fafafa',
+    'phone-kb-btn-text': 'black',
+    'phone-kb-btn-bg-hover': '#eef',
+    'phone-kb-btn-border-hover': '#bbb',
+    'phone-kb-btn-bg-active': '#dde',
   };
   this.darkColorScheme = {
     ...this.lightColorScheme,
@@ -5102,7 +5109,7 @@ Exolve.prototype.applyStyles = function() {
     customStyles.id = id;
     this.frame.appendChild(customStyles);
   }
-  customStyles.innerHTML = `
+  let css = `
     #${this.prefix}-frame .xlv-curr-clue {
       top: ${this.visTop > 0 ? (this.visTop + 'px') : 0};
     }
@@ -5147,6 +5154,26 @@ Exolve.prototype.applyStyles = function() {
       animation-name: ${this.prefix}-overwritten-anim;
     }
   `;
+  if (this.phoneKB) {
+    css += `
+    #${this.prefix}-frame .xlv-phone-kb {
+      background-color: ${this.colorScheme['phone-kb-bg']};
+    }
+    #${this.prefix}-frame .xlv-phone-kb-btn {
+      border: 1px solid ${this.colorScheme['phone-kb-btn-border']};
+      background-color: ${this.colorScheme['phone-kb-btn-bg']};
+      color: ${this.colorScheme['phone-kb-btn-text']};
+    }
+    #${this.prefix}-frame .xlv-phone-kb-btn:hover {
+      background-color: ${this.colorScheme['phone-kb-btn-bg-hover']};
+      border-color: ${this.colorScheme['phone-kb-btn-border-hover']};
+    }
+    #${this.prefix}-frame .xlv-phone-kb-btn:active {
+      background-color: ${this.colorScheme['phone-kb-btn-bg-active']};
+    }
+    `;
+  }
+  customStyles.innerHTML = css;
 }
 
 Exolve.prototype.stripLineBreaks = function(s) {

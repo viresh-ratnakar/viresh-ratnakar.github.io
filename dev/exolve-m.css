@@ -611,11 +611,9 @@ a.xlv-link:hover {
 
 /**
  * Phone keyboard styling.
- * TODO: make this tweakable.
  */
 .xlv-phone-kb {
   align-items: center;
-  background-color: whitesmoke;
   bottom: 0;
   position: fixed;
   flex-direction: column;
@@ -636,9 +634,6 @@ a.xlv-link:hover {
 .xlv-phone-kb-btn {
   aspect-ratio: 1;
   align-items: center;
-  border: 1px solid #ccc;
-  background-color: #fafafa;
-  color: black;
   cursor: pointer;
   display: flex;
   font-family: monospace;
@@ -648,13 +643,8 @@ a.xlv-link:hover {
   transition: background-color 0.1s, transform 0.05s;
   width: 9.5%;
 }
-.xlv-phone-kb-btn:hover {
-  background-color: #eef;
-  border-color: #bbb;
-}
 .xlv-phone-kb-btn:active {
   transform: translateY(2px);
-  background-color: #dde;
 }
 .xlv-phone-kb-close {
   border-radius: 50%;
