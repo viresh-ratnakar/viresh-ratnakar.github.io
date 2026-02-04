@@ -1368,6 +1368,7 @@ Exolve.prototype.phoneDisplayTweaks = function() {
     const phk = this.phoneKB;
     this.gridInput.addEventListener('focus', (evt) => {
       evt.preventDefault();
+      evt.target.blur();
       phk.show();
     });
   }
