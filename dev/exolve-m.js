@@ -1420,7 +1420,6 @@ Exolve.prototype.maybeEnablePhoneKB = function() {
     evt.target.blur();
     phk.show();
   });
-  screen.orientation.lock('portrait');  /** Does not work on iphones */
 }
 
 Exolve.prototype.onPhoneKBInput = function(ch) {
