@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, interactive-widget=resizes-content"/>
 <!--
 MIT License
 
@@ -132,7 +132,7 @@ function Exolve(puzzleSpec,
                 visTop=0,
                 maxDim=0,
                 notTemp=true) {
-  this.VERSION = 'Exolve v1.66.3, February 2, 2026';
+  this.VERSION = 'Exolve v1.67, February 4, 2026';
   this.id = '';
 
   this.puzzleText = puzzleSpec;
@@ -377,6 +377,11 @@ function Exolve(puzzleSpec,
     'small-button-text': 'darkgreen',
     'solution': 'dodgerblue',
     'solved': 'dodgerblue',
+    'phone-kb-bg': 'whitesmoke',
+    'phone-kb-btn-border': 'mistyrose',
+    'phone-kb-btn-bg': '#fafafa',
+    'phone-kb-btn-text': 'black',
+    'phone-kb-btn-bg-active': '#ffb6b4',
   };
   this.darkColorScheme = {
     ...this.lightColorScheme,
@@ -1083,6 +1088,11 @@ Exolve.prototype.init = function() {
                 xlv-explanations" style="display:none"></div>
           </div> <!-- xlv-controls-etc -->
         </div> <!-- xlv-grid-panel -->
+
+        <div id="${this.prefix}-phone-kb" style="display:none"
+            class="xlv-phone-kb">
+        </div>
+
         <div id="${this.prefix}-clues" class="xlv-clues xlv-clues-flex">
           <div class="xlv-clues-panel" style="display:none">
             <div id="${this.prefix}-across-label"
@@ -1387,6 +1397,10 @@ Exolve.prototype.init = function() {
 }
 
 Exolve.prototype.phoneDisplayTweaks = function() {
+  /**
+   * Don't use phone settings in temp crosswords (thus also avoid using them in
+   * Exet) and in big-enough displays.
+   */
   if (!this.notTemp || this.viewportDim > 500 ||
       /**
        * If there's anyway significant content above the puzzle, don't bother
@@ -1401,6 +1415,7 @@ Exolve.prototype.phoneDisplayTweaks = function() {
     return;
   }
   this.phoneDisplay = true;
+  this.maybeEnablePhoneKB();
   this.redoPhoneTweaks();
 }
 
@@ -1424,6 +1439,95 @@ Exolve.prototype.redoPhoneTweaks = function() {
     this.preambleLinkElt.classList.add('xlv-preamble-link-shown');
   }
 }
+
+Exolve.prototype.maybeEnablePhoneKB = function() {
+  const lang = (this.language.toLowerCase() || 'en');
+  if (lang != 'en' && lang != 'en-US' && lang != 'en-GB') {
+    console.log('Phone keyboard unsupported for language: ' + lang);
+    return;
+  }
+  const otherKBRows = document.getElementsByClassName('xlv-phone-kb-row');
+  if (otherKBRows.length > 0) {
+    console.log(
+        "There's already an ExolveKeyboard, cannot have one for " + this.id);
+    return;
+  }
+  const phoneKBElt = document.getElementById(this.prefix + '-phone-kb');
+  if (!phoneKBElt) {
+    console.log('Missing phone keyboard element: ' + this.prefix + '-phone-kb');
+    return;
+  }
+  this.phoneKB = new ExolveKeyboard(phoneKBElt, this.onPhoneKBInput.bind(this));
+  this.gridInput.inputMode = 'none';
+  const phk = this.phoneKB;
+  this.gridInput.addEventListener('focus', (evt) => {
+    /** Avoid bringing up the on-screen keyboard. */
+    evt.preventDefault();
+    evt.target.blur();
+    phk.show();
+  });
+}
+
+Exolve.prototype.onPhoneKBInput = function(ch) {
+  if (ch == ExolveKeyboard.CLOSE_KEY) {
+    this.deactivator();
+    return;
+  }
+  if (ch == ExolveKeyboard.DELETE_KEY) {
+    ch = '';
+  }
+  this.gridInput.value = ch;
+  this.handleGridInput();
+  if (!ch) {
+    this.retreatCursorInLight();
+  }
+}
+
+class ExolveKeyboard {
+  static DELETE_KEY = "&#x232B;";
+  static CLOSE_KEY = "&times;";
+
+  constructor(container, onInput) {
+    this.container = container;
+    this.onInput = onInput;
+    this.layout = [
+      ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
+      ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
+      [
+        ExolveKeyboard.CLOSE_KEY,
+        "Z", "X", "C", "V", "B", "N", "M",
+        ExolveKeyboard.DELETE_KEY
+      ]
+    ];
+    this.render();
+  }
+
+  show() {
+    this.container.style.display = 'flex';
+  }
+  hide() {
+    this.container.style.display = 'none';
+  }
+  render() {
+    this.container.innerHTML = "";
+
+    this.layout.forEach((rowKeys) => {
+      const rowDiv = document.createElement("div");
+      rowDiv.classList.add("xlv-phone-kb-row");
+      rowKeys.forEach((ch) => {
+        const btn = document.createElement("button");
+        btn.innerHTML = ch;
+        btn.classList.add("xlv-phone-kb-btn");
+        if (ch == ExolveKeyboard.CLOSE_KEY) {
+          btn.classList.add("xlv-phone-kb-close");
+        }
+        btn.addEventListener("click", () => this.onInput(ch));
+        rowDiv.appendChild(btn);
+      });
+      this.container.appendChild(rowDiv);
+    });
+  }
+};
 
 Exolve.prototype.log = function(msg) {
   console.log('Exolve puzzle #' + this.index + ' [' + this.id + ']: ' + msg)
@@ -5051,7 +5155,7 @@ Exolve.prototype.applyStyles = function() {
     customStyles.id = id;
     this.frame.appendChild(customStyles);
   }
-  customStyles.innerHTML = `
+  let css = `
     #${this.prefix}-frame .xlv-curr-clue {
       top: ${this.visTop > 0 ? (this.visTop + 'px') : 0};
     }
@@ -5096,6 +5200,22 @@ Exolve.prototype.applyStyles = function() {
       animation-name: ${this.prefix}-overwritten-anim;
     }
   `;
+  if (this.phoneKB) {
+    css += `
+    #${this.prefix}-frame .xlv-phone-kb {
+      background-color: ${this.colorScheme['phone-kb-bg']};
+    }
+    #${this.prefix}-frame .xlv-phone-kb-btn {
+      border: 2px solid ${this.colorScheme['phone-kb-btn-border']};
+      background-color: ${this.colorScheme['phone-kb-btn-bg']};
+      color: ${this.colorScheme['phone-kb-btn-text']};
+    }
+    #${this.prefix}-frame .xlv-phone-kb-btn:active {
+      background-color: ${this.colorScheme['phone-kb-btn-bg-active']};
+    }
+    `;
+  }
+  customStyles.innerHTML = css;
 }
 
 Exolve.prototype.stripLineBreaks = function(s) {
@@ -6061,6 +6181,9 @@ Exolve.prototype.deactivateCurrCell = function() {
     }
   }
   this.activeCells = [];
+  if (this.phoneKB) {
+    this.phoneKB.hide();
+  }
 }
 
 // Utils --------------------
@@ -6118,6 +6241,16 @@ Exolve.prototype.deactivateCurrClue = function() {
   this.clearButton.disabled = true;
   this.checkButton.disabled = true;
   this.revealButton.disabled = true;
+
+  if (this.phoneDisplay) {
+    /**
+     * Unblur any blurred top elements.
+     */
+    const topElts = [this.titleElt, this.setterElt, this.preambleLinkElt];
+    for (const elt of topElts) {
+      elt.style.opacity = 1.0;
+    }
+  }
 }
 
 Exolve.prototype.resizeCurrClueAndControls = function() {
@@ -6143,6 +6276,25 @@ Exolve.prototype.resizeCurrClueAndControls = function() {
   const horOffset = (gPos.width >= width) ?
     gPos.left : ((gpPos.width - width) / 2);
   this.currClue.style.left = horOffset + 'px';
+
+  if (this.phoneDisplay) {
+    /**
+     * Blur any top elements obscured by currClue.
+     */
+    const cBoxFinal = this.currClue.getBoundingClientRect();
+    if (this.currClueIndex && cBoxFinal.top > 0) {
+      const top = cBoxFinal.top - this.visTop;
+      const right = cBoxFinal.right;
+      const topElts = [this.titleElt, this.setterElt, this.preambleLinkElt];
+      for (const elt of topElts) {
+        elt.style.opacity = 1.0;
+        const box = elt.getBoundingClientRect();
+        if (box.bottom >= top && box.left <= right) {
+          elt.style.opacity = 0.3;
+        }
+      }
+    }
+  }
 }
 
 Exolve.prototype.gnavToInner = function(cell, dir) {
@@ -9243,6 +9395,9 @@ Exolve.prototype.handleAfterPrint = function() {
     this.recolourCells();
     this.redisplayNinas();
 
+    if (this.printingChanges.undidPhoneTweaks) {
+      this.redoPhoneTweaks();
+    }
     // Restore active clue/cells.
     if (this.printingChanges.usingGnav) {
       this.currDir = this.printingChanges.currDir;
@@ -9254,9 +9409,6 @@ Exolve.prototype.handleAfterPrint = function() {
 
     if (this.printingChanges.pageYOffset) {
       window.scrollTo({top: this.printingChanges.pageYOffset});
-    }
-    if (this.printingChanges.undoPhoneTweaks) {
-      this.redoPhoneTweaks();
     }
   }
   this.printingChanges = null;
@@ -9753,7 +9905,7 @@ Exolve.prototype.preprint = function(settings) {
 
   if (this.phoneDisplay) {
     this.undoPhoneTweaksBeforePrinting();
-    this.printingChanges.undoPhoneTweaks = true;
+    this.printingChanges.undidPhoneTweaks = true;
   }
 
   if (settings.onlyGrid) {
@@ -10372,6 +10524,9 @@ Exolve.prototype.createPuzzle = function() {
   this.setWordEndsAndHyphens();
   this.setUpGnav();
 
+  /** Done before applyStyles */
+  this.phoneDisplayTweaks();
+
   this.applyStyles();
 
   this.redisplayQuestions();
@@ -10389,7 +10544,6 @@ Exolve.prototype.createPuzzle = function() {
   this.makeNotesPanel();
   this.resizeCurrClueAndControls();
   this.setColumnLayout();
-  this.phoneDisplayTweaks();
 
   this.restoreState();
   this.checkConsistency();
@@ -10437,12 +10591,12 @@ function createPuzzle() {
   }
 }
 .xlv-frame {
-  font-size: 16px;
+  box-sizing: border-box;
   font-family: serif;
+  font-size: 16px;
   font-weight: 400;
   letter-spacing: normal !important;
   line-height: normal !important;
-  box-sizing: border-box;
 }
 .xlv-anno-text,
 .xlv-status,
@@ -10628,6 +10782,7 @@ function createPuzzle() {
   font-weight: normal;
 }
 .xlv-phone-display .xlv-title {
+  font-size: 110%;
   display: inline-block;
   margin: 2px 0;
 }
@@ -11031,6 +11186,48 @@ a.xlv-link:hover {
   padding: 0 0 0 16px !important;
   text-align: left;
 }
+
+/**
+ * Phone keyboard styling.
+ */
+.xlv-phone-kb {
+  align-items: center;
+  bottom: 0;
+  position: fixed;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 0;
+  touch-action: manipulation;
+  user-select: none;
+  width: 100%;
+}
+.xlv-phone-kb-row {
+  box-sizing: content-box;
+  display: flex;
+  gap: 0.55%;
+  justify-content: center;
+  max-width: 500px;
+  width: 100%;
+}
+.xlv-phone-kb-btn {
+  aspect-ratio: 1;
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  font-family: monospace;
+  font-size: 16px;
+  font-weight: bold;
+  justify-content: center;
+  transition: background-color 0.1s, transform 0.05s;
+  width: 9.5%;
+}
+.xlv-phone-kb-btn:active {
+  transform: translateY(2px);
+}
+.xlv-phone-kb-close {
+  border-radius: 50%;
+}
+
 @media not print {
   .xlv-only-print {
     display: none;

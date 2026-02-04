@@ -330,12 +330,10 @@ function Exolve(puzzleSpec,
     'solution': 'dodgerblue',
     'solved': 'dodgerblue',
     'phone-kb-bg': 'whitesmoke',
-    'phone-kb-btn-border': '#ccc',
+    'phone-kb-btn-border': 'mistyrose',
     'phone-kb-btn-bg': '#fafafa',
     'phone-kb-btn-text': 'black',
-    'phone-kb-btn-bg-hover': '#eef',
-    'phone-kb-btn-border-hover': '#bbb',
-    'phone-kb-btn-bg-active': '#dde',
+    'phone-kb-btn-bg-active': '#ffb6b4',
   };
   this.darkColorScheme = {
     ...this.lightColorScheme,
@@ -5160,13 +5158,9 @@ Exolve.prototype.applyStyles = function() {
       background-color: ${this.colorScheme['phone-kb-bg']};
     }
     #${this.prefix}-frame .xlv-phone-kb-btn {
-      border: 1px solid ${this.colorScheme['phone-kb-btn-border']};
+      border: 2px solid ${this.colorScheme['phone-kb-btn-border']};
       background-color: ${this.colorScheme['phone-kb-btn-bg']};
       color: ${this.colorScheme['phone-kb-btn-text']};
-    }
-    #${this.prefix}-frame .xlv-phone-kb-btn:hover {
-      background-color: ${this.colorScheme['phone-kb-btn-bg-hover']};
-      border-color: ${this.colorScheme['phone-kb-btn-border-hover']};
     }
     #${this.prefix}-frame .xlv-phone-kb-btn:active {
       background-color: ${this.colorScheme['phone-kb-btn-bg-active']};
