@@ -621,6 +621,7 @@ a.xlv-link:hover {
   flex-direction: column;
   gap: 4px;
   padding: 4px 0;
+  touch-action: manipulation;
   user-select: none;
   width: 100%;
 }
