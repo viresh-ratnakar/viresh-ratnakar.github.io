@@ -14,12 +14,12 @@ Version: Exolve v1.66, January 5, 2026
   }
 }
 .xlv-frame {
-  font-size: 16px;
+  box-sizing: border-box;
   font-family: serif;
+  font-size: 16px;
   font-weight: 400;
   letter-spacing: normal !important;
   line-height: normal !important;
-  box-sizing: border-box;
 }
 .xlv-anno-text,
 .xlv-status,
@@ -608,6 +608,57 @@ a.xlv-link:hover {
   padding: 0 0 0 16px !important;
   text-align: left;
 }
+
+/**
+ * Phone keyboard styling.
+ * TODO: make this tweakable.
+ */
+.xlv-phone-kb {
+  background-color: whitesmoke;
+  bottom: 0;
+  position: fixed;
+  width: 100%;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  font-family: monospace;
+  font-size: 16px;
+  font-weight: 600;
+  user-select: none;
+}
+.xlv-phone-kb-row {
+  box-sizing: content-box;
+  display: flex;
+  gap: 0.55%;
+  justify-content: center;
+  max-width: 500px;
+  width: 100%;
+}
+.xlv-phone-kb-btn {
+  width: 9.5%;
+  aspect-ratio: 1;
+  
+  border: 1px solid #ccc;
+  background-color: #f9f9f9;
+  cursor: pointer;
+  transition: background-color 0.1s, transform 0.05s;
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.xlv-phone-kb-btn:hover {
+  background-color: #eef;
+  border-color: #bbb;
+}
+.xlv-phone-kb-btn:active {
+  transform: translateY(2px);
+  background-color: #dde;
+}
+.xlv-phone-kb-close {
+  border-radius: 50%;
+}
+
 @media not print {
   .xlv-only-print {
     display: none;

@@ -84,7 +84,7 @@ function Exolve(puzzleSpec,
                 visTop=0,
                 maxDim=0,
                 notTemp=true) {
-  this.VERSION = 'Exolve v1.66.3, February 2, 2026';
+  this.VERSION = 'Exolve v1.67, February 4, 2026';
   this.id = '';
 
   this.puzzleText = puzzleSpec;
@@ -1035,6 +1035,11 @@ Exolve.prototype.init = function() {
                 xlv-explanations" style="display:none"></div>
           </div> <!-- xlv-controls-etc -->
         </div> <!-- xlv-grid-panel -->
+
+        <div id="${this.prefix}-phone-kb" style="display:none"
+            class="xlv-phone-kb">
+        </div>
+
         <div id="${this.prefix}-clues" class="xlv-clues xlv-clues-flex">
           <div class="xlv-clues-panel" style="display:none">
             <div id="${this.prefix}-across-label"
@@ -1339,6 +1344,10 @@ Exolve.prototype.init = function() {
 }
 
 Exolve.prototype.phoneDisplayTweaks = function() {
+  /**
+   * Don't use phone settings in temp crosswords (thus also avoid using them in
+   * Exet) and in big-enough displays.
+   */
   if (!this.notTemp || this.viewportDim > 500 ||
       /**
        * If there's anyway significant content above the puzzle, don't bother
@@ -1353,6 +1362,14 @@ Exolve.prototype.phoneDisplayTweaks = function() {
     return;
   }
   this.phoneDisplay = true;
+  this.phoneKB = this.maybeEnablePhoneKB();
+  if (this.phoneKB) {
+    const phk = this.phoneKB;
+    this.gridInput.addEventListener('focus', (evt) => {
+      evt.preventDefault();
+      phk.show();
+    });
+  }
   this.redoPhoneTweaks();
 }
 
@@ -1376,6 +1393,85 @@ Exolve.prototype.redoPhoneTweaks = function() {
     this.preambleLinkElt.classList.add('xlv-preamble-link-shown');
   }
 }
+
+Exolve.prototype.maybeEnablePhoneKB = function() {
+  const lang = (this.language.toLowerCase() || 'en');
+  if (lang != 'en' && lang != 'en-US' && lang != 'en-GB') {
+    return null;
+  }
+  const otherKBRows = document.getElementsByClassName('xlv-phone-kb-row');
+  if (otherKBRows.length > 0) {
+    console.log(
+        "There's already an ExolveKeyboard, cannot have one for " + this.id);
+    return null;
+  }
+  const phoneKBElt = document.getElementById(this.prefix + '-phone-kb');
+  if (!phoneKBElt) {
+    return null;
+  }
+  return new ExolveKeyboard(phoneKBElt, this.onPhoneKBInput.bind(this));
+}
+
+Exolve.prototype.onPhoneKBInput = function(ch) {
+  if (ch == ExolveKeyboard.CLOSE_KEY) {
+    this.deactivator();
+    return;
+  }
+  if (ch == ExolveKeyboard.DELETE_KEY) {
+    ch = '';
+  }
+  this.gridInput.value = ch;
+  this.handleGridInput();
+  if (!ch) {
+    this.retreatCursorInLight();
+  }
+}
+
+class ExolveKeyboard {
+  static DELETE_KEY = "&#x232B;";
+  static CLOSE_KEY = "&times;";
+
+  constructor(container, onInput) {
+    this.container = container;
+    this.onInput = onInput;
+    this.layout = [
+      ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
+      ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
+      [
+        ExolveKeyboard.CLOSE_KEY,
+        "Z", "X", "C", "V", "B", "N", "M",
+        ExolveKeyboard.DELETE_KEY
+      ]
+    ];
+    this.render();
+  }
+
+  show() {
+    this.container.style.display = 'flex';
+  }
+  hide() {
+    this.container.style.display = 'none';
+  }
+  render() {
+    this.container.innerHTML = "";
+
+    this.layout.forEach((rowKeys) => {
+      const rowDiv = document.createElement("div");
+      rowDiv.classList.add("xlv-phone-kb-row");
+      rowKeys.forEach((ch) => {
+        const btn = document.createElement("button");
+        btn.innerHTML = ch;
+        btn.classList.add("xlv-phone-kb-btn");
+        if (ch == ExolveKeyboard.CLOSE_KEY) {
+          btn.classList.add("xlv-phone-kb-close");
+        }
+        btn.addEventListener("click", () => this.onInput(ch));
+        rowDiv.appendChild(btn);
+      });
+      this.container.appendChild(rowDiv);
+    });
+  }
+};
 
 Exolve.prototype.log = function(msg) {
   console.log('Exolve puzzle #' + this.index + ' [' + this.id + ']: ' + msg)
@@ -6013,6 +6109,9 @@ Exolve.prototype.deactivateCurrCell = function() {
     }
   }
   this.activeCells = [];
+  if (this.phoneKB) {
+    this.phoneKB.hide();
+  }
 }
 
 // Utils --------------------
@@ -9224,6 +9323,9 @@ Exolve.prototype.handleAfterPrint = function() {
     this.recolourCells();
     this.redisplayNinas();
 
+    if (this.printingChanges.undidPhoneTweaks) {
+      this.redoPhoneTweaks();
+    }
     // Restore active clue/cells.
     if (this.printingChanges.usingGnav) {
       this.currDir = this.printingChanges.currDir;
@@ -9235,9 +9337,6 @@ Exolve.prototype.handleAfterPrint = function() {
 
     if (this.printingChanges.pageYOffset) {
       window.scrollTo({top: this.printingChanges.pageYOffset});
-    }
-    if (this.printingChanges.undoPhoneTweaks) {
-      this.redoPhoneTweaks();
     }
   }
   this.printingChanges = null;
@@ -9734,7 +9833,7 @@ Exolve.prototype.preprint = function(settings) {
 
   if (this.phoneDisplay) {
     this.undoPhoneTweaksBeforePrinting();
-    this.printingChanges.undoPhoneTweaks = true;
+    this.printingChanges.undidPhoneTweaks = true;
   }
 
   if (settings.onlyGrid) {
