@@ -631,6 +631,9 @@ function Exolve(puzzleSpec,
  * as a preview) whose state will not need to be recovered later.
  */
 Exolve.prototype.destroy = function(deleteState=false) {
+  if (this.phoneKB) {
+    this.phoneKB.die();
+  }
   if (this.frame) {
     this.frame.innerHTML = '';
     this.frame = null;
@@ -1425,6 +1428,12 @@ class ExolveKB {
    * The singleton instance.
    */
   static #instance = null;
+  /**
+   * Have we already set up blur listeners on dom elements outside Exolve?
+   * If so, then even after die() is called, we do not have to do that
+   * again.
+   */
+  static #haveDomBlurrers = false;
 
   static getOrCreate(puz) {
     const eligible = ExolveKB.#puzIsEligible(puz);
@@ -1517,30 +1526,53 @@ class ExolveKB {
       });
       this.container.appendChild(rowDiv);
     });
-    this.#addFocusHandlers(this.puz, true, true);
+    this.#addFocusHandlers(puz, true, true);
+    /**
+     * If there was already an active cell, show the keyboard.
+     */
+    puz.refocus();
+  }
+
+  /**
+   * die() is called from destroy() on Exolve objects.
+   */
+  die() {
+    if (this.container) {
+      this.container.remove();
+      this.container = null;
+    }
+    this.puz = null;
+    ExolveKB.#instance = null;
+  }
+
+
+  static #blurHandler(evt) {
+    if (!ExolveKB.#instance) {
+      /** In case this is somehow called after die(). */
+      return;
+    }
+    ExolveKB.#instance.hide();
   }
 
   #addFocusHandlers(puz, fromFullDom, puzWillUseMe) {
     if (puzWillUseMe) {
       puz.gridInput.inputMode = 'none';
       puz.gridInput.addEventListener('focus', (evt) => {
+        if (!ExolveKB.#instance) {
+          /** In case this is somehow called after die(). */
+          return;
+        }
         /** Avoid bringing up the on-screen keyboard. */
         evt.preventDefault();
         evt.target.blur();
         ExolveKB.#instance.show(puz);
       });
     }
-    const root = fromFullDom ? document : puz.frame;
-    /**
-     * Other than gridInput, if any other element grabs focus, then we hide
-     * the on-screen Exolve keyboard. Note that fromFullDom is true when
-     * setting up only the first crossword on the page (which will not find
-     * gridInput from any subsequent ceossword, and for subsequent crosswords,
-     * the call will restrict to elements under puz.frame.
-     */
-    const hider = (evt) => {
-      ExolveKB.#instance.hide();
-    };
+    const root = (fromFullDom && !ExolveKB.#haveDomBlurrers) ?
+        document : puz.frame;
+    if (fromFullDom) {
+      ExolveKB.#haveDomBlurrers = true;
+    }
     const inputElts = root.getElementsByTagName('input');
     const types = new Set(["text", "email", "password", "url", "search", "tel"]);
     for (let i = 0; i < inputElts.length; i++) {
@@ -1548,28 +1580,37 @@ class ExolveKB {
       if ((puzWillUseMe && elt == puz.gridInput) || !types.has(elt.type)) {
         continue;
       }
-      elt.addEventListener('focus', hider);
+      elt.addEventListener('focus', ExolveKB.#blurHandler);
     }
     const textareaElts = root.getElementsByTagName('textarea');
     for (let i = 0; i < textareaElts.length; i++) {
-      textareaElts[i].addEventListener('focus', hider);
+      textareaElts[i].addEventListener('focus', ExolveKB.#blurHandler);
     }
     const editableElts = root.querySelectorAll('[contenteditable="true"]');
     for (let i = 0; i < editableElts.length; i++) {
-      editableElts[i].addEventListener('focus', hider);
+      editableElts[i].addEventListener('focus', ExolveKB.#blurHandler);
     }
   }
 
   show(puz=null)   {
+    if (!this.container) {
+      return;
+    }
     if (puz) {
       this.puz = puz;
     }
     this.container.style.display = 'flex';
   }
   hide() {
+    if (!this.container) {
+      return;
+    }
     this.container.style.display = 'none';
   }
   isShowing() {
+    if (!this.container) {
+      return false;
+    }
     return (this.container.style.display != 'none');
   }
 };
@@ -10601,7 +10642,7 @@ Exolve.prototype.createPuzzle = function() {
   this.loadWebifi();
 
   /**
-   * Done before applyStyles(), and after all "inputty" elements creation.
+   * Done after all "inputty" element creation.
    */
   this.checkPhoniness();
 
