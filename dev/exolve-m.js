@@ -1428,16 +1428,16 @@ class ExolveKB {
 
   static getOrCreate(puz) {
     const eligible = ExolveKB.#puzIsEligible(puz);
-    if (ExolveKB.instance) {
-      ExolveKB.instance.#addFocusHandlers(puz, false, eligible);
+    if (ExolveKB.#instance) {
+      ExolveKB.#instance.#addFocusHandlers(puz, false, eligible);
     }
     if (!eligible) {
       return null;
     }
-    if (!ExolveKB.instance) {
-      ExolveKB.instance = new ExolveKB(puz);
+    if (!ExolveKB.#instance) {
+      ExolveKB.#instance = new ExolveKB(puz);
     }
-    return ExolveKB.instance;
+    return ExolveKB.#instance;
   }
 
   static #puzIsEligible(puz) {
@@ -1512,7 +1512,7 @@ class ExolveKB {
           btn.classList.add("xlv-phone-kb-close");
         }
         btn.addEventListener("click",
-            () => ExolveKB.instance.puz.phoneKBInput(ch));
+            () => ExolveKB.#instance.puz.phoneKBInput(ch));
         rowDiv.appendChild(btn);
       });
       this.container.appendChild(rowDiv);
@@ -1527,7 +1527,7 @@ class ExolveKB {
         /** Avoid bringing up the on-screen keyboard. */
         evt.preventDefault();
         evt.target.blur();
-        ExolveKB.instance.show(puz);
+        ExolveKB.#instance.show(puz);
       });
     }
     const root = fromFullDom ? document : puz.frame;
@@ -1539,7 +1539,7 @@ class ExolveKB {
      * the call will restrict to elements under puz.frame.
      */
     const hider = (evt) => {
-      ExolveKB.instance.hide();
+      ExolveKB.#instance.hide();
     };
     const inputElts = root.getElementsByTagName('input');
     const types = new Set(["text", "email", "password", "url", "search", "tel"]);
