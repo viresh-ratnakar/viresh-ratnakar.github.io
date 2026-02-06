@@ -84,7 +84,7 @@ function Exolve(puzzleSpec,
                 visTop=0,
                 maxDim=0,
                 notTemp=true) {
-  this.VERSION = 'Exolve v1.67, February 4, 2026';
+  this.VERSION = 'Exolve v1.67.3, February 5, 2026';
   this.id = '';
 
   this.puzzleText = puzzleSpec;
@@ -107,6 +107,7 @@ function Exolve(puzzleSpec,
   this.offsetTop = 0;
 
   this.viewportDim = 0;
+  this.viewportDimUsable = 0;
   /**
    * For the following, if the corresponding {cell,tiling,box}WHGiven is false,
    * then will be set in computeGridSize().
@@ -141,6 +142,7 @@ function Exolve(puzzleSpec,
   this.MAX_REBUS_SIZE = 20;
 
   this.PRINT_WIDTH_PIXELS = 992;
+  this.MIN_DIM_PIXELS = 325;
 
   this.credits = [];
   this.questionTexts = [];
@@ -654,10 +656,8 @@ Exolve.prototype.destroy = function(deleteState=false) {
 Exolve.prototype.init = function() {
   this.parseOverall();
   this.parseRelabel();
-  this.computeGridSize();
 
   const SPECIAL_ID = '42xlvIndex42';
-
   if (this.id && this.id == SPECIAL_ID) {
     this.throwErr('Puzzle id cannot be: ' + this.id);
   }
@@ -667,6 +667,20 @@ Exolve.prototype.init = function() {
   }
   this.index = exolvePuzzles[SPECIAL_ID]++;
   this.prefix = 'xlv' + this.index;
+
+  if (!this.containerId) {
+    this.containerId = 'exolve';
+  }
+  this.parentElement = document.getElementById(this.containerId);
+  if (this.parentElement) {
+    if (this.containerId == 'exolve') {
+      this.parentElement.id = 'exolve' + this.index;
+    }
+  } else {
+    this.parentElement = document.body;
+  }
+
+  this.computeGridSize();
 
   const basicHTML = `
     <div class="xlv-frame xlv-flex-col" tabindex="-1" id="${this.prefix}-frame">
@@ -1097,19 +1111,9 @@ Exolve.prototype.init = function() {
     this.throwErr('Element with id ' + this.prefix + 'frame already exists');
   }
 
-  if (!this.containerId) {
-    this.containerId = 'exolve';
-  }
-  const exolveHolder = document.getElementById(this.containerId);
-  if (exolveHolder) {
-    if (this.containerId == 'exolve') {
-      exolveHolder.id = 'exolve' + this.index;
-    }
-    exolveHolder.insertAdjacentHTML('beforeend', basicHTML);
-  } else {
-    document.body.insertAdjacentHTML('beforeend', basicHTML);
-  }
+  this.parentElement.insertAdjacentHTML('beforeend', basicHTML);
   this.frame = document.getElementById(this.prefix + '-frame');
+
   if (this.fontFamily) {
     this.frame.style.fontFamily = this.fontFamily;
   }
@@ -1348,17 +1352,12 @@ Exolve.prototype.init = function() {
   this.gridInput.maxLength = '' + maxlen;
 }
 
-Exolve.prototype.phoneDisplayTweaks = function() {
+Exolve.prototype.checkPhoniness = function() {
   /**
    * Don't use phone settings in temp crosswords (thus also avoid using them in
    * Exet) and in big-enough displays.
    */
-  if (!this.notTemp || this.viewportDim > 500 ||
-      /**
-       * If there's anyway significant content above the puzzle, don't bother
-       * as the user anyway has to scroll to it.
-       */
-      this.frame.offsetTop > 16) {
+  if (!this.notTemp || this.viewportDim > 500) {
     return;
   }
   const touchCheck = ('ontouchstart' in window) ||
@@ -1366,13 +1365,25 @@ Exolve.prototype.phoneDisplayTweaks = function() {
   if (!touchCheck) {
     return;
   }
-  this.phoneDisplay = true;
-  this.maybeEnablePhoneKB();
-  this.redoPhoneTweaks();
+  this.isPhone = true;
+  /**
+   * If we're suddiciently near the top of the viewport, then we
+   * do some rearranging to reduce the space used above the grid.
+   */
+  if (this.frame.offsetTop <= 16) {
+    this.phoneTweaks = true;
+    this.redoPhoneTweaks();
+  }
+  /**
+   * The following call returns null if this puz is not eligible to use
+   * the on-screen keyboard. It also sets up necessary focus handlers if
+   * needed (regardless of whether null is returned).
+   */
+  this.phoneKB = ExolveKB.getOrCreate(this);
 }
 
 Exolve.prototype.undoPhoneTweaksBeforePrinting = function() {
-  if (!this.phoneDisplay) {
+  if (!this.phoneTweaks) {
     return;
   }
   this.frame.classList.remove('xlv-phone-display');
@@ -1382,7 +1393,7 @@ Exolve.prototype.undoPhoneTweaksBeforePrinting = function() {
   }
 }
 Exolve.prototype.redoPhoneTweaks = function() {
-  if (!this.phoneDisplay) {
+  if (!this.phoneTweaks) {
     return;
   }
   this.frame.classList.add('xlv-phone-display');
@@ -1392,48 +1403,12 @@ Exolve.prototype.redoPhoneTweaks = function() {
   }
 }
 
-Exolve.prototype.maybeEnablePhoneKB = function() {
-  const lang = (this.language.toLowerCase() || 'en');
-  if (lang != 'en' && lang != 'en-US' && lang != 'en-GB') {
-    console.log('Phone keyboard unsupported for language: ' + lang);
-    return;
-  }
-  if (this.allowChars && Object.keys(this.allowChars).length > 0) {
-    console.log('Phone keyboard unsupported with special chars allowed.');
-    return;
-  }
-  if (this.hasRebusCells) {
-    console.log('Phone keyboard unsupported with rebus cells.');
-    return;
-  }
-  const otherKBRows = document.getElementsByClassName('xlv-phone-kb-row');
-  if (otherKBRows.length > 0) {
-    console.log(
-        "There's already an ExolveKeyboard, cannot have one for " + this.id);
-    return;
-  }
-  const phoneKBElt = document.getElementById(this.prefix + '-phone-kb');
-  if (!phoneKBElt) {
-    console.log('Missing phone keyboard element: ' + this.prefix + '-phone-kb');
-    return;
-  }
-  this.phoneKB = new ExolveKeyboard(phoneKBElt, this.onPhoneKBInput.bind(this));
-  this.gridInput.inputMode = 'none';
-  const phk = this.phoneKB;
-  this.gridInput.addEventListener('focus', (evt) => {
-    /** Avoid bringing up the on-screen keyboard. */
-    evt.preventDefault();
-    evt.target.blur();
-    phk.show();
-  });
-}
-
-Exolve.prototype.onPhoneKBInput = function(ch) {
-  if (ch == ExolveKeyboard.CLOSE_KEY) {
+Exolve.prototype.phoneKBInput = function(ch) {
+  if (ch == ExolveKB.CLOSE_KEY) {
     this.deactivator();
     return;
   }
-  if (ch == ExolveKeyboard.DELETE_KEY) {
+  if (ch == ExolveKB.DELETE_KEY) {
     ch = '';
   }
   this.gridInput.value = ch;
@@ -1443,33 +1418,88 @@ Exolve.prototype.onPhoneKBInput = function(ch) {
   }
 }
 
-class ExolveKeyboard {
+class ExolveKB {
   static DELETE_KEY = "&#x232B;";
   static CLOSE_KEY = "&times;";
+  /**
+   * The singleton instance.
+   */
+  static #instance = null;
 
-  constructor(container, onInput) {
-    this.container = container;
-    this.onInput = onInput;
+  static getOrCreate(puz) {
+    const eligible = ExolveKB.#puzIsEligible(puz);
+    if (ExolveKB.instance) {
+      ExolveKB.instance.#addFocusHandlers(puz, false, eligible);
+    }
+    if (!eligible) {
+      return null;
+    }
+    if (!ExolveKB.instance) {
+      ExolveKB.instance = new ExolveKB(puz);
+    }
+    return ExolveKB.instance;
+  }
+
+  static #puzIsEligible(puz) {
+    if (!puz.isPhone) {
+      console.log('ExolveKB unsupported: ' + puz.id + ' has isPhone=false');
+      return false;
+    }
+    const lang = (puz.language.toLowerCase() || 'en');
+    if (lang != 'en' && lang != 'en-US' && lang != 'en-GB') {
+      console.log('ExolveKB unsupported: ' + puz.id + ' has lang=' + lang);
+      return false;
+    }
+    if (puz.allowChars && Object.keys(puz.allowChars).length > 0) {
+      console.log('ExolveKB unsupported: ' + puz.id + ' uses special chars');
+      return false;
+    }
+    if (puz.hasRebusCells || puz.hasDgmlessCells) {
+      console.log('ExolveKB unsupported: ' + puz.id +
+                  ' has rebus or diagramless cells');
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Should not be called directly: use getOrCreate() (private constructors are
+   * not allowed by JavaScript).
+   */
+  constructor(puz) {
+    console.assert(puz);
+    this.puz = puz;
     this.layout = [
       ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
       ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
       [
-        ExolveKeyboard.CLOSE_KEY,
+        ExolveKB.CLOSE_KEY,
         "Z", "X", "C", "V", "B", "N", "M",
-        ExolveKeyboard.DELETE_KEY
+        ExolveKB.DELETE_KEY
       ]
     ];
-    this.render();
-  }
-
-  show() {
-    this.container.style.display = 'flex';
-  }
-  hide() {
-    this.container.style.display = 'none';
-  }
-  render() {
-    this.container.innerHTML = "";
+    this.container = document.createElement("div");
+    console.assert(this.container);
+    this.container.classList.add("xlv-phone-kb");
+    const css = `
+    <style>
+    .xlv-phone-kb, .xlv-phone-kb-row {
+      background-color: ${puz.colorScheme['phone-kb-bg']};
+      max-width: ${puz.viewportDimUsable}px;
+    }
+    .xlv-phone-kb-btn {
+      border: 2px solid ${puz.colorScheme['phone-kb-btn-border']};
+      background-color: ${puz.colorScheme['phone-kb-btn-bg']};
+      color: ${puz.colorScheme['phone-kb-btn-text']};
+    }
+    .xlv-phone-kb-btn:active {
+      background-color: ${puz.colorScheme['phone-kb-btn-bg-active']};
+    }
+    </style>
+    `;
+    this.container.insertAdjacentHTML('beforeend', css);
+    this.hide();
+    puz.frame.insertAdjacentElement('beforeend', this.container);
 
     this.layout.forEach((rowKeys) => {
       const rowDiv = document.createElement("div");
@@ -1478,14 +1508,69 @@ class ExolveKeyboard {
         const btn = document.createElement("button");
         btn.innerHTML = ch;
         btn.classList.add("xlv-phone-kb-btn");
-        if (ch == ExolveKeyboard.CLOSE_KEY) {
+        if (ch == ExolveKB.CLOSE_KEY) {
           btn.classList.add("xlv-phone-kb-close");
         }
-        btn.addEventListener("click", () => this.onInput(ch));
+        btn.addEventListener("click",
+            () => ExolveKB.instance.puz.phoneKBInput(ch));
         rowDiv.appendChild(btn);
       });
       this.container.appendChild(rowDiv);
     });
+    this.#addFocusHandlers(this.puz, true, true);
+  }
+
+  #addFocusHandlers(puz, fromFullDom, puzWillUseMe) {
+    if (puzWillUseMe) {
+      puz.gridInput.inputMode = 'none';
+      puz.gridInput.addEventListener('focus', (evt) => {
+        /** Avoid bringing up the on-screen keyboard. */
+        evt.preventDefault();
+        evt.target.blur();
+        ExolveKB.instance.show(puz);
+      });
+    }
+    const root = fromFullDom ? document : puz.frame;
+    /**
+     * Other than gridInput, if any other element grabs focus, then we hide
+     * the on-screen Exolve keyboard. Note that fromFullDom is true when
+     * setting up only the first crossword on the page (which will not find
+     * gridInput from any subsequent ceossword, and for subsequent crosswords,
+     * the call will restrict to elements under puz.frame.
+     */
+    const hider = (evt) => {
+      ExolveKB.instance.hide();
+    };
+    const inputElts = root.getElementsByTagName('input');
+    const types = new Set(["text", "email", "password", "url", "search", "tel"]);
+    for (let i = 0; i < inputElts.length; i++) {
+      const elt = inputElts[i];
+      if ((puzWillUseMe && elt == puz.gridInput) || !types.has(elt.type)) {
+        continue;
+      }
+      elt.addEventListener('focus', hider);
+    }
+    const textareaElts = root.getElementsByTagName('textarea');
+    for (let i = 0; i < textareaElts.length; i++) {
+      textareaElts[i].addEventListener('focus', hider);
+    }
+    const editableElts = root.querySelectorAll('[contenteditable="true"]');
+    for (let i = 0; i < editableElts.length; i++) {
+      editableElts[i].addEventListener('focus', hider);
+    }
+  }
+
+  show(puz=null)   {
+    if (puz) {
+      this.puz = puz;
+    }
+    this.container.style.display = 'flex';
+  }
+  hide() {
+    this.container.style.display = 'none';
+  }
+  isShowing() {
+    return (this.container.style.display != 'none');
   }
 };
 
@@ -5162,8 +5247,10 @@ Exolve.prototype.applyStyles = function() {
   `;
   if (this.phoneKB) {
     css += `
-    #${this.prefix}-frame .xlv-phone-kb {
+    #${this.prefix}-frame .xlv-phone-kb,
+    #${this.prefix}-frame .xlv-phone-kb-row {
       background-color: ${this.colorScheme['phone-kb-bg']};
+      max-width: ${this.viewportDimUsable}px;
     }
     #${this.prefix}-frame .xlv-phone-kb-btn {
       border: 2px solid ${this.colorScheme['phone-kb-btn-border']};
@@ -5599,13 +5686,32 @@ Exolve.prototype.getViewportDim = function() {
  */
 Exolve.prototype.computeGridSize = function() {
   this.viewportDim = this.getViewportDim();
+  this.viewportDimUsable = this.viewportDim;
+  const bodyStyles = window.getComputedStyle(document.body);
+  const marginRight = parseFloat(bodyStyles.marginRight);
+  const marginLeft = parseFloat(bodyStyles.marginLeft);
+  if (!isNaN(marginRight)) {
+    this.viewportDimUsable -= marginRight;
+  }
+  if (!isNaN(marginLeft)) {
+    this.viewportDimUsable -= marginLeft;
+  }
+
+  if (this.parentElement != document.body) {
+    const parentW = this.parentElement.clientWidth;
+    if (parentW > 0 && parentW < this.viewportDimUsable) {
+      this.viewportDimUsable = parentW;
+    }
+  }
+  this.viewportDimUsable = Math.max(
+      this.viewportDimUsable, this.MIN_DIM_PIXELS);
 
   this.squareDim = 31;
   if (this.gridWidth <= 30 &&  // For jumbo grids, give up.
       (this.squareDim + this.GRIDLINE) * this.gridWidth + this.GRIDLINE >
-      this.viewportDim - 8) {
+      this.viewportDimUsable - 8) {
     this.squareDim = Math.max(12,
-      Math.floor((this.viewportDim - 8 - this.GRIDLINE) /
+      Math.floor((this.viewportDimUsable - 8 - this.GRIDLINE) /
                  this.gridWidth) - this.GRIDLINE);
   }
   if (!this.cellWHGiven) {
@@ -5655,7 +5761,7 @@ Exolve.prototype.computeGridSize = function() {
   this.numberSize = 1 + Math.max(5, Math.floor(this.squareDim / 3) - 1);
   this.arrowSize = Math.max(6, Math.floor(13 * this.squareDim / 31));
   this.maxCurrClueWidth = Math.max(this.boxW + (2 * this.offsetLeft),
-                                   Math.min(this.viewportDim - 30, 450));
+                                   Math.min(this.viewportDimUsable - 30, 450));
 }
 
 Exolve.prototype.maybeResizeGrid = function() {
@@ -6202,7 +6308,7 @@ Exolve.prototype.deactivateCurrClue = function() {
   this.checkButton.disabled = true;
   this.revealButton.disabled = true;
 
-  if (this.phoneDisplay) {
+  if (this.phoneTweaks) {
     /**
      * Unblur any blurred top elements.
      */
@@ -6237,7 +6343,7 @@ Exolve.prototype.resizeCurrClueAndControls = function() {
     gPos.left : ((gpPos.width - width) / 2);
   this.currClue.style.left = horOffset + 'px';
 
-  if (this.phoneDisplay) {
+  if (this.phoneTweaks) {
     /**
      * Blur any top elements obscured by currClue.
      */
@@ -6447,10 +6553,10 @@ Exolve.prototype.getViewportHeight = function() {
 
 Exolve.prototype.getViewportWidth = function() {
   const cw = (window.location != window.parent.location) ? 0 :
-      document.documentElement.clientWidth;
+    document.documentElement.clientWidth;
   return window.innerWidth && cw ? Math.min(window.innerWidth, cw) :
-      window.innerWidth || cw ||
-      document.getElementsByTagName('body')[0].clientWidth;
+    window.innerWidth || cw ||
+    document.getElementsByTagName('body')[0].clientWidth;
 }
 
 // Scroll if a clueTR is not visible, but its clues list is, vertically.
@@ -9355,9 +9461,6 @@ Exolve.prototype.handleAfterPrint = function() {
     this.recolourCells();
     this.redisplayNinas();
 
-    if (this.printingChanges.undidPhoneTweaks) {
-      this.redoPhoneTweaks();
-    }
     // Restore active clue/cells.
     if (this.printingChanges.usingGnav) {
       this.currDir = this.printingChanges.currDir;
@@ -9365,6 +9468,12 @@ Exolve.prototype.handleAfterPrint = function() {
                         this.printingChanges.currCol);
     } else {
       this.cnavTo(this.printingChanges.currClueIndex);
+    }
+    if (this.printingChanges.undidPhoneTweaks) {
+      this.redoPhoneTweaks();
+    }
+    if (this.printingChanges.hidPhoneKB) {
+      this.phoneKB.show();
     }
 
     if (this.printingChanges.pageYOffset) {
@@ -9649,6 +9758,16 @@ Exolve.prototype.preprint = function(settings) {
     inksaver: false,
     explnHtml: null,
   };
+  if (this.phoneTweaks) {
+    this.undoPhoneTweaksBeforePrinting();
+    this.printingChanges.undidPhoneTweaks = true;
+  }
+  if (this.phoneKB) {
+    if (this.printingChanges.hidPhoneKB = this.phoneKB.isShowing()) {
+      this.phoneKB.hide();
+    }
+  }
+
   // Unhighlight current cell/clue (handleAfterPrint() will restore).
   this.deactivator();
 
@@ -9862,11 +9981,6 @@ Exolve.prototype.preprint = function(settings) {
   `;
   this.frame.appendChild(customStyles);
   this.printingChanges.extras.push(customStyles);
-
-  if (this.phoneDisplay) {
-    this.undoPhoneTweaksBeforePrinting();
-    this.printingChanges.undidPhoneTweaks = true;
-  }
 
   if (settings.onlyGrid) {
     this.printOnlyGrid(settings);
@@ -10484,11 +10598,6 @@ Exolve.prototype.createPuzzle = function() {
   this.setWordEndsAndHyphens();
   this.setUpGnav();
 
-  /** Done before applyStyles */
-  this.phoneDisplayTweaks();
-
-  this.applyStyles();
-
   this.redisplayQuestions();
   this.displayClues();
 
@@ -10502,15 +10611,22 @@ Exolve.prototype.createPuzzle = function() {
   this.displayButtons();
   this.parseAndDisplayPS();
   this.makeNotesPanel();
-  this.resizeCurrClueAndControls();
-  this.setColumnLayout();
 
   this.restoreState();
   this.checkConsistency();
-
   this.bindListeners();
 
   this.loadWebifi();
+
+  /**
+   * Done before applyStyles(), and after all "inputty" elements creation.
+   */
+  this.checkPhoniness();
+
+  this.applyStyles();
+
+  this.resizeCurrClueAndControls();
+  this.setColumnLayout();
 
   if (this.customizer) {
     this.customizer(this);
