@@ -1413,7 +1413,7 @@ Exolve.prototype.checkPhoniness = function() {
   if (!touchCheck) {
     return;
   }
-  this.isPhone = true;
+  this.onPhone = true;
   /**
    * If we're suddiciently near the top of the viewport, then we
    * do some rearranging to reduce the space used above the grid.
@@ -1489,8 +1489,8 @@ class ExolveKB {
   }
 
   static #puzIsEligible(puz) {
-    if (!puz.isPhone) {
-      console.log('ExolveKB unsupported: ' + puz.id + ' has isPhone=false');
+    if (!puz.onPhone) {
+      console.log('ExolveKB unsupported: ' + puz.id + ' has onPhone=false');
       return false;
     }
     const lang = (puz.language.toLowerCase() || 'en');
@@ -1517,15 +1517,6 @@ class ExolveKB {
   constructor(puz) {
     console.assert(puz);
     this.puz = puz;
-    this.layout = [
-      ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
-      ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
-      [
-        ExolveKB.CLOSE_KEY,
-        "Z", "X", "C", "V", "B", "N", "M",
-        ExolveKB.DELETE_KEY
-      ]
-    ];
     this.container = document.createElement("div");
     console.assert(this.container);
     this.container.classList.add("xlv-phone-kb");
@@ -1549,7 +1540,16 @@ class ExolveKB {
     this.hide();
     puz.frame.insertAdjacentElement('beforeend', this.container);
 
-    this.layout.forEach((rowKeys) => {
+    const layout = [
+      ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
+      ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
+      [
+        ExolveKB.CLOSE_KEY,
+        "Z", "X", "C", "V", "B", "N", "M",
+        ExolveKB.DELETE_KEY
+      ]
+    ];
+    layout.forEach((rowKeys) => {
       const rowDiv = document.createElement("div");
       rowDiv.classList.add("xlv-phone-kb-row");
       rowKeys.forEach((ch) => {
@@ -5248,7 +5248,7 @@ Exolve.prototype.applyStyles = function() {
     customStyles.id = id;
     this.frame.appendChild(customStyles);
   }
-  let css = `
+  customStyles.innerHTML = `
     #${this.prefix}-frame .xlv-curr-clue {
       top: ${this.visTop > 0 ? (this.visTop + 'px') : 0};
     }
@@ -5293,24 +5293,6 @@ Exolve.prototype.applyStyles = function() {
       animation-name: ${this.prefix}-overwritten-anim;
     }
   `;
-  if (this.phoneKB) {
-    css += `
-    #${this.prefix}-frame .xlv-phone-kb,
-    #${this.prefix}-frame .xlv-phone-kb-row {
-      background-color: ${this.colorScheme['phone-kb-bg']};
-      max-width: ${this.viewportDimUsable}px;
-    }
-    #${this.prefix}-frame .xlv-phone-kb-btn {
-      border: 2px solid ${this.colorScheme['phone-kb-btn-border']};
-      background-color: ${this.colorScheme['phone-kb-btn-bg']};
-      color: ${this.colorScheme['phone-kb-btn-text']};
-    }
-    #${this.prefix}-frame .xlv-phone-kb-btn:active {
-      background-color: ${this.colorScheme['phone-kb-btn-bg-active']};
-    }
-    `;
-  }
-  customStyles.innerHTML = css;
 }
 
 Exolve.prototype.stripLineBreaks = function(s) {
