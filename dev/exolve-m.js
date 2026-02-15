@@ -310,7 +310,8 @@ function Exolve(puzzleSpec,
     'button': '#4caf50',
     'button-hover': 'darkgreen',
     'button-text': 'white',
-    'nav-button': 'darkgreen',
+    'nav-button-border': 'darkgreen',
+    'nav-button-text': '#4caf50',
     'nav-button-bg': 'whitesmoke',
     'nav-button-bg-hover': 'mistyrose',
     'caret': 'gray',
@@ -351,7 +352,8 @@ function Exolve(puzzleSpec,
     'imp-text': 'lightgreen',
     'small-button-hover': '#330066',
     'small-button-text': 'lightgreen',
-    'nav-button': 'white',
+    'nav-button-border': 'white',
+    'nav-button-text': 'white',
     'nav-button-bg': 'black',
 
   }
@@ -5320,9 +5322,9 @@ Exolve.prototype.applyStyles = function() {
       background: ${this.colorScheme['button-hover']};
     }
     #${this.prefix}-frame .xlv-nav-button {
-      border: 1px solid ${this.colorScheme['nav-button']};
+      border: 1px solid ${this.colorScheme['nav-button-border']};
       background: ${this.colorScheme['nav-button-bg']};
-      color: ${this.colorScheme['nav-button']};
+      color: ${this.colorScheme['nav-button-text']};
     }
     #${this.prefix}-frame .xlv-nav-button:hover {
       border: 1px solid ${this.colorScheme['button-hover']};
