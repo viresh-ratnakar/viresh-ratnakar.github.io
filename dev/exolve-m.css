@@ -672,7 +672,6 @@ a.xlv-link:hover {
   touch-action: manipulation;
   transition: transform 0.05s;
   width: 9.5%;
-  -webkit-tap-highlight-color: transparent;
 }
 .xlv-phone-kb-btn:active {
   transform: translateY(2px);
