@@ -84,7 +84,7 @@ function Exolve(puzzleSpec,
                 visTop=0,
                 maxDim=0,
                 notTemp=true) {
-  this.VERSION = 'Exolve v1.68, February 14, 2026';
+  this.VERSION = 'Exolve v1.68.1, February 15, 2026';
   this.id = '';
 
   this.puzzleText = puzzleSpec;
@@ -346,15 +346,16 @@ function Exolve(puzzleSpec,
   this.darkColorScheme = {
     ...this.lightColorScheme,
     'currclue': 'black',
+    'curr-unsolved': 'pink',
     'active-clue': '#663366',
     'orphan': '#663300',
     'anno': 'lightgreen',
     'imp-text': 'lightgreen',
     'small-button-hover': '#330066',
     'small-button-text': 'lightgreen',
-    'nav-button-border': 'white',
-    'nav-button-text': 'white',
-    'nav-button-bg': 'black',
+    'nav-button-border': 'whitesmoke',
+    'nav-button-text': 'whitesmoke',
+    'nav-button-bg': '#333',
 
   }
   this.colorScheme = this.lightColorScheme;
@@ -406,9 +407,9 @@ function Exolve(puzzleSpec,
     'submit': 'Submit',
     'submit.hover': 'Submit the solution!',
     'setter-by': 'By',
-    'curr-clue-prev': '&#9664;',
+    'curr-clue-prev': '&#9668;',
     'curr-clue-prev.hover': 'Previous clue.',
-    'curr-clue-next': '&#9654;',
+    'curr-clue-next': '&#9658;',
     'curr-clue-next.hover': 'Next clue.',
     'squares-filled': 'Squares filled',
     'across-label': 'Across',
@@ -1543,7 +1544,7 @@ class ExolveKB {
       ]
     ];
     layout.forEach((rowKeys) => {
-      const handleRelease = () => {
+      const handleRelease = (e) => {
         this.#hidePreview();
       };
       const rowDiv = document.createElement("div");
@@ -1556,10 +1557,12 @@ class ExolveKB {
           btn.classList.add("xlv-phone-kb-close");
         }
         const handlePress = (e) => {
-          e.preventDefault();
-          this.puz.phoneKBInput(ch);
           this.#showPreview(btn, ch);
         };
+        const handleClick = (e) => {
+          this.puz.phoneKBInput(ch);
+        };
+        btn.addEventListener("click", handleClick);
         btn.addEventListener("pointerdown", handlePress);
         btn.addEventListener("pointerup", handleRelease);
         btn.addEventListener("pointerleave", handleRelease);
@@ -6693,21 +6696,17 @@ Exolve.prototype.getLinkedClues = function(clueIndex, clues=null) {
 
 /** prop should be 'next' or 'prev' */
 Exolve.prototype.cnavNextPrev = function(prop) {
-  if (!this.currClueIndex) {
-    this.currClueIndex = this.lastClueIndex ||
+  let ci = this.currClueIndex;
+  if (!ci) {
+    ci = this.lastClueIndex ||
       (this.allClueIndices.length > 0 ? this.allClueIndices[0] : null);
   }
-  if (!this.currClueIndex || !this.clues[this.currClueIndex] ||
-      !this.clues[this.currClueIndex][prop]) {
+  if (!ci || !this.clues[ci]) {
     return;
   }
-  let ci = this.clues[this.currClueIndex][prop];
-  if (this.gnavIsClueless()) {
-    let jumps = 0;
-    while (jumps < this.allClueIndices.length && !this.isOrphan(ci)) {
-      jumps++;
-      ci = this.clues[ci][prop];
-    }
+  ci = this.clues[ci][prop];
+  if (!ci) {
+    return;
   }
   this.cnavTo(ci, false);
   this.refocus();
