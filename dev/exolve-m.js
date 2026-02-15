@@ -312,7 +312,7 @@ function Exolve(puzzleSpec,
     'button-text': 'white',
     'nav-button-border': 'darkgreen',
     'nav-button-text': '#4caf50',
-    'nav-button-bg': 'whitesmoke',
+    'nav-button-bg': 'transparent',
     'nav-button-bg-hover': 'mistyrose',
     'caret': 'gray',
     'cell': 'white',
@@ -355,7 +355,6 @@ function Exolve(puzzleSpec,
     'small-button-text': 'lightgreen',
     'nav-button-border': 'whitesmoke',
     'nav-button-text': 'whitesmoke',
-    'nav-button-bg': '#333',
 
   }
   this.colorScheme = this.lightColorScheme;
