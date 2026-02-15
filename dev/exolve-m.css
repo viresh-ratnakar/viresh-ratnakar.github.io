@@ -61,8 +61,11 @@ Version: Exolve v1.67, January 5, 2026
   }
   .xlv-button {
     font-size: 9px;
-    padding: 6px 3px;
+    padding: 6px 2px;
     border-radius: 4px;
+  }
+  .xlv-nav-button {
+    padding: 6px;
   }
   .xlv-anno-text,
   .xlv-small-print,
@@ -94,6 +97,9 @@ Version: Exolve v1.67, January 5, 2026
     font-size: 11px;
     padding: 6px 3px;
     border-radius: 8px;
+  }
+  .xlv-nav-button {
+    padding: 6px;
   }
   .xlv-preamble {
     margin: 8px 0 0;
@@ -374,8 +380,14 @@ Version: Exolve v1.67, January 5, 2026
   text-decoration: none;
   width: inherit;
 }
+.xlv-frame .xlv-prev {
+  margin-right: 1px;
+}
+.xlv-frame .xlv-next {
+  margin-left: 1px;
+}
 .xlv-frame .xlv-nav-button {
-  border-radius: 0;
+  border-radius: 2px;
   border: 1px solid black;
 }
 .xlv-frame:focus {

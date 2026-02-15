@@ -731,10 +731,10 @@ Exolve.prototype.init = function() {
           <div id="${this.prefix}-controls-etc" class="xlv-controls-etc">
             <div id="${this.prefix}-controls" class="xlv-controls xlv-wide-box">
               <div id="${this.prefix}-button-row-1" class="xlv-controls-row">
-                <button id="${this.prefix}-nav-prev"
-                  class="xlv-button xlv-nav-button"
+                <button id="${this.prefix}-prev"
+                  class="xlv-button xlv-nav-button xlv-prev"
                   title="${this.textLabels['curr-clue-prev.hover']}"
-                    >${this.textLabels['curr-clue-prev']}&nbsp;</button>
+                    >${this.textLabels['curr-clue-prev']}</button>
                 <button id="${this.prefix}-clear"
                     class="xlv-button">${this.textLabels['clear']}</button>
                 <button id="${this.prefix}-clear-all"
@@ -743,10 +743,10 @@ Exolve.prototype.init = function() {
                     style="display:none">${this.textLabels['check']}</button>
                 <button id="${this.prefix}-check-all" class="xlv-button"
                   style="display:none">${this.textLabels['check-all']}</button>
-                <button id="${this.prefix}-nav-next"
-                  class="xlv-button xlv-nav-button"
+                <button id="${this.prefix}-next"
+                  class="xlv-button xlv-nav-button xlv-next"
                   title="${this.textLabels['curr-clue-next.hover']}"
-                    >&nbsp;${this.textLabels['curr-clue-next']}</button>
+                    >${this.textLabels['curr-clue-next']}</button>
               </div> <!-- xlv-button-row-1 -->
               <div id="${this.prefix}-buttons-extra-row" class="xlv-controls-row"
                     style="display:none">
@@ -1247,9 +1247,9 @@ Exolve.prototype.init = function() {
   this.buttonRow1 = document.getElementById(this.prefix + '-button-row-1');
   this.buttonRow2 = document.getElementById(this.prefix + '-button-row-2');
 
-  this.prevButton = document.getElementById(this.prefix + '-nav-prev');
+  this.prevButton = document.getElementById(this.prefix + '-prev');
   this.prevButton.addEventListener('click', this.boundListeners['prev']);
-  this.nextButton = document.getElementById(this.prefix + '-nav-next');
+  this.nextButton = document.getElementById(this.prefix + '-next');
   this.nextButton.addEventListener('click', this.boundListeners['next']);
 
   this.clearButton = document.getElementById(this.prefix + '-clear');
