@@ -310,9 +310,9 @@ function Exolve(puzzleSpec,
     'button': '#4caf50',
     'button-hover': 'darkgreen',
     'button-text': 'white',
-    'nav-button': 'inherit',
-    'nav-button-hover': 'mistyrose',
-    'nav-button-text': 'black',
+    'nav-button': 'black',
+    'nav-button-bg': 'white',
+    'nav-button-bg-hover': 'mistyrose',
     'caret': 'gray',
     'cell': 'white',
     'circle': 'gray',
@@ -351,8 +351,8 @@ function Exolve(puzzleSpec,
     'imp-text': 'lightgreen',
     'small-button-hover': '#330066',
     'small-button-text': 'lightgreen',
-    'nav-button-hover': '#663366',
-    'nav-button-text': 'white',
+    'nav-button': 'white',
+    'nav-button-bg': 'black',
 
   }
   this.colorScheme = this.lightColorScheme;
@@ -1518,6 +1518,9 @@ class ExolveKB {
       border: 2px solid ${puz.colorScheme['phone-kb-btn-border']};
       background-color: ${puz.colorScheme['phone-kb-btn-bg']};
       color: ${puz.colorScheme['phone-kb-btn-text']};
+    }
+    .xlv-phone-kb-btn:active {
+      background-color: ${puz.colorScheme['phone-kb-btn-bg-active']};
     }
     .xlv-kb-preview {
       background-color: ${puz.colorScheme['phone-kb-btn-bg-active']};
@@ -5321,12 +5324,13 @@ Exolve.prototype.applyStyles = function() {
       background: ${this.colorScheme['button-hover']};
     }
     #${this.prefix}-frame .xlv-nav-button {
-      background: ${this.colorScheme['nav-button']};
-      color: ${this.colorScheme['nav-button-text']};
+      border: 1px solid ${this.colorScheme['nav-button']};
+      background: ${this.colorScheme['nav-button-bg']};
+      color: ${this.colorScheme['nav-button']};
     }
     #${this.prefix}-frame .xlv-nav-button:hover {
       border: 1px solid ${this.colorScheme['button-hover']};
-      background: ${this.colorScheme['nav-button-hover']};
+      background: ${this.colorScheme['nav-button-bg-hover']};
       color: ${this.colorScheme['button-hover']};
     }
     #${this.prefix}-frame .xlv-button:disabled {

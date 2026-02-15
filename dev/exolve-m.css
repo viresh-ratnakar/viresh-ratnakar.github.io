@@ -388,8 +388,7 @@ Version: Exolve v1.67, January 5, 2026
   margin-left: 1px;
 }
 .xlv-frame .xlv-nav-button {
-  border-radius: 2px;
-  border: 1px solid gray;
+  border-radius: 0;
 }
 .xlv-frame:focus {
   border: none;
@@ -671,8 +670,9 @@ a.xlv-link:hover {
   padding: 0 4px 2px 4px;
   position: relative;
   touch-action: manipulation;
-  transition: background-color 0.1s, transform 0.05s;
+  transition: transform 0.05s;
   width: 9.5%;
+  -webkit-tap-highlight-color: transparent;
 }
 .xlv-phone-kb-btn:active {
   transform: translateY(2px);
