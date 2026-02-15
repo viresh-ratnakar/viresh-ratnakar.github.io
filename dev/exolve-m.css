@@ -378,6 +378,7 @@ Version: Exolve v1.67, January 5, 2026
   outline: none;
   text-align: center;
   text-decoration: none;
+  touch-action: manipulation;
   width: inherit;
 }
 .xlv-frame .xlv-prev {
@@ -418,6 +419,7 @@ Version: Exolve v1.67, January 5, 2026
   text-align: center;
   text-decoration: none;
   text-shadow: none;
+  touch-action: manipulation;
   width: inherit;
 }
 .xlv-small-button:hover {
