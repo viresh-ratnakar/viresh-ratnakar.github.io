@@ -388,7 +388,7 @@ Version: Exolve v1.67, January 5, 2026
 }
 .xlv-frame .xlv-nav-button {
   border-radius: 2px;
-  border: 1px solid black;
+  border: 1px solid lightgray;
 }
 .xlv-frame:focus {
   border: none;
