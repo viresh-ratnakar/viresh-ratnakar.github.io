@@ -8854,21 +8854,34 @@ Exolve.prototype.checkAll = function(conf=true, erase=true) {
       if (!gridCell.isLight && !gridCell.isDgmless) {
         continue;
       }
+      let badBarAfter = false;
+      let badBarUnder = false;
       if (this.dgmlessBars) {
         for (const prop of ['dgmlessBarAfter', 'dgmlessBarUnder']) {
           const isAfter = (prop == 'dgmlessBarAfter');
           const has = this.hasDgmlessBar(gridCell, isAfter);
           const shouldHave = gridCell[prop + 'InSolution'] ?? false;
           if (shouldHave != has) {
-            this.modifyDgmlessBar(gridCell, shouldHave);
+            if (isAfter) {
+              badBarAfter = true;
+            } else {
+              badBarUnder = true;
+            }
           }
         }
       }
-      if (this.getSolutionActive([row,col]) == gridCell.currLetter) {
+      if (this.getSolutionActive([row,col]) == gridCell.currLetter &&
+          !badBarAfter && !badBarUnder) {
         continue;
       }
       allCorrect = false;
       if (!erase) continue;
+      if (badBarAfter) {
+        this.modifyDgmlessBar(gridCell, true, !this.hasDgmlessBar(gridCell, true));
+      }
+      if (badBarUnder) {
+        this.modifyDgmlessBar(gridCell, false, !this.hasDgmlessBar(gridCell, false));
+      }
       this.setCellLetter(gridCell, '0');
       this.updateAltsActive();
     }
