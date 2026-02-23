@@ -3063,6 +3063,14 @@ Exolve.prototype.parseGrid = function() {
           gridCell.hasCircle = true;
         } else if (thisChar == '*') {
           gridCell.isDgmless = true;
+          if (gridCell.hasBarAfter) {
+            gridCell.dgmlessBarAfterInSolution = true;
+            gridCell.hasBarAfter = false;
+          }
+          if (gridCell.hasBarUnder) {
+            gridCell.dgmlessBarUnderInSolution = true;
+            gridCell.hasBarUnder = false;
+          }
         } else if (thisChar == '!') {
           gridCell.prefill = true;
         } else if (thisChar == '~') {
@@ -6173,11 +6181,11 @@ Exolve.prototype.parseState = function(state) {
         if (gridCell.isDgmless && this.dgmlessBars) {
           if (gridCell.hasOwnProperty('dgmlessBarAfter') &&
               (state.charAt(index++) == '1')) {
-            this.modifyDgmlessBar(gridCell, 'dgmlessBarAfter', true);
+            this.modifyDgmlessBar(gridCell, true, true);
           }
           if (gridCell.hasOwnProperty('dgmlessBarUnder') &&
               (state.charAt(index++) == '1')) {
-            this.modifyDgmlessBar(gridCell, 'dgmlessBarUnder', true);
+            this.modifyDgmlessBar(gridCell, false, true);
           }
         }
       } else {
@@ -7571,30 +7579,27 @@ Exolve.prototype.hasDgmlessBar = function(gridCell, isBarAfter) {
           gridCell.hasOwnProperty(prop) &&
           gridCell[prop].style.display != 'none');
 }
-/** prop should be 'dgmlessBarAfter' or 'dgmlessBarUnder' */
-Exolve.prototype.modifyDgmlessBar = function(gridCell, prop, turnOn) {
+/** Also modifies the symmetric cell if applicable */
+Exolve.prototype.modifyDgmlessBar = function(gridCell, isBarAfter, turnOn) {
   if (!this.dgmlessBars || !gridCell.isDgmless) return;
+  const prop = isBarAfter ? 'dgmlessBarAfter' : 'dgmlessBarUnder';
   if (gridCell.hasOwnProperty(prop)) {
     gridCell[prop].style.display = turnOn ? '' : 'none';
   }
-}
-Exolve.prototype.toggleDgmlessBar = function(gridCell, isBarAfter) {
-  if (!gridCell.isDgmless) {
-    return;
-  }
-  const prop = isBarAfter ? 'dgmlessBarAfter' : 'dgmlessBarUnder';
-  if (!gridCell.hasOwnProperty(prop)) {
-    return;
-  }
-  const isOn = (gridCell[prop].style.display != 'none');
-  this.modifyDgmlessBar(gridCell, prop, !isOn);
   const symRow = this.gridHeight - (isBarAfter ? 1 : 2) - gridCell.row;
   const symCol = this.gridWidth - (isBarAfter ? 2 : 1) - gridCell.col;
   if (symRow < 0 || symCol < 0) {
     return;
   }
   const symCell = this.grid[symRow][symCol];
-  this.modifyDgmlessBar(symCell, prop, !isOn);
+  if (!symCell.isDgmless) return;
+  if (symCell.hasOwnProperty(prop)) {
+    symCell[prop].style.display = turnOn ? '' : 'none';
+  }
+}
+Exolve.prototype.toggleDgmlessBar = function(gridCell, isBarAfter) {
+  const isOn = this.hasDgmlessBar(gridCell, isBarAfter);
+  this.modifyDgmlessBar(gridCell, isBarAfter, !isOn);
 }
 
 /**
@@ -7663,7 +7668,7 @@ Exolve.prototype.handleGridInput = function() {
   }
   if (gridCell.prefill) {
     // Changes disallowed
-    this.advanceCursor();  // TODO: check that backspace does not get here
+    this.advanceCursor();
     return;
   }
   let newInput = this.gridInput.value;
@@ -7689,7 +7694,7 @@ Exolve.prototype.handleGridInput = function() {
   } else if (gridCell.isDgmless && oldLetter == '1') {
     /** If a block is present, simply advance */
     this.gridInput.value = '';
-    this.advanceCursor();  // TODO: check that backspace does not get here
+    this.advanceCursor();
     return;
   }
   displayChar = displayChar.toUpperCase();
@@ -8380,8 +8385,8 @@ Exolve.prototype.clearCell = function(row, col) {
   const gridCell = this.grid[row][col];
   const oldLetter = this.setCellLetter(gridCell, '0');
   if (this.dgmlessBars) {
-    this.modifyDgmlessBar(gridCell, 'dgmlessBarAfter', false);
-    this.modifyDgmlessBar(gridCell, 'dgmlessBarUnder', false);
+    this.modifyDgmlessBar(gridCell, true, false);
+    this.modifyDgmlessBar(gridCell, false, false);
   }
   this.adjustRebusFonts();
   if (oldLetter == '1') {
@@ -8389,8 +8394,8 @@ Exolve.prototype.clearCell = function(row, col) {
     if (symCell.isDgmless) {
       this.setCellLetter(symCell, '0');
       if (this.dgmlessBars) {
-        this.modifyDgmlessBar(symCell, 'dgmlessBarAfter', false);
-        this.modifyDgmlessBar(symCell, 'dgmlessBarUnder', false);
+        this.modifyDgmlessBar(symCell, true, false);
+        this.modifyDgmlessBar(symCell, false, false);
       }
     }
   }
@@ -8554,8 +8559,8 @@ Exolve.prototype.clearAll = function(conf=true) {
       }
       this.setCellLetter(gridCell, '0');
       if (gridCell.isDgmless && this.dgmlessBars) {
-        this.modifyDgmlessBar(gridCell, 'dgmlessBarAfter', false);
-        this.modifyDgmlessBar(gridCell, 'dgmlessBarUnder', false);
+        this.modifyDgmlessBar(gridCell, true, false);
+        this.modifyDgmlessBar(gridCell, false, false);
       }
     }
   }
@@ -8960,11 +8965,12 @@ Exolve.prototype.revealCurr = function() {
       this.updateAltsActive();
     }
     if (gridCell.isDgmless && this.dgmlessBars) {
-      if (gridCell.hasOwnProperty('dgmlessBarAfter')) {
-        // TODO
-      }
-      if (gridCell.hasOwnProperty('dgmlessBarUnder')) {
-        // TODO
+      for (const prop of ['dgmlessBarAfter', 'dgmlessBarUnder']) {
+        if (gridCell.hasOwnProperty(prop)) {
+          const solProp = prop + 'InSolution';
+          this.modifyDgmlessBar(gridCell, (prop == 'dgmlessBarAfter'),
+              gridCell[solProp] ?? false);
+        }
       }
     }
   }
@@ -9004,11 +9010,12 @@ Exolve.prototype.revealAll = function(conf=true) {
         this.updateAltsActive();
       }
       if (gridCell.isDgmless && this.dgmlessBars) {
-        if (gridCell.hasOwnProperty('dgmlessBarAfter')) {
-          // TODO
-        }
-        if (gridCell.hasOwnProperty('dgmlessBarUnder')) {
-          // TODO
+        for (const prop of ['dgmlessBarAfter', 'dgmlessBarUnder']) {
+          if (gridCell.hasOwnProperty(prop)) {
+            const solProp = prop + 'InSolution';
+            this.modifyDgmlessBar(gridCell, (prop == 'dgmlessBarAfter'),
+                gridCell[solProp] ?? false);
+          }
         }
       }
     }
