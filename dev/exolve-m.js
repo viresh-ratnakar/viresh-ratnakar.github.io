@@ -8790,14 +8790,36 @@ Exolve.prototype.checkCurr = function() {
     const row = x[0];
     const col = x[1];
     const gridCell = this.grid[row][col];
+    let badBarAfter = false;
+    let badBarUnder = false;
+    if (this.dgmlessBars) {
+      for (const prop of ['dgmlessBarAfter', 'dgmlessBarUnder']) {
+        const isAfter = (prop == 'dgmlessBarAfter');
+        const has = this.hasDgmlessBar(gridCell, isAfter);
+        const shouldHave = gridCell[prop + 'InSolution'] ?? false;
+        if (shouldHave != has) {
+          if (isAfter) {
+            badBarAfter = true;
+          } else {
+            badBarUnder = true;
+          }
+        }
+      }
+    }
     const oldLetter = gridCell.currLetter;
-    if (this.getSolutionActive(x) == oldLetter) {
+    if (this.getSolutionActive(x) == oldLetter && !badBarAfter && !badBarUnder) {
       allCorrectNum++;
       continue;
     }
     allCorrectNum = 0;
     if (this.cellNotLight && !this.atCurr(row, col)) {
       continue;
+    }
+    if (badBarAfter) {
+      this.modifyDgmlessBar(gridCell, true, !this.hasDgmlessBar(gridCell, true));
+    }
+    if (badBarUnder) {
+      this.modifyDgmlessBar(gridCell, false, !this.hasDgmlessBar(gridCell, false));
     }
     this.setCellLetter(gridCell, '0');
     if (oldLetter == '1') {
@@ -8831,6 +8853,16 @@ Exolve.prototype.checkAll = function(conf=true, erase=true) {
       const gridCell = this.grid[row][col];
       if (!gridCell.isLight && !gridCell.isDgmless) {
         continue;
+      }
+      if (this.dgmlessBars) {
+        for (const prop of ['dgmlessBarAfter', 'dgmlessBarUnder']) {
+          const isAfter = (prop == 'dgmlessBarAfter');
+          const has = this.hasDgmlessBar(gridCell, isAfter);
+          const shouldHave = gridCell[prop + 'InSolution'] ?? false;
+          if (shouldHave != has) {
+            this.modifyDgmlessBar(gridCell, shouldHave);
+          }
+        }
       }
       if (this.getSolutionActive([row,col]) == gridCell.currLetter) {
         continue;
