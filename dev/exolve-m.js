@@ -437,7 +437,9 @@ function Exolve(puzzleSpec,
          <li><b>Delete:</b>
              Clear the contents of the current cell.</li>
          <li><b>Spacebar:</b>
-             Place/remove block in the current cell if it's diagramless.</li>
+             Toggle block in the current cell if it's diagramless.</li>
+         <li><b>|/_:</b>
+             When diagramless-bars option is on, toggle bar-after/under in the current cell if it's diagramless.</li>
          <li><b>Double-click or Shift+Letter:</b>
              If the puzzle has rebus cells, this is the way to enter
              multiple letters into a single cell.</li>
