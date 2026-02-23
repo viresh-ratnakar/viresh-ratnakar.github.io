@@ -7688,6 +7688,7 @@ Exolve.prototype.handleGridInput = function() {
     this.gridInput.value = '';
   } else if (gridCell.isDgmless && oldLetter == '1') {
     /** If a block is present, simply advance */
+    this.gridInput.value = '';
     this.advanceCursor();  // TODO: check that backspace does not get here
     return;
   }
