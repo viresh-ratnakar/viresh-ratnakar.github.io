@@ -103,6 +103,8 @@ function Exolve(puzzleSpec,
   this.ratio3d = 0.75;
 
   this.topClueClearance = 0;
+  this.extraSpaceOnTop = 0;
+  this.DEFAULT_CLEAR_AREA_HEIGHT = 56;
   this.offsetLeft = 0;
   this.offsetTop = 0;
 
@@ -203,6 +205,7 @@ function Exolve(puzzleSpec,
   this.submitKeys = [];
   this.hasDgmlessCells = false;
   this.dgmlessBars = false;
+  this.dgmlessSymmetry = true;
   this.hasUnsolvedCells = false;
   this.hasReveals = false;
   this.hasAcrossClues = false;
@@ -1398,7 +1401,7 @@ Exolve.prototype.checkPhoniness = function() {
   }
   this.onPhone = true;
   /**
-   * If we're suddiciently near the top of the viewport, then we
+   * If we're sufficiently near the top of the viewport, then we
    * do some rearranging to reduce the space used above the grid.
    */
   if (this.frame.offsetTop <= 16) {
@@ -2310,6 +2313,10 @@ Exolve.prototype.parseOption = function(s) {
       this.dgmlessBars = true;
       continue;
     }
+    if (spart == "diagramless-asymmetric") {
+      this.dgmlessSymmetry = false;
+      continue;
+    }
     if (spart == "ignore-unclued") {
       this.ignoreUnclued = true;
       continue;
@@ -2399,6 +2406,14 @@ Exolve.prototype.parseOption = function(s) {
       if (isNaN(this.topClueClearance) || this.topClueClearance < 0) {
         this.throwErr(
             'Unexpected val in exolve-option: top-clue-clearance: ' + kv[1]);
+      }
+      continue;
+    }
+    if (kv[0] == 'extra-space-on-top') {
+      this.extraSpaceOnTop = parseInt(kv[1]);
+      if (isNaN(this.extraSpaceOnTop)) {
+        this.throwErr(
+            'Unexpected val in exolve-option: extra-space-on-top: ' + kv[1]);
       }
       continue;
     }
@@ -3335,7 +3350,7 @@ Exolve.prototype.setCellLightMemberships = function(clue) {
 // array of cells for specialised used in Exet) and startsClueLabel (#) in
 // grid[i][j]s where clues start.
 Exolve.prototype.markClueStartsUsingGrid = function() {
-  if (this.hasDgmlessCells && this.hasUnsolvedCells) {
+  if (this.hasDgmlessCells) {  // TODO: does this work?
     // Cannot rely on grid. Clue starts should be provided in clues using
     // prefixes like #a8, #d2, etc.
     return
@@ -5317,6 +5332,9 @@ Exolve.prototype.applyStyles = function() {
     #${this.prefix}-frame .xlv-curr-clue {
       top: ${this.visTop > 0 ? (this.visTop + 'px') : 0};
     }
+    #${this.prefix}-frame .xlv-clear-area {
+      height: ${this.DEFAULT_CLEAR_AREA_HEIGHT + this.extraSpaceOnTop}px;
+    }
     #${this.prefix}-frame .xlv-curr-clue-label {
       color: ${this.colorScheme['curr-unsolved']};
     }
@@ -6386,13 +6404,13 @@ Exolve.prototype.currCell = function() {
   if (!this.currCellIsValid()) {
     return null;
   }
-  return this.grid[this.currRow][this.currCol]
+  return this.grid[this.currRow][this.currCol];
 }
 Exolve.prototype.atCurr = function(row, col) {
-  return row == this.currRow && col == this.currCol
+  return row == this.currRow && col == this.currCol;
 }
 Exolve.prototype.symCell = function(row, col) {
-  return this.grid[this.gridHeight - 1 - row][this.gridWidth - 1 - col]
+  return this.grid[this.gridHeight - 1 - row][this.gridWidth - 1 - col];
 }
 Exolve.prototype.cellLeftPos = function(col, offset) {
   return this.offsetLeft + offset + (col * this.tilingW);
@@ -6402,9 +6420,9 @@ Exolve.prototype.cellTopPos = function(row, offset) {
 }
 Exolve.prototype.clueOrParentIndex = function(ci) {
   if (ci && this.clues[ci] && this.clues[ci].parentClueIndex) {
-    return this.clues[ci].parentClueIndex
+    return this.clues[ci].parentClueIndex;
   }
-  return ci
+  return ci;
 }
 Exolve.prototype.currParentClue = function() {
   let ci = this.currClueIndex;
@@ -7568,6 +7586,9 @@ Exolve.prototype.toggleDgmlessBlock = function(gridCell) {
   if (!gridCell.isDgmless) return;
   const newLetter = (gridCell.currLetter == '1') ? '0' : '1';
   this.setCellLetter(gridCell, newLetter);
+  if (!this.dgmlessSymmetry) {
+    return;
+  }
   const symCell = this.symCell(gridCell.row, gridCell.col);
   if (symCell.isDgmless) {
     this.setCellLetter(symCell, newLetter);
@@ -7585,6 +7606,9 @@ Exolve.prototype.modifyDgmlessBar = function(gridCell, isBarAfter, turnOn) {
   const prop = isBarAfter ? 'dgmlessBarAfter' : 'dgmlessBarUnder';
   if (gridCell.hasOwnProperty(prop)) {
     gridCell[prop].style.display = turnOn ? '' : 'none';
+  }
+  if (!this.dgmlessSymmetry) {
+    return;
   }
   const symRow = this.gridHeight - (isBarAfter ? 1 : 2) - gridCell.row;
   const symCol = this.gridWidth - (isBarAfter ? 2 : 1) - gridCell.col;
@@ -8389,14 +8413,10 @@ Exolve.prototype.clearCell = function(row, col) {
     this.modifyDgmlessBar(gridCell, false, false);
   }
   this.adjustRebusFonts();
-  if (oldLetter == '1') {
+  if (oldLetter == '1' && this.dgmlessSymmetry) {
     const symCell = this.symCell(row, col);
     if (symCell.isDgmless) {
       this.setCellLetter(symCell, '0');
-      if (this.dgmlessBars) {
-        this.modifyDgmlessBar(symCell, true, false);
-        this.modifyDgmlessBar(symCell, false, false);
-      }
     }
   }
 }
@@ -8822,7 +8842,7 @@ Exolve.prototype.checkCurr = function() {
       this.modifyDgmlessBar(gridCell, false, !this.hasDgmlessBar(gridCell, false));
     }
     this.setCellLetter(gridCell, '0');
-    if (oldLetter == '1') {
+    if (oldLetter == '1' && this.dgmlessSymmetry) {
       const symCell = this.symCell(row, col);
       if (symCell.isDgmless) {
         this.setCellLetter(symCell, '0');
@@ -8999,7 +9019,7 @@ Exolve.prototype.revealCurr = function() {
       this.setCellLetter(gridCell, letter);
       this.updateAltsActive();
     }
-    if (oldLetter == '1' || letter == '1') {
+    if ((oldLetter == '1' || letter == '1') && this.dgmlessSymmetry) {
       const symCell = this.symCell(row, col);
       if (symCell.isDgmless &&
           ((symCell.currLetter == '1' && letter != '1') ||
