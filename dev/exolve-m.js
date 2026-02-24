@@ -7992,16 +7992,38 @@ Exolve.prototype.displayGrid = function() {
         gridCell.cellLeft = gridCell.shapedCellX;
         gridCell.cellTop = gridCell.shapedCellY;
       }
-      if (!gridCell.isLight && !gridCell.isDgmless) {
+      const hasDecs = gridCell.decorators && gridCell.decorators.length > 0;
+      const isFillable = gridCell.isLight || gridCell.isDgmless;
+      if (!isFillable && !hasDecs) {
         continue;
       }
       const cellGroup =
           document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      gridCell.cellGroup = cellGroup;
+      this.svg.appendChild(cellGroup);
       const activator = this.cellActivator.bind(this, i, j);
 
-      this.numCellsToFill++
+      /** decorators are added to dark cells too */
+      if (hasDecs) {
+        for (const dp of gridCell.decorators) {
+          const d = dp[0];
+          const cellDec = this.cellDecs[d - 1];
+          const svgSpec = this.fillParams(cellDec.svgSpec, dp);
+          const g = this.makeCellSVG(
+              gridCell.cellLeft, gridCell.cellTop, svgSpec);
+          cellGroup.appendChild(g)
+          if (isFillable && cellDec.clickable) {
+            g.addEventListener('click', activator);
+          }
+        }
+      }
+      if (!isFillable) {
+        /** dark cell */
+        continue;
+      }
+      this.numCellsToFill++;
       if (gridCell.prefill) {
-        this.numCellsPrefilled++
+        this.numCellsPrefilled++;
       }
       let cellRect;
       if (gridCell.shapedCell) {
@@ -8013,7 +8035,7 @@ Exolve.prototype.displayGrid = function() {
             gridCell.cellLeft, gridCell.cellTop,
             this.cellW, this.cellH, cellColor);
       }
-      cellGroup.appendChild(cellRect)
+      cellGroup.appendChild(cellRect);
 
       const cellText =
           document.createElementNS('http://www.w3.org/2000/svg', 'text');
@@ -8042,7 +8064,6 @@ Exolve.prototype.displayGrid = function() {
       gridCell.textNode = text;
       gridCell.cellText = cellText;
       gridCell.cellRect = cellRect;
-      gridCell.cellGroup = cellGroup;
 
       cellText.addEventListener('click', activator);
       cellRect.addEventListener('click', activator);
@@ -8058,19 +8079,6 @@ Exolve.prototype.displayGrid = function() {
         cellGroup.appendChild(cellCircle)
         cellCircle.addEventListener('click', activator);
         gridCell.cellCircle = cellCircle
-      }
-      if (gridCell.decorators && gridCell.decorators.length > 0) {
-        for (const dp of gridCell.decorators) {
-          const d = dp[0];
-          const cellDec = this.cellDecs[d - 1];
-          const svgSpec = this.fillParams(cellDec.svgSpec, dp);
-          const g = this.makeCellSVG(
-              gridCell.cellLeft, gridCell.cellTop, svgSpec);
-          cellGroup.appendChild(g)
-          if (cellDec.clickable) {
-            g.addEventListener('click', activator);
-          }
-        }
       }
       if ((gridCell.startsClueLabel && !gridCell.isDgmless &&
            !gridCell.skipNum && !this.hideInferredNumbers) ||
@@ -8108,7 +8116,6 @@ Exolve.prototype.displayGrid = function() {
         gridCell.dgmlessBlock = blockRect;
         blockRect.style.display = 'none';
       }
-      this.svg.appendChild(cellGroup);
     }
   }
   this.adjustRebusFonts();
