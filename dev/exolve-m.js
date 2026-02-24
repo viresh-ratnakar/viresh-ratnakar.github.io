@@ -8001,7 +8001,9 @@ Exolve.prototype.displayGrid = function() {
           document.createElementNS('http://www.w3.org/2000/svg', 'g');
       gridCell.cellGroup = cellGroup;
       this.svg.appendChild(cellGroup);
-      const activator = this.cellActivator.bind(this, i, j);
+      const activator = isFillable ?
+        this.cellActivator.bind(this, i, j) :
+        this.boundListeners['deactivator'];
 
       /** decorators are added to dark cells too */
       if (hasDecs) {
@@ -8012,7 +8014,7 @@ Exolve.prototype.displayGrid = function() {
           const g = this.makeCellSVG(
               gridCell.cellLeft, gridCell.cellTop, svgSpec);
           cellGroup.appendChild(g)
-          if (isFillable && cellDec.clickable) {
+          if (cellDec.clickable) {
             g.addEventListener('click', activator);
           }
         }
