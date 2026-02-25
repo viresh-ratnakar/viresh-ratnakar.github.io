@@ -8850,16 +8850,19 @@ Exolve.prototype.checkCell = function() {
   this.checkCurr();
 }
 
+/**
+ * Returns a pair of booleans, true when a user-added bar after/under is
+ * incorrect.
+ */
 Exolve.prototype.getDgmlessBarsBadness = function(gridCell) {
   let badBarAfter = false;
   let badBarUnder = false;
   if (this.dgmlessBars) {
     for (const isAfter of [true, false]) {
-      const hasProp = this.hasDgmlessBarProp(gridCell, isAfter);
-      if (!hasProp) {
+      const has = this.hasDgmlessBar(gridCell, isAfter);
+      if (!has) {
         continue;
       }
-      const has = this.hasDgmlessBar(gridCell, isAfter);
       const shouldHave = this.hasDgmlessBarInSolution(gridCell, isAfter);
       if (shouldHave != has) {
         if (isAfter) {
@@ -8911,10 +8914,10 @@ Exolve.prototype.checkCurr = function() {
       continue;
     }
     if (badDgmlessBars[0]) {
-      this.modifyDgmlessBar(gridCell, true, !this.hasDgmlessBar(gridCell, true));
+      this.modifyDgmlessBar(gridCell, true, false);
     }
     if (badDgmlessBars[1]) {
-      this.modifyDgmlessBar(gridCell, false, !this.hasDgmlessBar(gridCell, false));
+      this.modifyDgmlessBar(gridCell, false, false);
     }
     if (!letterMatches) {
       this.setCellLetter(gridCell, '0');
@@ -8961,10 +8964,10 @@ Exolve.prototype.checkAll = function(conf=true, erase=true) {
       allCorrect = false;
       if (!erase) continue;
       if (badDgmlessBars[0]) {
-        this.modifyDgmlessBar(gridCell, true, !this.hasDgmlessBar(gridCell, true));
+        this.modifyDgmlessBar(gridCell, true, false);
       }
       if (badDgmlessBars[1]) {
-        this.modifyDgmlessBar(gridCell, false, !this.hasDgmlessBar(gridCell, false));
+        this.modifyDgmlessBar(gridCell, false, false);
       }
       if (!letterMatches) {
         this.setCellLetter(gridCell, '0');
