@@ -84,7 +84,7 @@ function Exolve(puzzleSpec,
                 visTop=0,
                 maxDim=0,
                 notTemp=true) {
-  this.VERSION = 'Exolve v1.68.2, February 15, 2026';
+  this.VERSION = 'Exolve v1.69, February 25, 2026';
   this.id = '';
 
   this.puzzleText = puzzleSpec;
@@ -241,7 +241,6 @@ function Exolve(puzzleSpec,
   this.currClueIndex = null;
   this.lastClueIndex = null;
   this.usingGnav = false;
-  this.lastOrphan = null;
   this.activeCells = [];
   this.activeClues = [];
   this.showingNinas = false;
@@ -3217,7 +3216,7 @@ Exolve.prototype.startsDownCells = function(i, j, grid=null) {
   if (!grid) grid = this.grid;
   const gridCell = grid[i][j];
   if (!gridCell.isLight || gridCell.shapedCell ||
-      gridCell.isDgmless || gridCell.hasBarAfter) {
+      gridCell.isDgmless || gridCell.hasBarUnder) {
     return null;
   }
   if (i > 0) {
@@ -3309,9 +3308,33 @@ Exolve.prototype.maybeReverseLight = function(cells) {
   return true;
 }
 
+Exolve.prototype.inferClueCellsFromStartCell = function(clue) {
+  if (!clue || !clue.startCell || clue.enumLen <= 1) {
+    false;
+  }
+  const dir = clue.dir;
+  if (dir != 'A' && dir != 'D') {
+    return false;
+  }
+  const c = clue.startCell;
+  const gridCell = this.grid[c[0]][c[1]];
+  const prop = (dir == 'A') ? 'startsAcrossClue' : 'startsDownClue';
+  const cells = gridCell[prop] ?? null;
+  if (!cells || cells.length != clue.enumLen) {
+    return false;
+  }
+  clue.cells = cells;
+  return true;
+}
+
 Exolve.prototype.setCellLightMemberships = function(clue) {
-  if (!clue || !clue.cells || clue.cells.length == 0) {
+  if (!clue) {
     return;
+  }
+  if (!clue.cells || clue.cells.length == 0) {
+    if (!this.inferClueCellsFromStartCell(clue)) {
+      return;
+    }
   }
   let prev = [];
   for (let c of clue.cells) {
@@ -3346,17 +3369,14 @@ Exolve.prototype.setCellLightMemberships = function(clue) {
   }
 }
 
-// Sets starts{Across,Down,Z3d}Clue (used mostly as boolean, but set to the
-// array of cells for specialised used in Exet) and startsClueLabel (#) in
+// In each grid[i][j], set starts{Across,Down,Z3d}Clue to the array of cells
+// that belong to a light in the A/D/Z direction starting at that cell. If there
+// are no diagramless cells, then also assign light numbers and set set
+// grid[i][j].startsClueLabel to the assigned clue number;
 // grid[i][j]s where clues start.
 Exolve.prototype.markClueStartsUsingGrid = function() {
-  if (this.hasDgmlessCells) {  // TODO: does this work?
-    // Cannot rely on grid. Clue starts should be provided in clues using
-    // prefixes like #a8, #d2, etc.
-    return
-  }
   // First mark the spots in the grid where lights start. Use light
-  // orientations when provided.
+  // reversals when provided.
   for (let i = 0; i < this.gridHeight; i++) {
     for (let j = 0; j < this.gridWidth; j++) {
       let cells = this.startsAcrossCells(i, j);
@@ -3394,7 +3414,10 @@ Exolve.prototype.markClueStartsUsingGrid = function() {
     console.log('These reversals specified in exolve-reverse were invalid: ' +
                 JSON.stringify(this.reversals));
   }
-
+  if (this.hasDgmlessCells) {
+    /** Cannot assign clue numbers based on the grid. */
+    return;
+  }
   let nextClueNum = 1;
   let nextSkipNum = 1;
   for (let ii = 0; ii < this.gridHeight; ii++) {
@@ -4077,9 +4100,6 @@ Exolve.prototype.parseClue = function(dir, clueLine) {
       cells.push(cell);
     }
   }
-  if (cells.length > 0 && dir != 'X') {
-    this.throwErr('Cells listed in non-nodir clue: ' + clueLine);
-  }
 
   let clueLabelParse = this.parseClueLabel(clueLine);
   const clue = this.newClue(dir + clueLabelParse.label);
@@ -4225,39 +4245,39 @@ Exolve.prototype.setClueCellsDgmless = function(clue) {
 // parse.segments, used to "reveal this" when only a segment is active
 // while usingGnav).
 Exolve.prototype.parseCellsOfOrphan = function(s) {
-  let segments = []
-  let cells = []
-  let cellsOrClues = s.trim().split(' ')
-  let lastCell = null
+  const segments = [];
+  let cells = [];
+  const cellsOrClues = s.trim().split(' ');
+  let lastCell = null;
   for (let cellOrClue of cellsOrClues) {
     if (!cellOrClue) {
-      continue
+      continue;
     }
-    let cellLocation = this.parseCellLocation(cellOrClue)
+    let cellLocation = this.parseCellLocation(cellOrClue);
     if (!cellLocation) {
-      let theClue = this.clueFromLabel(cellOrClue);
+      const theClue = this.clueFromLabel(cellOrClue);
       if (!theClue || theClue.cells.length == 0) {
-        return null
+        return null;
       }
       if (theClue.cells.length > 1) {
-        let clueCells = theClue.cells;
-        segments.push(clueCells)
+        const clueCells = theClue.cells;
+        segments.push(clueCells);
         if (lastCell &&
             lastCell[0] == clueCells[0][0] &&
             lastCell[1] == clueCells[0][1]) {
           // Do not add duplicated cell from sequence
           cells.pop();
         }
-        cells = cells.concat(clueCells)
+        cells = cells.concat(clueCells);
       }
     } else {
-      cells.push(cellLocation)
+      cells.push(cellLocation);
     }
     if (cells.length > 1) {
       lastCell = cells[cells.length - 1];
     }
   }
-  return cells.length == 0 ? null : {cells: cells, segments: segments}
+  return cells.length == 0 ? null : {cells: cells, segments: segments};
 }
 
 /**
@@ -4422,7 +4442,8 @@ Exolve.prototype.parseAnno = function(anno, clueIndex) {
 
 /**
  * Parse across, down, 3d, nodir clues from their exolve sections previously
- * identified by parseOverall(). Sets lastOrphan, if any.
+ * identified by parseOverall(). Sets this.hasPlaceholders to true if there
+ * are any orphans.
  * Sets cellsToOrphan[] for orphan clues for which revelations are provided.
  * Sets allClueIndices array and allClueDirs set.
  */
@@ -4533,7 +4554,7 @@ Exolve.prototype.parseClueLists = function() {
 
       // Set up cell sequence/memberships in clues not known from the grid and
       // with known cells.
-      if (!knownInGrid && clue.cells.length > 0) {
+      if (!knownInGrid && (clue.startCell || clue.cells.length > 0)) {
         this.setCellLightMemberships(clue);
       }
 
@@ -4585,12 +4606,9 @@ Exolve.prototype.parseClueLists = function() {
   }
   for (let clueIndex of this.allClueIndices) {
     if (!this.clues[clueIndex].parentClueIndex && this.isOrphan(clueIndex)) {
-      this.lastOrphan = clueIndex;
+      this.hasPlaceholders = true;
       break;
     }
-  }
-  if (this.lastOrphan) {
-    this.hasPlaceholders = true;
   }
 }
 
@@ -5067,7 +5085,7 @@ Exolve.prototype.setWordEndsAndHyphens = function() {
   }
 }
 
-Exolve.prototype.cmpGnavSpans = function(s1, s2) {
+Exolve.prototype.cmpLightSpans = function(s1, s2) {
   const d1 = s1.dir.charAt(0);
   const d2 = s2.dir.charAt(0);
   if (d1 < d2) {
@@ -5117,9 +5135,29 @@ Exolve.prototype.getDirClueIndex = function(dir, label) {
   return dir + label;
 }
 
-Exolve.prototype.setUpGnav = function() {
-  let gnavSpans = []
-  let cluesAlreadySpanned = {}
+Exolve.prototype.secondSpanSubsumed = function(span, offset, span2) {
+  const cells = span.cells;
+  const cells2 = span2.cells;
+  for (let i = 0; i < cells2.length; i++) {
+    if (offset + i >= cells.length) {
+      return false;
+    }
+    const cell = cells[offset + i];
+    const cell2 = cells2[i];
+    if ((cell[0] != cell2[0]) || (cell[1] != cell2[1])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+Exolve.prototype.setUpLightSpans = function() {
+  /**
+   * Each span stores its index in the array as we later skip those
+   * fully subsumed by nodir clue spans.
+   */
+  const adDgmlessSpans = [];
+  const cluesAlreadySpanned = new Set;
   // The following loops add spans of diagramless cells, extended on either
   // side with light cells that are connected, to gnav, and also set up
   // advancing typing across/down consecutive cells in such spans.
@@ -5132,7 +5170,11 @@ Exolve.prototype.setUpGnav = function() {
         j++;
         continue;
       }
-      const span = {cells: [], dir: 'A'};
+      const span = {cells: [], dir: 'A', idx: adDgmlessSpans.length};
+      /**
+       * Cells in reverse order going left from j-1 till the edge or till a clue
+       * that extends it.
+       */
       const revPref = [];
       for (let pj = j - 1; pj >= 0; pj--) {
         const pcell = this.grid[i][pj];
@@ -5142,7 +5184,7 @@ Exolve.prototype.setUpGnav = function() {
         const prefClue = this.getDirClueIndex('A', pcell.acrossClueLabel);
         if (prefClue && this.clues[prefClue]) {
           span.cells = span.cells.concat(this.clues[prefClue].cells);
-          cluesAlreadySpanned[prefClue] = true;
+          cluesAlreadySpanned.add(prefClue);
           break;
         } else {
           revPref.push([i, pj]);
@@ -5155,8 +5197,8 @@ Exolve.prototype.setUpGnav = function() {
           break;
         }
         if (cell.isDgmless && cell.startsAcrossClue) {
-          cluesAlreadySpanned[this.getDirClueIndex(
-              'A', cell.acrossClueLabel)] = true;
+          cluesAlreadySpanned.add(
+              this.getDirClueIndex('A', cell.acrossClueLabel));
         }
         span.cells.push([i, j]);
         j++;
@@ -5165,7 +5207,7 @@ Exolve.prototype.setUpGnav = function() {
         }
       }
       console.assert(span.cells.length > 0, i, j);
-      gnavSpans.push(span);
+      adDgmlessSpans.push(span);
     }
   }
   for (let j = 0; j < this.gridWidth; j++) {
@@ -5175,7 +5217,11 @@ Exolve.prototype.setUpGnav = function() {
         i++;
         continue;
       }
-      const span = {cells: [], dir: 'D'};
+      const span = {cells: [], dir: 'D', idx: adDgmlessSpans.length};
+      /**
+       * Cells in reverse order going up from i-1 till the top or till a clue
+       * that extends it.
+       */
       const revPref = [];
       for (let pi = i - 1; pi >= 0; pi--) {
         const pcell = this.grid[pi][j];
@@ -5185,7 +5231,7 @@ Exolve.prototype.setUpGnav = function() {
         const prefClue = this.getDirClueIndex('D', pcell.downClueLabel);
         if (prefClue && this.clues[prefClue]) {
           span.cells = span.cells.concat(this.clues[prefClue].cells);
-          cluesAlreadySpanned[prefClue] = true;
+          cluesAlreadySpanned.add(prefClue);
           break;
         } else {
           revPref.push([pi, j]);
@@ -5198,8 +5244,8 @@ Exolve.prototype.setUpGnav = function() {
           break;
         }
         if (cell.isDgmless && cell.startsDownClue) {
-          cluesAlreadySpanned[this.getDirClueIndex(
-              'D', cell.downClueLabel)] = true;
+          cluesAlreadySpanned.add(
+              this.getDirClueIndex('D', cell.downClueLabel));
         }
         span.cells.push([i, j]);
         i++;
@@ -5208,29 +5254,24 @@ Exolve.prototype.setUpGnav = function() {
         }
       }
       console.assert(span.cells.length > 0, i, j);
-      gnavSpans.push(span);
+      adDgmlessSpans.push(span);
     }
   }
-  for (const span of gnavSpans) {
-    const dir = span.dir;
-    let prev = null;
-    for (let cell of span.cells) {
-      let gridCell = this.grid[cell[0]][cell[1]];
-      gridCell['dgmlessSpan' + dir] = span;
-      if (prev) {
-        this.grid[prev[0]][prev[1]]['succ' + dir] = {cell: cell, dir: dir};
-        gridCell['pred' + dir] = {cell: prev, dir: dir};
-      }
-      prev = cell;
+  for (const adSpan of adDgmlessSpans) {
+    for (const cell of adSpan.cells) {
+      const gridCell = this.grid[cell[0]][cell[1]];
+      gridCell['dgmlessSpan' + adSpan.dir] = adSpan;
     }
   }
 
+  const lightSpans = [];
+  const subsumedAD = new Set;
   for (const ci in this.clues) {
     const clue = this.clues[ci];
     if (clue.cells.length == 0) {
       continue;
     }
-    if (cluesAlreadySpanned[ci]) {
+    if (cluesAlreadySpanned.has(ci)) {
       continue;
     }
     const isNodir = (ci.charAt(0) == 'X');
@@ -5247,29 +5288,76 @@ Exolve.prototype.setUpGnav = function() {
     if (clue.reversed) {
       span.reversed = true;
     }
-    gnavSpans.push(span);
+    lightSpans.push(span);
+    if (isNodir) {
+      /**
+       * If any of the cells starts a dgmless A/D span that's
+       * fully subsumed, just remove that dgmless span
+       */
+      for (let i = 0; i < span.cells.length; i++) {
+        const cell = span.cells[i];
+        const gridCell = this.grid[cell[0]][cell[1]];
+        for (const ad of ['A', 'D']) {
+          const prop = 'dgmlessSpan' + ad;
+          if (!gridCell.hasOwnProperty(prop)) {
+            continue;
+          }
+          const adSpan = gridCell[prop];
+          if (this.secondSpanSubsumed(span, i, adSpan)) {
+            subsumedAD.add(adSpan.idx);
+          }
+        }
+      }
+    }
   }
-
-  gnavSpans.sort(this.cmpGnavSpans.bind(this));
+  for (const idx of subsumedAD) {
+    const adSpan = adDgmlessSpans[idx];
+    for (const cell of adSpan.cells) {
+      const gridCell = this.grid[cell[0]][cell[1]];
+      delete gridCell['dgmlessSpan' + adSpan.dir];
+    }
+  }
+  for (let idx = 0; idx < adDgmlessSpans.length; idx++) {
+    if (subsumedAD.has(idx)) {
+      continue;
+    }
+    const adSpan = adDgmlessSpans[idx];
+    delete adSpan['idx'];
+    lightSpans.push(adSpan);
+    const dir = adSpan.dir;
+    let prev = null;
+    for (let cell of adSpan.cells) {
+      const gridCell = this.grid[cell[0]][cell[1]];
+      console.assert(gridCell.hasOwnProperty('dgmlessSpan' + dir), gridCell, adSpan);
+      if (prev) {
+        this.grid[prev[0]][prev[1]]['succ' + dir] = {cell: cell, dir: dir};
+        gridCell['pred' + dir] = {cell: prev, dir: dir};
+      }
+      prev = cell;
+    }
+  }
+  lightSpans.sort(this.cmpLightSpans.bind(this));
 
   // Set up gnav
-  for (let idx = 0; idx < gnavSpans.length; idx++) {
+  for (let idx = 0; idx < lightSpans.length; idx++) {
     let prev = idx - 1;
     if (prev < 0) {
-      prev = gnavSpans.length - 1;
+      prev = lightSpans.length - 1;
     }
     let next = idx + 1;
-    if (next >= gnavSpans.length) {
+    if (next >= lightSpans.length) {
       next = 0;
     }
-    for (const cell of gnavSpans[idx].cells) {
-      this.grid[cell[0]][cell[1]]['next' + gnavSpans[idx].dir] = {
-        cell: gnavSpans[next].cells[0],
-        dir: gnavSpans[next].dir,
+    const span = lightSpans[idx];
+    for (const cell of span.cells) {
+      const gridCell = this.grid[cell[0]][cell[1]];
+      gridCell['next' + span.dir] = {
+        cell: lightSpans[next].cells[0],
+        dir: lightSpans[next].dir,
       };
-      this.grid[cell[0]][cell[1]]['prev' + gnavSpans[idx].dir] = {
-        cell: gnavSpans[prev].cells[0],
-        dir: gnavSpans[prev].dir,
+      gridCell['prev' + span.dir] = {
+        cell: lightSpans[prev].cells[0],
+        dir: lightSpans[prev].dir,
       };
     }
   }
@@ -6026,10 +6114,10 @@ Exolve.prototype.getGridStateAndNumFilled = function(notifyIfComplete=true) {
           state += (stateLetter + '$');
         }
         if (gridCell.isDgmless && this.dgmlessBars) {
-          if (gridCell.hasOwnProperty('dgmlessBarAfter')) {
+          if (this.hasDgmlessBarProp(gridCell, true)) {
             state += (this.hasDgmlessBar(gridCell, true) ? '1' : '0');
           }
-          if (gridCell.hasOwnProperty('dgmlessBarUnder')) {
+          if (this.hasDgmlessBarProp(gridCell, false)) {
             state += (this.hasDgmlessBar(gridCell, false) ? '1' : '0');
           }
         }
@@ -6197,11 +6285,11 @@ Exolve.prototype.parseState = function(state) {
            parsedState.push(letter);
         }
         if (gridCell.isDgmless && this.dgmlessBars) {
-          if (gridCell.hasOwnProperty('dgmlessBarAfter') &&
+          if (this.hasDgmlessBarProp(gridCell, true) &&
               (state.charAt(index++) == '1')) {
             this.modifyDgmlessBar(gridCell, true, true);
           }
-          if (gridCell.hasOwnProperty('dgmlessBarUnder') &&
+          if (this.hasDgmlessBarProp(gridCell, false) &&
               (state.charAt(index++) == '1')) {
             this.modifyDgmlessBar(gridCell, false, true);
           }
@@ -6517,7 +6605,6 @@ Exolve.prototype.gnavToInner = function(cell, dir) {
   if (!gridCell || (!gridCell.isLight && !gridCell.isDgmless)) {
     return null;
   }
-
   this.gridInputWrapper.style.left = '' + gridCell.cellLeft + 'px';
   this.gridInputWrapper.style.top = '' + gridCell.cellTop + 'px';
   this.gridInput.value = this.isPrefillOrDgmlessBlock(gridCell) ? '' :
@@ -6538,10 +6625,10 @@ Exolve.prototype.gnavToInner = function(cell, dir) {
   let activeClueIndex = '';
   let activeClueLabel = '';
   // If the current direction does not have an active clue, toggle direction
-  if (this.currDir == 'A' && !gridCell.isDgmless &&
+  if (this.currDir == 'A' &&
       !gridCell.acrossClueLabel && !gridCell.dgmlessSpanA) {
     this.toggleCurrDir();
-  } else if (this.currDir == 'D' && !gridCell.isDgmless &&
+  } else if (this.currDir == 'D' &&
              !gridCell.downClueLabel && !gridCell.dgmlessSpanD) {
     this.toggleCurrDir();
   } else if (this.currDir == 'Z' && !gridCell.z3dClueLabel) {
@@ -6599,9 +6686,6 @@ Exolve.prototype.gnavToInner = function(cell, dir) {
           this.colorScheme['active'];
       this.activeCells.push(rowcol);
     }
-    if (!activeClueIndex) {
-      activeClueIndex = this.lastOrphan;
-    }
   } else if (activeClueIndex && this.clues[activeClueIndex]) {
     let clueIndices = this.getLinkedClues(activeClueIndex);
     let parentIndex = clueIndices[0];
@@ -6625,7 +6709,6 @@ Exolve.prototype.gnavToInner = function(cell, dir) {
   } else {
     // Isolated cell, hopefully a part of some nodir clue
     this.activeCells.push([this.currRow, this.currCol])
-    activeClueIndex = this.lastOrphan;
   }
   gridCell.cellRect.style.fill = this.colorScheme['input'];
   if (!gridCell.prefill) {
@@ -6669,9 +6752,10 @@ Exolve.prototype.gnavToInner = function(cell, dir) {
 }
 
 Exolve.prototype.activateCell = function(row, col) {
+  const dir = this.currDir;
   this.deactivateCurrCell();
-  const clue = this.gnavToInner([row, col], this.currDir);
   this.deactivateCurrClue();
+  const clue = this.gnavToInner([row, col], dir);
   if (clue) {
     this.cnavToInner(clue);
   }
@@ -6777,24 +6861,20 @@ Exolve.prototype.cnavToInner = function(activeClueIndex, grabFocus = false) {
   let gnav = null;
   const clueAtActive = this.clues[activeClueIndex];
   if (clueAtActive && clueAtActive.cells.length > 0) {
-    let dir = (activeClueIndex.charAt(0) == 'X') ? activeClueIndex :
-              activeClueIndex.charAt(0);
+    const dir = (activeClueIndex.charAt(0) == 'X') ? activeClueIndex :
+                activeClueIndex.charAt(0);
     gnav = [clueAtActive.cells[0][0], clueAtActive.cells[0][1], dir];
   }
-  let curr = this.clues[parentIndex];
+  const curr = this.clues[parentIndex];
   if (!curr || !curr.clue) {
-    activeClueIndex = this.lastOrphan;
-    parentIndex = this.lastOrphan;
-    curr = this.clues[parentIndex];
-    if (!curr || !curr.clue) {
-      return null;
+    return null;
+  }
+  if (!gnav && curr.startCell) {
+    if (curr.dir == 'A' || curr.dir == 'D') {
+      gnav = [curr.startCell[0], curr.startCell[1], curr.dir];
     }
-    clueIndices = this.getLinkedClues(parentIndex);
   }
   const orphan = this.isOrphan(parentIndex);
-  if (orphan) {
-    this.lastOrphan = parentIndex;
-  }
   const colour = orphan ? this.colorScheme['orphan'] :
       this.colorScheme['active-clue'];
   for (const clueIndex of clueIndices) {
@@ -6848,53 +6928,19 @@ Exolve.prototype.cnavToInner = function(activeClueIndex, grabFocus = false) {
   return gnav;
 }
 
-// The current gnav position is diagramless or does not have a known
-// clue in the current direction.
-Exolve.prototype.gnavIsClueless = function() {
-  const gridCell = this.currCell()
-  if (!gridCell) {
-    return false
-  }
-  let aIndex = '';
-  let dIndex = '';
-  return (gridCell.isDgmless ||
-     (this.currDir == 'A' &&
-      (!gridCell.acrossClueLabel ||
-       !(aIndex = this.getDirClueIndex('A', gridCell.acrossClueLabel)) ||
-       !this.clues[aIndex] ||
-       !this.clues[aIndex].clue)) ||
-     (this.currDir == 'D' &&
-      (!gridCell.downClueLabel ||
-       !(dIndex = this.getDirClueIndex('D', gridCell.downClueLabel)) ||
-       !this.clues[dIndex] ||
-       !this.clues[dIndex].clue)) ||
-     (this.currDir == 'Z' &&
-      (!gridCell.z3dClueLabel ||
-       !(zIndex = this.getDirClueIndex('Z', gridCell.z3dClueLabel)) ||
-       !this.clues[zIndex] ||
-       !this.clues[zIndex].clue)) ||
-     (this.currDir.charAt(0) == 'X' &&
-      (!gridCell.nodirClues ||
-       !gridCell.nodirClues.includes(this.currDir))));
-}
-
 Exolve.prototype.cnavTo = function(activeClueIndex, grabFocus=true) {
-  if (activeClueIndex == this.currClueIndex) {
+  if (activeClueIndex == this.currClueIndex &&
+      !this.isOrphan(activeClueIndex)) {
     this.refocus();
     return;
   }
   this.deactivateCurrClue();
-  let cellDir = this.cnavToInner(activeClueIndex, grabFocus)
+  this.deactivateCurrCell();
+  const cellDir = this.cnavToInner(activeClueIndex, grabFocus);
   if (cellDir) {
-    this.deactivateCurrCell();
-    this.gnavToInner([cellDir[0], cellDir[1]], cellDir[2])
-  } else {
-    // If the currently active cells had a known clue association, deactivate.
-    if (!this.gnavIsClueless()) {
-      this.deactivateCurrCell();
-    }
+    this.gnavToInner([cellDir[0], cellDir[1]], cellDir[2]);
   }
-  this.updateDisplayAndGetState()
+  this.updateDisplayAndGetState();
 }
 
 Exolve.prototype.copyPlaceholderBlank = function(clueIndex) {
@@ -7594,11 +7640,21 @@ Exolve.prototype.toggleDgmlessBlock = function(gridCell) {
     this.setCellLetter(symCell, newLetter);
   }
 }
+Exolve.prototype.hasDgmlessBarProp = function(gridCell, isBarAfter) {
+  const prop = isBarAfter ? 'dgmlessBarAfter' : 'dgmlessBarUnder';
+  return (this.dgmlessBars && gridCell.isDgmless &&
+          gridCell.hasOwnProperty(prop));
+}
 Exolve.prototype.hasDgmlessBar = function(gridCell, isBarAfter) {
   const prop = isBarAfter ? 'dgmlessBarAfter' : 'dgmlessBarUnder';
   return (this.dgmlessBars && gridCell.isDgmless &&
           gridCell.hasOwnProperty(prop) &&
           gridCell[prop].style.display != 'none');
+}
+Exolve.prototype.hasDgmlessBarInSolution = function(gridCell, isBarAfter) {
+  const prop = isBarAfter ? 'dgmlessBarAfterInSolution' : 'dgmlessBarUnderInSolution';
+  return (this.dgmlessBars && gridCell.isDgmless &&
+          gridCell.hasOwnProperty(prop) && gridCell[prop]);
 }
 /** Also modifies the symmetric cell if applicable */
 Exolve.prototype.modifyDgmlessBar = function(gridCell, isBarAfter, turnOn) {
@@ -7735,14 +7791,13 @@ Exolve.prototype.handleGridInput = function() {
   if (!usedForDgmless) {
     this.setCellLetter(gridCell, stateChar);
   }
-  if (oldLetter != '0' && oldLetter != '?' && oldLetter != gridCell.currLetter &&
-      ((displayChar != '' && stateChar != '0') ||
-       (usedForDgmless && gridCell.currLetter == '1')) &&
-      this.hltOverwrittenMillis > 0) {
+  if (oldLetter != '0' && oldLetter != '?' &&
+      oldLetter != gridCell.currLetter &&
+      displayChar != '' && stateChar != '0' && this.hltOverwrittenMillis > 0) {
     if (!gridCell.overwritten) {
       /**
-       * We have newly overwritten an existing non-blank entry with a new
-       * non-blank entry.
+       * We have newly overwritten an existing non-blank letter with a new
+       * non-blank letter.
        */
       gridCell.overwritten = oldLetter;
       gridCell.cellText.classList.add('xlv-overwritten');
@@ -8795,6 +8850,29 @@ Exolve.prototype.checkCell = function() {
   this.checkCurr();
 }
 
+Exolve.prototype.getDgmlessBarsBadness = function(gridCell) {
+  let badBarAfter = false;
+  let badBarUnder = false;
+  if (this.dgmlessBars) {
+    for (const isAfter of [true, false]) {
+      const hasProp = this.hasDgmlessBarProp(gridCell, isAfter);
+      if (!hasProp) {
+        continue;
+      }
+      const has = this.hasDgmlessBar(gridCell, isAfter);
+      const shouldHave = this.hasDgmlessBarInSolution(gridCell, isAfter);
+      if (shouldHave != has) {
+        if (isAfter) {
+          badBarAfter = true;
+        } else {
+          badBarUnder = true;
+        }
+      }
+    }
+  }
+  return [badBarAfter, badBarUnder];
+}
+
 Exolve.prototype.checkCurr = function() {
   if (this.cellLightToggleTimer) {
     clearTimeout(this.cellLightToggleTimer);
@@ -8819,24 +8897,12 @@ Exolve.prototype.checkCurr = function() {
     const row = x[0];
     const col = x[1];
     const gridCell = this.grid[row][col];
-    let badBarAfter = false;
-    let badBarUnder = false;
-    if (this.dgmlessBars) {
-      for (const prop of ['dgmlessBarAfter', 'dgmlessBarUnder']) {
-        const isAfter = (prop == 'dgmlessBarAfter');
-        const has = this.hasDgmlessBar(gridCell, isAfter);
-        const shouldHave = gridCell[prop + 'InSolution'] ?? false;
-        if (shouldHave != has) {
-          if (isAfter) {
-            badBarAfter = true;
-          } else {
-            badBarUnder = true;
-          }
-        }
-      }
-    }
+
+    const badDgmlessBars = this.getDgmlessBarsBadness(gridCell);
+
     const oldLetter = gridCell.currLetter;
-    if (this.getSolutionActive(x) == oldLetter && !badBarAfter && !badBarUnder) {
+    const letterMatches = (this.getSolutionActive(x) == oldLetter);
+    if (letterMatches && !badDgmlessBars[0] && !badDgmlessBars[1]) {
       allCorrectNum++;
       continue;
     }
@@ -8844,20 +8910,22 @@ Exolve.prototype.checkCurr = function() {
     if (this.cellNotLight && !this.atCurr(row, col)) {
       continue;
     }
-    if (badBarAfter) {
+    if (badDgmlessBars[0]) {
       this.modifyDgmlessBar(gridCell, true, !this.hasDgmlessBar(gridCell, true));
     }
-    if (badBarUnder) {
+    if (badDgmlessBars[1]) {
       this.modifyDgmlessBar(gridCell, false, !this.hasDgmlessBar(gridCell, false));
     }
-    this.setCellLetter(gridCell, '0');
-    if (oldLetter == '1' && this.dgmlessSymmetry) {
-      const symCell = this.symCell(row, col);
-      if (symCell.isDgmless) {
-        this.setCellLetter(symCell, '0');
+    if (!letterMatches) {
+      this.setCellLetter(gridCell, '0');
+      if (oldLetter == '1' && this.dgmlessSymmetry) {
+        const symCell = this.symCell(row, col);
+        if (symCell.isDgmless) {
+          this.setCellLetter(symCell, '0');
+        }
       }
+      this.updateAltsActive();
     }
-    this.updateAltsActive();
   }
   this.adjustRebusFonts();
   this.updateActiveCluesState();
@@ -8883,36 +8951,25 @@ Exolve.prototype.checkAll = function(conf=true, erase=true) {
       if (!gridCell.isLight && !gridCell.isDgmless) {
         continue;
       }
-      let badBarAfter = false;
-      let badBarUnder = false;
-      if (this.dgmlessBars) {
-        for (const prop of ['dgmlessBarAfter', 'dgmlessBarUnder']) {
-          const isAfter = (prop == 'dgmlessBarAfter');
-          const has = this.hasDgmlessBar(gridCell, isAfter);
-          const shouldHave = gridCell[prop + 'InSolution'] ?? false;
-          if (shouldHave != has) {
-            if (isAfter) {
-              badBarAfter = true;
-            } else {
-              badBarUnder = true;
-            }
-          }
-        }
-      }
-      if (this.getSolutionActive([row,col]) == gridCell.currLetter &&
-          !badBarAfter && !badBarUnder) {
+      const badDgmlessBars = this.getDgmlessBarsBadness(gridCell);
+      const letterMatches = (this.getSolutionActive([row,col]) ==
+                             gridCell.currLetter);
+
+      if (letterMatches && !badDgmlessBars[0] && !badDgmlessBars[1]) {
         continue;
       }
       allCorrect = false;
       if (!erase) continue;
-      if (badBarAfter) {
+      if (badDgmlessBars[0]) {
         this.modifyDgmlessBar(gridCell, true, !this.hasDgmlessBar(gridCell, true));
       }
-      if (badBarUnder) {
+      if (badDgmlessBars[1]) {
         this.modifyDgmlessBar(gridCell, false, !this.hasDgmlessBar(gridCell, false));
       }
-      this.setCellLetter(gridCell, '0');
-      this.updateAltsActive();
+      if (!letterMatches) {
+        this.setCellLetter(gridCell, '0');
+        this.updateAltsActive();
+      }
     }
   }
   for (const ci of this.allClueIndices) {
@@ -9039,11 +9096,10 @@ Exolve.prototype.revealCurr = function() {
       this.updateAltsActive();
     }
     if (gridCell.isDgmless && this.dgmlessBars) {
-      for (const prop of ['dgmlessBarAfter', 'dgmlessBarUnder']) {
-        if (gridCell.hasOwnProperty(prop)) {
-          const solProp = prop + 'InSolution';
-          this.modifyDgmlessBar(gridCell, (prop == 'dgmlessBarAfter'),
-              gridCell[solProp] ?? false);
+      for (const isAfter of [true, false]) {
+        if (this.hasDgmlessBarProp(gridCell, isAfter)) {
+          this.modifyDgmlessBar(gridCell, isAfter,
+              this.hasDgmlessBarInSolution(gridCell, isAfter));
         }
       }
     }
@@ -9084,11 +9140,10 @@ Exolve.prototype.revealAll = function(conf=true) {
         this.updateAltsActive();
       }
       if (gridCell.isDgmless && this.dgmlessBars) {
-        for (const prop of ['dgmlessBarAfter', 'dgmlessBarUnder']) {
-          if (gridCell.hasOwnProperty(prop)) {
-            const solProp = prop + 'InSolution';
-            this.modifyDgmlessBar(gridCell, (prop == 'dgmlessBarAfter'),
-                gridCell[solProp] ?? false);
+        for (const isAfter of [true, false]) {
+          if (this.hasDgmlessBarProp(gridCell, isAfter)) {
+            this.modifyDgmlessBar(gridCell, isAfter,
+                this.hasDgmlessBarInSolution(gridCell, isAfter));
           }
         }
       }
@@ -10873,7 +10928,7 @@ Exolve.prototype.createPuzzle = function() {
 
   this.finalClueTweaks();
   this.setWordEndsAndHyphens();
-  this.setUpGnav();
+  this.setUpLightSpans();
 
   this.redisplayQuestions();
   this.displayClues();
