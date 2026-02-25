@@ -3313,15 +3313,28 @@ Exolve.prototype.inferClueCellsFromStartCell = function(clue) {
     false;
   }
   const dir = clue.dir;
-  if (dir != 'A' && dir != 'D') {
-    return false;
-  }
   const c = clue.startCell;
   const gridCell = this.grid[c[0]][c[1]];
-  const prop = (dir == 'A') ? 'startsAcrossClue' : 'startsDownClue';
+  const prop = ((dir == 'A') ? 'startsAcrossClue' :
+               ((dir == 'D') ? 'startsDownClue' : ''));
+  if (!prop) {
+    return false;
+  }
   const cells = gridCell[prop] ?? null;
   if (!cells || cells.length != clue.enumLen) {
     return false;
+  }
+  if (dir != 'A' && dir != 'D') {
+    if (clue.cellsOfOrphan && clue.cellsOfOrphan.length == cells.length) {
+      for (let i = 0; i < cells.length; i++) {
+        if (cells[i][0] != clue.cellsOfOrphan[i][0] ||
+            cells[i][1] != clue.cellsOfOrphan[i][1]) {
+          return false;
+        }
+      }
+    } else {
+      return false;
+    }
   }
   clue.cells = cells;
   return true;
@@ -5151,119 +5164,100 @@ Exolve.prototype.secondSpanSubsumed = function(span, offset, span2) {
   return true;
 }
 
+Exolve.prototype.isOrphanLightCell = function(gridCell, dir) {
+  if (!gridCell.isLight && !gridCell.isDgmless) {
+    return false;
+  }
+  if (dir == 'A') {
+    return (!gridCell.succA && !gridCell.acrossClueLabel);
+  } else if (dir == 'D') {
+    return (!gridCell.succD && !gridCell.downClueLabel);
+  }
+  return false;
+}
+
 Exolve.prototype.setUpLightSpans = function() {
   /**
    * Each span stores its index in the array as we later skip those
    * fully subsumed by nodir clue spans.
    */
-  const adDgmlessSpans = [];
+  const adOrphanSpans = [];
   const cluesAlreadySpanned = new Set;
   // The following loops add spans of diagramless cells, extended on either
   // side with light cells that are connected, to gnav, and also set up
   // advancing typing across/down consecutive cells in such spans.
   // NOTE: this is a bit complex because it has to account for all scenarios
   // involving diagramless cells, non-diagramless cells, bars, and blocks.
-  for (let i = 0; i < this.gridHeight; i++) {
-    let j = 0;
-    while (j < this.gridWidth) {
-      if (!this.grid[i][j].isDgmless || this.grid[i][j].succA) {
-        j++;
-        continue;
+  for (const dir of ['A', 'D']) {
+    const iLimit = (dir == 'A') ? this.gridHeight : this.gridWidth;
+    const jLimit = (dir == 'A') ? this.gridWidth : this.gridHeight;
+    const barProp = (dir == 'A') ? 'hasBarAfter' : 'hasBarUnder';
+    const labelProp = (dir == 'A') ? 'acrossClueLabel' : 'downClueLabel';
+    const startsProp = (dir == 'A') ? 'startsAcrossClue' : 'startsDownClue';
+    for (let i = 0; i < iLimit; i++) {
+      let j = 0;
+      while (j < jLimit) {
+        let r = (dir == 'A') ? i : j;
+        let c = (dir == 'A') ? j : i;
+        if (!this.isOrphanLightCell(this.grid[r][c], dir)) {
+          j++;
+          continue;
+        }
+        const span = {cells: [], dir: dir, idx: adOrphanSpans.length};
+        /**
+         * Cells in reverse order going back from j-1 till the edge or till a clue
+         * that extends it.
+         */
+        const revPref = [];
+        for (let pj = j - 1; pj >= 0; pj--) {
+          const pr = (dir == 'A') ? i : pj;
+          const pc = (dir == 'A') ? pj : i;
+          const pcell = this.grid[pr][pc];
+          if (!pcell.isLight || pcell[barProp] || pcell.shapedCell) {
+            break;
+          }
+          const prefClue = this.getDirClueIndex(die, pcell[labelProp]);
+          if (prefClue && this.clues[prefClue]) {
+            span.cells = span.cells.concat(this.clues[prefClue].cells);
+            cluesAlreadySpanned.add(prefClue);
+            break;
+          } else {
+            revPref.push([pr, pc]);
+          }
+        }
+        span.cells = span.cells.concat(revPref.reverse());
+        while (j < jLimit) {
+          if (dir == 'A') {
+            c = j;
+          } else {
+            r = j;
+          }
+          const cell = this.grid[r][c];
+          if (!this.isOrphanLightCell(cell, dir)) {
+            break;
+          }
+          if (cell.isDgmless && cell[startsProp]) {
+            cluesAlreadySpanned.add(this.getDirClueIndex(dir, cell[labelProp]));
+          }
+          span.cells.push([r, c]);
+          j++;
+          if (cell[barProp] || cell.shapedCell) {
+            break;
+          }
+        }
+        console.assert(span.cells.length > 0, r, c);
+        if (span.cells.length > 1) {
+          adOrphanSpans.push(span);
+        }
       }
-      const span = {cells: [], dir: 'A', idx: adDgmlessSpans.length};
-      /**
-       * Cells in reverse order going left from j-1 till the edge or till a clue
-       * that extends it.
-       */
-      const revPref = [];
-      for (let pj = j - 1; pj >= 0; pj--) {
-        const pcell = this.grid[i][pj];
-        if (!pcell.isLight || pcell.hasBarAfter || pcell.shapedCell) {
-          break;
-        }
-        const prefClue = this.getDirClueIndex('A', pcell.acrossClueLabel);
-        if (prefClue && this.clues[prefClue]) {
-          span.cells = span.cells.concat(this.clues[prefClue].cells);
-          cluesAlreadySpanned.add(prefClue);
-          break;
-        } else {
-          revPref.push([i, pj]);
-        }
-      }
-      span.cells = span.cells.concat(revPref.reverse());
-      while (j < this.gridWidth) {
-        let cell = this.grid[i][j];
-        if (!cell.isDgmless && (!cell.isLight || cell.startsAcrossClue || cell.succA)) {
-          break;
-        }
-        if (cell.isDgmless && cell.startsAcrossClue) {
-          cluesAlreadySpanned.add(
-              this.getDirClueIndex('A', cell.acrossClueLabel));
-        }
-        span.cells.push([i, j]);
-        j++;
-        if (cell.hasBarAfter || cell.shapedCell) {
-          break;
-        }
-      }
-      console.assert(span.cells.length > 0, i, j);
-      adDgmlessSpans.push(span);
     }
   }
-  for (let j = 0; j < this.gridWidth; j++) {
-    let i = 0;
-    while (i < this.gridHeight) {
-      if (!this.grid[i][j].isDgmless || this.grid[i][j].succD) {
-        i++;
-        continue;
-      }
-      const span = {cells: [], dir: 'D', idx: adDgmlessSpans.length};
-      /**
-       * Cells in reverse order going up from i-1 till the top or till a clue
-       * that extends it.
-       */
-      const revPref = [];
-      for (let pi = i - 1; pi >= 0; pi--) {
-        const pcell = this.grid[pi][j];
-        if (!pcell.isLight || pcell.hasBarUnder || pcell.shapedCell) {
-          break;
-        }
-        const prefClue = this.getDirClueIndex('D', pcell.downClueLabel);
-        if (prefClue && this.clues[prefClue]) {
-          span.cells = span.cells.concat(this.clues[prefClue].cells);
-          cluesAlreadySpanned.add(prefClue);
-          break;
-        } else {
-          revPref.push([pi, j]);
-        }
-      }
-      span.cells = span.cells.concat(revPref.reverse());
-      while (i < this.gridHeight) {
-        let cell = this.grid[i][j];
-        if (!cell.isDgmless && (!cell.isLight || cell.startsDownClue || cell.succD)) {
-          break;
-        }
-        if (cell.isDgmless && cell.startsDownClue) {
-          cluesAlreadySpanned.add(
-              this.getDirClueIndex('D', cell.downClueLabel));
-        }
-        span.cells.push([i, j]);
-        i++;
-        if (cell.hasBarUnder || cell.shapedCell) {
-          break;
-        }
-      }
-      console.assert(span.cells.length > 0, i, j);
-      adDgmlessSpans.push(span);
-    }
-  }
-  for (const adSpan of adDgmlessSpans) {
+  for (const adSpan of adOrphanSpans) {
     for (const cell of adSpan.cells) {
       const gridCell = this.grid[cell[0]][cell[1]];
-      gridCell['dgmlessSpan' + adSpan.dir] = adSpan;
+      gridCell['orphanSpan' + adSpan.dir] = adSpan;
     }
   }
-
   const lightSpans = [];
   const subsumedAD = new Set;
   for (const ci in this.clues) {
@@ -5298,7 +5292,7 @@ Exolve.prototype.setUpLightSpans = function() {
         const cell = span.cells[i];
         const gridCell = this.grid[cell[0]][cell[1]];
         for (const ad of ['A', 'D']) {
-          const prop = 'dgmlessSpan' + ad;
+          const prop = 'orphanSpan' + ad;
           if (!gridCell.hasOwnProperty(prop)) {
             continue;
           }
@@ -5311,24 +5305,24 @@ Exolve.prototype.setUpLightSpans = function() {
     }
   }
   for (const idx of subsumedAD) {
-    const adSpan = adDgmlessSpans[idx];
+    const adSpan = adOrphanSpans[idx];
     for (const cell of adSpan.cells) {
       const gridCell = this.grid[cell[0]][cell[1]];
-      delete gridCell['dgmlessSpan' + adSpan.dir];
+      delete gridCell['orphanSpan' + adSpan.dir];
     }
   }
-  for (let idx = 0; idx < adDgmlessSpans.length; idx++) {
+  for (let idx = 0; idx < adOrphanSpans.length; idx++) {
     if (subsumedAD.has(idx)) {
       continue;
     }
-    const adSpan = adDgmlessSpans[idx];
+    const adSpan = adOrphanSpans[idx];
     delete adSpan['idx'];
     lightSpans.push(adSpan);
     const dir = adSpan.dir;
     let prev = null;
     for (let cell of adSpan.cells) {
       const gridCell = this.grid[cell[0]][cell[1]];
-      console.assert(gridCell.hasOwnProperty('dgmlessSpan' + dir), gridCell, adSpan);
+      console.assert(gridCell.hasOwnProperty('orphanSpan' + dir), gridCell, adSpan);
       if (prev) {
         this.grid[prev[0]][prev[1]]['succ' + dir] = {cell: cell, dir: dir};
         gridCell['pred' + dir] = {cell: prev, dir: dir};
@@ -6627,10 +6621,10 @@ Exolve.prototype.gnavToInner = function(cell, dir) {
   let activeClueLabel = '';
   // If the current direction does not have an active clue, toggle direction
   if (this.currDir == 'A' &&
-      !gridCell.acrossClueLabel && !gridCell.dgmlessSpanA) {
+      !gridCell.acrossClueLabel && !gridCell.orphanSpanA) {
     this.toggleCurrDir();
   } else if (this.currDir == 'D' &&
-             !gridCell.downClueLabel && !gridCell.dgmlessSpanD) {
+             !gridCell.downClueLabel && !gridCell.orphanSpanD) {
     this.toggleCurrDir();
   } else if (this.currDir == 'Z' && !gridCell.z3dClueLabel) {
     this.toggleCurrDir();
@@ -6680,9 +6674,9 @@ Exolve.prototype.gnavToInner = function(cell, dir) {
   this.checkButton.disabled = false;
   this.revealButton.disabled = this.hasUnsolvedCells;
 
-  let dgmlessSpan = gridCell['dgmlessSpan' + this.currDir]
-  if (dgmlessSpan) {
-    for (let rowcol of dgmlessSpan.cells) {
+  let orphanSpan = gridCell['orphanSpan' + this.currDir]
+  if (orphanSpan) {
+    for (let rowcol of orphanSpan.cells) {
       this.grid[rowcol[0]][rowcol[1]].cellRect.style.fill =
           this.colorScheme['active'];
       this.activeCells.push(rowcol);
@@ -7088,7 +7082,8 @@ Exolve.prototype.addPlaceholderBlank = function(
     '" type="text" ' +
     'title="' + this.textLabels['placeholder.hover'] + '" ' +
     'autocomplete="off" spellcheck="off"></input>'
-  if (!this.hideCopyPlaceholders) {
+  const needCopyingButton = !inCurr && !this.hideCopyPlaceholders;
+  if (needCopyingButton) {
     html = html + '<button title="' +
         this.textLabels['placeholder-copy.hover'] + '" ' +
         'class="xlv-small-button">' + this.textLabels['placeholder-copy'] +
@@ -7102,7 +7097,7 @@ Exolve.prototype.addPlaceholderBlank = function(
       this.updateOrphanEntry.bind(this, clueIndex, inCurr));
   incluefill.addEventListener('click',
       this.boundListeners['clue-input-click']);
-  if (!this.hideCopyPlaceholders) {
+  if (needCopyingButton) {
     elt.lastElementChild.lastElementChild.addEventListener(
       'click', this.phBlankCopier.bind(this, clueIndex));
   }
