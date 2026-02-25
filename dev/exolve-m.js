@@ -5989,6 +5989,7 @@ Exolve.prototype.maybeResizeGrid = function() {
   this.computeGridSize();
   const activeElement = document.activeElement;
   this.redisplayGrid();
+  this.restoreState();
   if (this.usingGnav) {
     this.activateCell(this.currRow, this.currCol);
   } else {
