@@ -84,7 +84,7 @@ function Exolve(puzzleSpec,
                 visTop=0,
                 maxDim=0,
                 notTemp=true) {
-  this.VERSION = 'Exolve v1.69, February 25, 2026';
+  this.VERSION = 'Exolve v1.69.1, February 26, 2026';
   this.id = '';
 
   this.puzzleText = puzzleSpec;
@@ -206,6 +206,7 @@ function Exolve(puzzleSpec,
   this.hasDgmlessCells = false;
   this.dgmlessBars = false;
   this.dgmlessSymmetry = true;
+  this.topClueWysiwygBlock = false;
   this.hasUnsolvedCells = false;
   this.hasReveals = false;
   this.hasAcrossClues = false;
@@ -2334,6 +2335,10 @@ Exolve.prototype.parseOption = function(s) {
       this.colourOnlyCellBottom = true;
       continue;
     }
+    if (spart == "top-clue-wysiwyg-block") {
+      this.topClueWysiwygBlock = true;
+      continue;
+    }
     if (spart == "webifi") {
       this.useWebifi = true;
       continue;
@@ -3542,7 +3547,7 @@ Exolve.prototype.findEnum = function(clueLine) {
   while (start < clueLine.length) {
     let enumLocation = cluePart.search(/\([1-9]+[0-9\-,\.'’\s]*\)/);
     let numeric = true;
-    if (enumLocation < 0 && !candidate) {
+    if (enumLocation < 0) {
       numeric = false;
       /** Look for the strings 'words'/'letters' or subwords, or ?, in parens */
       enumLocation = cluePart.search(
@@ -3551,7 +3556,7 @@ Exolve.prototype.findEnum = function(clueLine) {
     if (enumLocation < 0 && !candidate) {
       /**
        * Look for the strings 'abr', 'abb', or 'abbreviation'/'acronym'
-       * prefixes, in parens.
+       * prefixes, in parens. But only if no candidate has been found yet.
        */
       enumLocation = cluePart.search(
           /\(([^)]*(a[b]?b[r]?[e]?[v]?[i]?[a]?[t]?[i]?[o]?[n]?|acr[o]?[n]?[y]?[m]?)[^)a-z]*)\)/i);
@@ -5466,6 +5471,9 @@ Exolve.prototype.applyStyles = function() {
 }
 
 Exolve.prototype.stripLineBreaks = function(s) {
+  if (this.topClueWysiwygBlock) {
+    return s;
+  }
   s = s.replace(/<br\s*\/?>/gi, " / ")
   return s.replace(/<\/br\s*>/gi, "")
 }
@@ -5584,13 +5592,14 @@ function ExolveHints(xlv, container, hints, hintsShown=0, resize=false) {
 }
 
 ExolveHints.prototype.renderHint = function(index, shown) {
-  let html = '<span class="xlv-hint" ';
+  let html = '';
+  html += '<span class="xlv-hint" ';
   let style = `color:${this.xlv.colorScheme['hint']}`;
   if (!shown) {
     style += ';display:none';
   }
   html += ` title="${this.xlv.textLabels['hint.hover']}" style="${style}">`;
-  html += (index == 0) ? '&nbsp;&nbsp;' : ' ';
+  html += (index == 0 && !this.xlv.topClueWysiwygBlock) ? '&nbsp;&nbsp;' : ' ';
   html += '<span class="xlv-hint-prefix">';
   html += this.xlv.textLabels['hint'];
   if (this.hints.length > 1) {
@@ -5647,6 +5656,27 @@ ExolveHints.prototype.handleHintBulbClick = function() {
     const hints = this.container.getElementsByClassName('xlv-hint');
     hints[0].scrollIntoView();
   }
+}
+
+/**
+ * Returns {text: ..., len: ...}
+ */
+Exolve.prototype.getCluePlaceholderBlank = function(clue) {
+  const ret = {
+    text: '',
+    len: this.PLACEHOLDER_BLANK_LEN
+  };
+  if (clue.placeholder) {
+    ret.text = clue.placeholder.replace(/\?/g, '·');
+    ret.len = ret.text.length;
+  }
+  if (clue.showBlanks && clue.showBlanks > 1) {
+    ret.len = clue.showBlanks;
+  }
+  if (clue.placeholderForBlank) {
+    ret.text = clue.placeholderForBlank;
+  }
+  return ret;
 }
 
 Exolve.prototype.displayClues = function() {
@@ -5785,20 +5815,9 @@ Exolve.prototype.displayClues = function() {
 
     if ((theClue.showBlanks || this.isOrphan(clueIndex)) &&
         !theClue.parentClueIndex) {
-      let placeholder = '';
-      let len = this.PLACEHOLDER_BLANK_LEN;
-      if (theClue.placeholder) {
-        placeholder = theClue.placeholder.replace(/\?/g, '·');
-        len = placeholder.length;
-      }
-      if (theClue.showBlanks && theClue.showBlanks > 1) {
-        len = theClue.showBlanks;
-      }
-      if (theClue.placeholderForBlank) {
-        placeholder = theClue.placeholderForBlank;
-      }
+      const ph = this.getCluePlaceholderBlank(theClue);
       theClue.placeholderBlank =
-          this.addPlaceholderBlank(clueCol, false, len, placeholder, clueIndex);
+          this.addPlaceholderBlank(clueCol, false, ph.len, ph.text, clueIndex);
       this.answersList.push({
         input: theClue.placeholderBlank,
         isq: false,
@@ -6892,8 +6911,14 @@ Exolve.prototype.cnavToInner = function(activeClueIndex, grabFocus = false) {
     this.activeClues.push(theClue.clueTR);
   }
   this.currClueIndex = activeClueIndex;
-  this.currClueInner.innerHTML = curr.fullDisplayLabel +
-    `<span id="${this.prefix}-curr-clue-text"></span>`;
+  const html = this.topClueWysiwygBlock ?
+    `<table class="xlv-clues-table"><tr>
+     <td>${curr.fullDisplayLabel}</td>
+     <td><div id="${this.prefix}-curr-clue-text"></div></td>
+     </td></tr></table>` :
+    (curr.fullDisplayLabel +
+     `<span id="${this.prefix}-curr-clue-text"></span>`)
+  this.currClueInner.innerHTML = html;
   const clueSpan = document.getElementById(`${this.prefix}-curr-clue-text`);
   this.renderClueSpan(curr, clueSpan, true);
   if (curr.hints.length > 0) {
@@ -6907,17 +6932,13 @@ Exolve.prototype.cnavToInner = function(activeClueIndex, grabFocus = false) {
     currLab.addEventListener(
         'click', this.toggleClueSolvedState.bind(this, this.currClueIndex));
   }
-  if (this.clues[parentIndex].placeholderBlank) {
-    let placeholder = '';
-    const len = this.clues[parentIndex].placeholderBlank.size ||
-                this.PLACEHOLDER_BLANK_LEN;
-    if (this.clues[parentIndex].placeholder) {
-      placeholder = this.clues[parentIndex].placeholder.replace(/\?/g, '·');
-    }
-    this.addPlaceholderBlank(this.currClueInner, true, len, placeholder, parentIndex);
+  if (curr.placeholderBlank) {
+    const ph = this.getCluePlaceholderBlank(curr);
+    this.addPlaceholderBlank(this.currClueInner, true,
+        ph.len, ph.text, parentIndex);
     this.copyPlaceholderBlankToCurr(parentIndex);
     if (grabFocus && !this.usingGnav && parentIndex == activeClueIndex) {
-      this.clues[parentIndex].placeholderBlank.focus();
+      curr.placeholderBlank.focus();
     }
   }
   this.currClueInner.style.background = this.colorScheme['currclue'];
