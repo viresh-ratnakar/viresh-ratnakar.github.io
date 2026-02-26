@@ -206,7 +206,7 @@ function Exolve(puzzleSpec,
   this.hasDgmlessCells = false;
   this.dgmlessBars = false;
   this.dgmlessSymmetry = true;
-  this.topClueWysiwygBlock = false;
+  this.topClueWysiwyg = false;
   this.hasUnsolvedCells = false;
   this.hasReveals = false;
   this.hasAcrossClues = false;
@@ -2335,8 +2335,8 @@ Exolve.prototype.parseOption = function(s) {
       this.colourOnlyCellBottom = true;
       continue;
     }
-    if (spart == "top-clue-wysiwyg-block") {
-      this.topClueWysiwygBlock = true;
+    if (spart == "top-clue-wysiwyg") {
+      this.topClueWysiwyg = true;
       continue;
     }
     if (spart == "webifi") {
@@ -5471,7 +5471,7 @@ Exolve.prototype.applyStyles = function() {
 }
 
 Exolve.prototype.stripLineBreaks = function(s) {
-  if (this.topClueWysiwygBlock) {
+  if (this.topClueWysiwyg) {
     return s;
   }
   s = s.replace(/<br\s*\/?>/gi, " / ")
@@ -5599,7 +5599,7 @@ ExolveHints.prototype.renderHint = function(index, shown) {
     style += ';display:none';
   }
   html += ` title="${this.xlv.textLabels['hint.hover']}" style="${style}">`;
-  html += (index == 0 && !this.xlv.topClueWysiwygBlock) ? '&nbsp;&nbsp;' : ' ';
+  html += (index == 0 && !this.xlv.topClueWysiwyg) ? '&nbsp;&nbsp;' : ' ';
   html += '<span class="xlv-hint-prefix">';
   html += this.xlv.textLabels['hint'];
   if (this.hints.length > 1) {
@@ -6911,7 +6911,7 @@ Exolve.prototype.cnavToInner = function(activeClueIndex, grabFocus = false) {
     this.activeClues.push(theClue.clueTR);
   }
   this.currClueIndex = activeClueIndex;
-  const html = this.topClueWysiwygBlock ?
+  const html = this.topClueWysiwyg ?
     `<table class="xlv-clues-table"><tr>
      <td>${curr.fullDisplayLabel}</td>
      <td><div id="${this.prefix}-curr-clue-text"></div></td>
