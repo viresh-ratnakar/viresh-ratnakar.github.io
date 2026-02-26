@@ -5208,7 +5208,7 @@ Exolve.prototype.setUpLightSpans = function() {
           if (!pcell.isLight || pcell[barProp] || pcell.shapedCell) {
             break;
           }
-          const prefClue = this.getDirClueIndex(die, pcell[labelProp]);
+          const prefClue = this.getDirClueIndex(dir, pcell[labelProp]);
           if (prefClue && this.clues[prefClue]) {
             span.cells = span.cells.concat(this.clues[prefClue].cells);
             cluesAlreadySpanned.add(prefClue);
