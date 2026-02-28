@@ -4975,13 +4975,14 @@ Exolve.prototype.finalClueTweaks = function() {
     } else {
       label = label + ' ';
     }
+    cls = 'class="xlv-curr-clue-label xlv-clue-label"';
     if (!this.allCellsKnown(clueIndex)) {
       theClue.fullDisplayLabel = `<span class="xlv-clickable"><span
-        id="${this.prefix}-curr-clue-label" class="xlv-curr-clue-label"
+        id="${this.prefix}-curr-clue-label" ${cls}
         title="${this.textLabels['mark-clue.hover']}">${label}</span></span>`;
     } else {
       theClue.fullDisplayLabel = `<span id="${this.prefix}-curr-clue-label"
-        class="xlv-curr-clue-label">${label}</span>`;
+        ${cls}>${label}</span>`;
     }
   }
 }
@@ -7466,12 +7467,12 @@ Exolve.prototype.toggleClueSolvedState = function(clueIndex) {
   if (hasSolvedClass) {
     clue.clueTR.classList.remove('xlv-solved');
     if (currLab) {
-      currLab.className = 'xlv-curr-clue-label';
+      currLab.classList.remove('xlv-solved');
     }
   } else {
     clue.clueTR.classList.add('xlv-solved');
     if (currLab) {
-      currLab.className = 'xlv-curr-clue-label xlv-solved';
+      currLab.classList.add('xlv-solved');
     }
   }
 }
@@ -7542,7 +7543,6 @@ Exolve.prototype.updateClueState =
       (clue.anno || clue.dispSol)) {
     this.revealClueAnno(clueIndex);
   }
-  let cls = solved ? 'xlv-solved' : '';
   for (const ci of cis) {
     if (this.clues[ci].clueTR) {
       if (solved) {
@@ -7552,10 +7552,13 @@ Exolve.prototype.updateClueState =
       }
     }
     if (ci == this.currClueIndex) {
-      let currLab = document.getElementById(this.prefix + '-curr-clue-label');
+      const currLab = document.getElementById(this.prefix + '-curr-clue-label');
       if (currLab) {
-        currLab.setAttributeNS(
-            null, 'class', 'xlv-curr-clue-label' + (cls ? (' ' + cls) : ''));
+        if (solved) {
+          currLab.classList.add('xlv-solved');
+        } else {
+          currLab.classList.remove('xlv-solved');
+        }
       }
     }
   }
