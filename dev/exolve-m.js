@@ -84,7 +84,7 @@ function Exolve(puzzleSpec,
                 visTop=0,
                 maxDim=0,
                 notTemp=true) {
-  this.VERSION = 'Exolve v1.69.1, February 26, 2026';
+  this.VERSION = 'Exolve v1.69.1, February 27, 2026';
   this.id = '';
 
   this.puzzleText = puzzleSpec;
@@ -5419,7 +5419,7 @@ Exolve.prototype.applyStyles = function() {
       color: ${this.colorScheme['curr-unsolved']};
     }
     #${this.prefix}-frame span.xlv-solved,
-    #${this.prefix}-frame .xlv-solved td:first-child {
+    #${this.prefix}-frame .xlv-solved td.xlv-clue-label {
       color: ${this.colorScheme['solved']};
     }
     #${this.prefix}-frame .xlv-definition {
@@ -7508,20 +7508,23 @@ Exolve.prototype.updateClueState =
   }
   let numFilled = 0;
   let numPrefilled = 0;
+  const cells = this.getAllCells(clueIndex);
+  for (const cell of cells) {
+    const gridCell = this.grid[cell[0]][cell[1]];
+    if (gridCell.currLetter == '0' || gridCell.currLetter == '?') {
+      numFilled = 0;
+      break;
+    }
+    numFilled++;
+    if (gridCell.prefill) {
+      numPrefilled++;
+    }
+  }
   for (const ci of cis) {
     const theClue = this.clues[ci];
     if (!theClue.clueTR) {
       numFilled = 0;
       break;
-    }
-    let isFullRet = this.isFull(ci);
-    if (!isFullRet[0]) {
-      numFilled = 0;
-      break;
-    }
-    numFilled += isFullRet[1];
-    if (isFullRet[0] == 2) {
-      numPrefilled += isFullRet[1];
     }
   }
   if (forceSolved) {
@@ -7530,14 +7533,14 @@ Exolve.prototype.updateClueState =
     } else {
       solved = false;
       // override for all-prefilled
-      if (this.allCellsKnown(clueIndex) && numPrefilled == clue.enumLen) {
+      if (this.allCellsKnown(clueIndex) && numPrefilled == cells.length) {
         solved = true;
       }
     }
   } else if ((clue.anno || clue.dispSol) && clue.annoSpan.style.display == '') {
     solved = true;
   } else if (this.allCellsKnown(clueIndex)) {
-    solved = numFilled == clue.enumLen;
+    solved = (numFilled > 0) && (numFilled == cells.length);
   }
   if (solved && numFilled == numPrefilled && annoPrefilled &&
       (clue.anno || clue.dispSol)) {
@@ -8542,33 +8545,26 @@ Exolve.prototype.clearCell = function(row, col) {
   }
 }
 
-// Returns a pair of numbers. The first number is 0 if not full, 1 if full,
-// 2 if full entirely with prefills. The second number is the number of
-// full cells.
+// Returns true if the light is full.
 Exolve.prototype.isFull = function(clueIndex) {
-  let theClue = this.clues[clueIndex]
+  const theClue = this.clues[clueIndex];
   if (!theClue) {
-    return [0, 0];
+    return false;
   }
-  let cells = theClue.cells
+  let cells = theClue.cells;
   if (cells.length < 1) {
-    cells = theClue.cellsOfOrphan
+    cells = theClue.cellsOfOrphan;
     if (!cells || cells.length < 1) {
-      return [0, 0];
+      return false;
     }
   }
-  let numPrefills = 0;
-  for (let x of cells) {
-    let gridCell = this.grid[x[0]][x[1]]
-    if (gridCell.prefill) {
-      numPrefills++;
-      continue
-    }
+  for (const x of cells) {
+    const gridCell = this.grid[x[0]][x[1]];
     if (gridCell.currLetter == '0' || gridCell.currLetter == '?') {
-      return [0, 0];
+      return false;
     }
   }
-  return (numPrefills == cells.length) ? [2, cells.length] : [1, cells.length];
+  return true;
 }
 
 Exolve.prototype.clearCurr = function() {
@@ -8642,7 +8638,7 @@ Exolve.prototype.clearCurr = function() {
     if (this.clues[z3d] && !currClues[z3d]) crossers.push(z3d);
     let hasFull = false;
     for (let crosser of crossers) {
-      if (this.isFull(crosser)[0]) {
+      if (this.isFull(crosser)) {
         hasFull = true;
         break;
       }
