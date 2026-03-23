@@ -173,71 +173,57 @@ exetConfig = {
   <h4>Loading the lexicon. This may take a few seconds, please wait...</h4>
 
 <!-- console.log() redirected to "log" elt, useful on iPad -->
+<!--
+Source - https://stackoverflow.com/a/45387558
+Posted by dodov
+Retrieved 2026-03-23, License - CC BY-SA 3.0
+-->
+<pre id="logger"></pre>
 <style>
-#log-container { overflow: auto; height: 150px; }
+/*
+Source - https://stackoverflow.com/a/45387558
+Posted by dodov
+Retrieved 2026-03-23, License - CC BY-SA 3.0
+*/
 
-.log-warn { color: orange }
-.log-error { color: red }
-.log-info { color: skyblue }
-.log-log { color: silver }
-
-.log-warn, .log-error { font-weight: bold; }
+.log-boolean,
+.log-undefined {color: magenta;}
+.log-object,
+.log-string {color: orange;}
+.log-number {color: cyan;}
 </style>
 <script>
-// Source - https://stackoverflow.com/a/50773729
-// Posted by Benny Bottema, modified by community. See post 'Timeline' for change history
-// Retrieved 2026-03-23, License - CC BY-SA 4.0
-rewireLoggingToElement(
-    () => document.getElementById("log"),
-    () => document.getElementById("log-container"), true);
+// Source - https://stackoverflow.com/a/45387558
+// Posted by dodov
+// Retrieved 2026-03-23, License - CC BY-SA 3.0
+(function (logger) {
+    console.old = console.log;
+    console.log = function () {
+        var output = "", arg, i;
 
-function rewireLoggingToElement(eleLocator, eleOverflowLocator, autoScroll) {
-    fixLoggingFunc('log');
-    fixLoggingFunc('debug');
-    fixLoggingFunc('warn');
-    fixLoggingFunc('error');
-    fixLoggingFunc('info');
+        for (i = 0; i < arguments.length; i++) {
+            arg = arguments[i];
+            output += "<span class=\"log-" + (typeof arg) + "\">";
 
-    function fixLoggingFunc(name) {
-        console['old' + name] = console[name];
-        console[name] = function(...arguments) {
-            const output = produceOutput(name, arguments);
-            const eleLog = eleLocator();
-
-            if (autoScroll) {
-                const eleContainerLog = eleOverflowLocator();
-                const isScrolledToBottom = eleContainerLog.scrollHeight - eleContainerLog.clientHeight <= eleContainerLog.scrollTop + 1;
-                eleLog.innerHTML += output + "<br>";
-                if (isScrolledToBottom) {
-                    eleContainerLog.scrollTop = eleContainerLog.scrollHeight - eleContainerLog.clientHeight;
-                }
+            if (
+                typeof arg === "object" &&
+                typeof JSON === "object" &&
+                typeof JSON.stringify === "function"
+            ) {
+                output += JSON.stringify(arg);   
             } else {
-                eleLog.innerHTML += output + "<br>";
+                output += arg;   
             }
 
-            console['old' + name].apply(undefined, arguments);
-        };
-    }
+            output += "</span>&nbsp;";
+        }
 
-    function produceOutput(name, args) {
-        return args.reduce((output, arg) => {
-            return output +
-                "<span class=\"log-" + (typeof arg) + " log-" + name + "\">" +
-                    (typeof arg === "object" && (JSON || {}).stringify ? JSON.stringify(arg) : arg) +
-                "</span>&nbsp;";
-        }, '');
-    }
-}
+        logger.innerHTML += output + "<br>";
+        console.old.apply(undefined, arguments);
+    };
+})(document.getElementById("logger"));
 
-
-setInterval(() => {
-  const method = (['log', 'debug', 'warn', 'error', 'info'][Math.floor(Math.random() * 5)]);
-  console[method](method, 'logging something...');
-}, 200);
 </script>
-<div id="log-container">
-  <pre id="log"></pre>
-</div>
 
 </div>
 
