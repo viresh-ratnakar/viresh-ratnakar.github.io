@@ -155,7 +155,8 @@ exetConfig = {
 <script src="exolve-to-puz.js?v1.65"></script>
 <script src="exolve-to-ipuz.js?v1.65"></script>
 <script src="exolve-exost.js?v1.65"></script>
-<script defer src="lufz-en-lexicon.js?v1.03"></script>
+<!-- <script defer src="lufz-en-lexicon.js?v1.03"></script> -->
+<script defer src="lufz-en-lexicon-json.js?v1.03"></script>
 <script src="exet-analysis.js?v1.03"></script>
 <script src="exet-storage.js?v1.03"></script>
 <script src="exet.js?v1.03"></script>
@@ -171,60 +172,6 @@ exetConfig = {
     style="text-align:center;font-family:monospace;padding-top:100px">
   <h3><span class="xet-blue">Exet: A web app for crossword construction</span></h3>
   <h4>Loading the lexicon. This may take a few seconds, please wait...</h4>
-
-<!-- console.log() redirected to "log" elt, useful on iPad -->
-<!--
-Source - https://stackoverflow.com/a/45387558
-Posted by dodov
-Retrieved 2026-03-23, License - CC BY-SA 3.0
--->
-<pre id="logger"></pre>
-<style>
-/*
-Source - https://stackoverflow.com/a/45387558
-Posted by dodov
-Retrieved 2026-03-23, License - CC BY-SA 3.0
-*/
-
-.log-boolean,
-.log-undefined {color: magenta;}
-.log-object,
-.log-string {color: orange;}
-.log-number {color: cyan;}
-</style>
-<script>
-// Source - https://stackoverflow.com/a/45387558
-// Posted by dodov
-// Retrieved 2026-03-23, License - CC BY-SA 3.0
-(function (logger) {
-    console.old = console.log;
-    console.log = function () {
-        var output = "", arg, i;
-
-        for (i = 0; i < arguments.length; i++) {
-            arg = arguments[i];
-            output += "<span class=\"log-" + (typeof arg) + "\">";
-
-            if (
-                typeof arg === "object" &&
-                typeof JSON === "object" &&
-                typeof JSON.stringify === "function"
-            ) {
-                output += JSON.stringify(arg);   
-            } else {
-                output += arg;   
-            }
-
-            output += "</span>&nbsp;";
-        }
-
-        logger.innerHTML += output + "<br>";
-        console.old.apply(undefined, arguments);
-    };
-})(document.getElementById("logger"));
-
-</script>
-
 </div>
 
 <div id="xet-xlv-frame">
