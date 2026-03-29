@@ -84,7 +84,7 @@ function Exolve(puzzleSpec,
                 visTop=0,
                 maxDim=0,
                 notTemp=true) {
-  this.VERSION = 'Exolve v1.69.4, March 3, 2026';
+  this.VERSION = 'Exolve v1.69.5, March 29, 2026';
   this.id = '';
 
   this.puzzleText = puzzleSpec;
@@ -1565,11 +1565,8 @@ class ExolveKB {
         }
         const handlePress = (e) => {
           this.#showPreview(btn, ch);
-        };
-        const handleClick = (e) => {
           this.puz.phoneKBInput(ch);
         };
-        btn.addEventListener("click", handleClick);
         btn.addEventListener("pointerdown", handlePress);
         btn.addEventListener("pointerup", handleRelease);
         btn.addEventListener("pointerleave", handleRelease);
