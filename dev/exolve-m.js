@@ -84,7 +84,7 @@ function Exolve(puzzleSpec,
                 visTop=0,
                 maxDim=0,
                 notTemp=true) {
-  this.VERSION = 'Exolve v1.69.4, March 3, 2026';
+  this.VERSION = 'Exolve v1.69.5, March 29, 2026';
   this.id = '';
 
   this.puzzleText = puzzleSpec;
@@ -436,13 +436,14 @@ function Exolve(puzzleSpec,
          <li><b>Arrow keys:</b>
              Move to the nearest light cell in that direction.</li>
          <li><b>Ctrl/Cmd-q:</b> Clear this, <b>Ctrl/Cmd-Q:</b> Clear All!,
-             <b>Ctrl/Cmd-b:</b> Print crossword, <b>Ctrl/Cmd-/:</b> Jump to/back-from
+             <b>Ctrl/Cmd-b:</b> Print crossword, <b>Ctrl-/ or Cmd-/:</b> Jump to/back-from
              notes, <b>Ctrl/Cmd-*:</b> Mark clue as fave in notes, adding a *
-             prefix.</li>
+             prefix, without navigating to notes.</li>
          <li><b>Delete:</b>
              Clear the contents of the current cell.</li>
-         <li><b>Spacebar:</b>
-             Toggle block in the current cell if it's diagramless.</li>
+         <li><b>Space bar:</b>
+             Toggle block in the current cell if it's diagramless. Otherwise, clear cell and advance forward.</li>
+         <li><b>Enter (from notes):</b> Return to the grid (same as Ctrl-/ or Cmd-/).</li>
          <li><b>|/_:</b>
              When diagramless-bars option is on, toggle bar-after/under in the current cell if it's diagramless.</li>
          <li><b>Double-click or Shift+Letter:</b>
@@ -466,10 +467,9 @@ function Exolve(puzzleSpec,
     'crossword-id': 'Crossword ID',
     'notes': 'Notes',
     'notes.hover': 'Show/hide notes panel.',
-    'notes-help': '<li>Ctrl/Cmd-/ takes you to the current clue\'s notes ' +
-        '(or overall notes) and back (if already there).</li><li>Ctrl/Cmd-* ' +
-        'adds a * prefix to the current clue\'s notes.</li><li>Hovering ' +
-        'over a clue\'s notes shows the clue as a tooltip.</li>',
+    'notes-help': '<li>Ctrl-/ or Cmd-/ or Enter takes you back to the grid.</li>' +
+        '<li>Place * at the start of a clue\'s note to mark it as a fave.</li>' +
+        '<li>Hovering over a clue\'s notes shows the clue as a tooltip.</li>',
     'jotter': 'Jotter',
     'jotter.hover': 'Show/hide a jotting pad that also lets you try out anagrams and subtractions.',
     'jotter-text.hover': 'You can shuffle letters by clicking above. If you enter something like [Alphabet - betas =] then it will be replaced by [lpha - s] (subtraction of common letters).',
@@ -1441,11 +1441,48 @@ Exolve.prototype.redoPhoneTweaks = function() {
 
 Exolve.prototype.phoneKBInput = function(ch) {
   if (ch == ExolveKB.CLOSE_KEY) {
-    this.deactivator();
+    /** The KB will remove itself when the underlying click is received */
+    this.phoneKB.closeClicked();
     return;
   }
+  if (ch == ExolveKB.MORE_KEY) {
+    this.phoneKB.moreClicked();
+    return;
+  }
+  if (ch == ExolveKB.ENTER_KEY) {
+    this.toggleCurrDirAndActivate();
+    return;
+  }
+  if (ch == ExolveKB.LARROW_KEY) {
+    this.handleKeyUpInner(37);
+    return;
+  }
+  if (ch == ExolveKB.UARROW_KEY) {
+    this.handleKeyUpInner(38);
+    return;
+  }
+  if (ch == ExolveKB.DARROW_KEY) {
+    this.handleKeyUpInner(40);
+    return;
+  }
+  if (ch == ExolveKB.RARROW_KEY) {
+    this.handleKeyUpInner(39);
+    return;
+  }
+  if (ch == "*") {
+    this.markAsFave();
+    return;
+  }
+  if (ch == ExolveKB.NOTES_KEY) {
+    // TODO: use the click event!
+    this.focusOnNotes();
+    return;
+  }
+  /** TODO: unify the above */
   if (ch == ExolveKB.DELETE_KEY) {
     ch = '';
+  } else if (ch == ExolveKB.SPACE_KEY) {
+    ch = ' ';
   }
   this.gridInput.value = ch;
   this.handleGridInput();
@@ -1457,6 +1494,14 @@ Exolve.prototype.phoneKBInput = function(ch) {
 class ExolveKB {
   static DELETE_KEY = "&#x232B;";
   static CLOSE_KEY = "&times;";
+  static MORE_KEY = "More";
+  static ENTER_KEY = "&#9166;";
+  static SPACE_KEY = "Space";
+  static LARROW_KEY = "&larr;";
+  static RARROW_KEY = "&rarr;";
+  static UARROW_KEY = "&uarr;";
+  static DARROW_KEY = "&darr;";
+  static NOTES_KEY = "Notes";
   /**
    * The singleton instance.
    */
@@ -1496,12 +1541,18 @@ class ExolveKB {
       console.log('ExolveKB unsupported: ' + puz.id + ' uses special chars');
       return false;
     }
-    if (puz.hasRebusCells || puz.hasDgmlessCells) {
-      console.log('ExolveKB unsupported: ' + puz.id +
-                  ' has rebus or diagramless cells');
+    if (puz.hasRebusCells) {
+      console.log('ExolveKB unsupported: ' + puz.id + ' has rebus cells');
       return false;
     }
     return true;
+  }
+
+  clickHandler(e) {
+    e.stopPropagation();
+    if (this.shouldClose && this.puz) {
+      this.puz.deactivator();
+    }
   }
 
   /**
@@ -1538,35 +1589,61 @@ class ExolveKB {
     this.preview = document.createElement("div");
     this.preview.classList.add("xlv-kb-preview");
     this.container.appendChild(this.preview);
+    this.shouldClose = false;
     this.hide();
     puz.frame.insertAdjacentElement('beforeend', this.container);
 
+    this.moreRow = null;
+    this.moreButton = null;
     const layout = [
+      [
+        ExolveKB.NOTES_KEY,
+        "*",
+        ExolveKB.ENTER_KEY,
+        ExolveKB.LARROW_KEY,
+        ExolveKB.UARROW_KEY,
+        ExolveKB.DARROW_KEY,
+        ExolveKB.RARROW_KEY,
+        "_",
+        "|",
+        ExolveKB.SPACE_KEY
+      ],
       ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
       ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
       [
         ExolveKB.CLOSE_KEY,
         "Z", "X", "C", "V", "B", "N", "M",
-        ExolveKB.DELETE_KEY
+        ExolveKB.DELETE_KEY,
+        ExolveKB.MORE_KEY
       ]
     ];
+    const handleClick = this.clickHandler.bind(this);
+    const handleRelease = (e) => {
+      this.preview.classList.remove('xlv-kb-preview-active');
+    };
     layout.forEach((rowKeys) => {
-      const handleRelease = (e) => {
-        this.#hidePreview();
-      };
       const rowDiv = document.createElement("div");
+      if (!this.moreRow) {
+        this.moreRow = rowDiv;
+        this.moreRow.style.display = 'none';
+      }
       rowDiv.classList.add("xlv-phone-kb-row");
       rowKeys.forEach((ch) => {
         const btn = document.createElement("button");
         btn.innerHTML = ch;
         btn.classList.add("xlv-phone-kb-btn");
-        if (ch == ExolveKB.CLOSE_KEY) {
-          btn.classList.add("xlv-phone-kb-close");
+        if (ch == ExolveKB.CLOSE_KEY || ch == ExolveKB.MORE_KEY) {
+          btn.classList.add("xlv-phone-kb-btn-round");
+        }
+        if (ch == ExolveKB.MORE_KEY || ch == ExolveKB.SPACE_KEY || ch == ExolveKB.NOTES_KEY) {
+          btn.classList.add("xlv-phone-kb-btn-small");
+        }
+        if (ch == ExolveKB.MORE_KEY) {
+          this.moreButton = btn;
         }
         const handlePress = (e) => {
+          this.shouldClose = false;
           this.#showPreview(btn, ch);
-        };
-        const handleClick = (e) => {
           this.puz.phoneKBInput(ch);
         };
         btn.addEventListener("click", handleClick);
@@ -1585,15 +1662,16 @@ class ExolveKB {
     puz.refocus();
   }
   #showPreview(btn, ch) {
-    if (ch === ExolveKB.CLOSE_KEY || ch === ExolveKB.DELETE_KEY) {
+    if (ch === ExolveKB.CLOSE_KEY ||
+        ch === ExolveKB.DELETE_KEY ||
+        ch === ExolveKB.NOTES_KEY ||
+        ch === ExolveKB.SPACE_KEY) {
+      // TODO unify
       return;
     }
     btn.appendChild(this.preview);
     this.preview.innerHTML = ch;
     this.preview.classList.add('xlv-kb-preview-active');
-  }
-  #hidePreview() {
-    this.preview.classList.remove('xlv-kb-preview-active');
   }
 
   /**
@@ -1663,6 +1741,25 @@ class ExolveKB {
       this.puz = puz;
     }
     this.container.style.display = 'flex';
+  }
+  /**
+   * When the "close" button is pressed, we save that, and then
+   * actually close in the subsequent clickHandler() call, to
+   * avoid triggering a click event on the underlying element
+   * (often a clue, which otherwise would just bring the keyboard
+   * back up again).
+   */
+  closeClicked() {
+    this.shouldClose = true;
+  }
+  moreClicked() {
+    if (this.moreRow.style.display == 'none') {
+      this.moreRow.style.display = '';
+      this.moreButton.innerHTML = "Less";
+    } else {
+      this.moreRow.style.display = 'none';
+      this.moreButton.innerHTML = "More";
+    }
   }
   hide() {
     if (!this.container) {
@@ -7385,7 +7482,6 @@ Exolve.prototype.fromNotesToGrid = function() {
   this.refocus();
 }
 
-// For tab/shift-tab, ctrl-q, ctrl-Q, ctrl-B, ctrl-e
 Exolve.prototype.handleKeyDown = function(e) {
   let key = e.which || e.keyCode;
   this.lastKeyHadShift = e.shiftKey;
@@ -7405,12 +7501,13 @@ Exolve.prototype.handleKeyDown = function(e) {
   } else if (isCtrl && e.key == 'B') {
     this.muzzleEvent(e);
     this.printNow('crossword');
-  } else if (isCtrl && e.key == '/') {
+  } else if ((isCtrl && e.key == '/') || (key == 13) ) {
+    /** Enter key (13) from Notes panel is intercepted (but not from grid input) */
     if (this.notesPanel.contains(e.target) &&
         this.currCellIsValid()) {
       this.muzzleEvent(e);
       this.fromNotesToGrid();
-    } else if (this.focusOnNotes()) {
+    } else if (e.key != 13 && this.focusOnNotes()) {
       this.muzzleEvent(e);
     }
   } else if (isCtrl && e.key == '*') {
@@ -7835,6 +7932,10 @@ Exolve.prototype.handleGridInput = function() {
     return;
   }
   displayChar = displayChar.toUpperCase();
+  const isSpace = (displayChar == ' ');
+  if (isSpace) {
+    displayChar = '';
+  }
   if ((displayChar && !usedForDgmless &&
         !this.isValidDisplayChar(displayChar)) ||
       (gridCell.isDgmless && !usedForDgmless && oldLetter == '1')) {
@@ -7889,7 +7990,7 @@ Exolve.prototype.handleGridInput = function() {
   this.updateAndSaveState();
 
   if (!multiLetterMode && !usedForDgmless &&
-      this.isValidDisplayChar(displayChar)) {
+      (this.isValidDisplayChar(displayChar) || isSpace)) {
     this.advanceCursor();
   }
 }
