@@ -1440,46 +1440,10 @@ Exolve.prototype.redoPhoneTweaks = function() {
 }
 
 Exolve.prototype.phoneKBInput = function(ch) {
-  if (ch == ExolveKB.CLOSE_KEY) {
-    /** The KB will remove itself when the underlying click is received */
-    this.phoneKB.closeClicked();
+  if (this.phoneKB.handleSpecialKey(ch)) {
     return;
   }
-  if (ch == ExolveKB.MORE_KEY) {
-    this.phoneKB.moreClicked();
-    return;
-  }
-  if (ch == ExolveKB.ENTER_KEY) {
-    this.toggleCurrDirAndActivate();
-    return;
-  }
-  if (ch == ExolveKB.LARROW_KEY) {
-    this.handleKeyUpInner(37);
-    return;
-  }
-  if (ch == ExolveKB.UARROW_KEY) {
-    this.handleKeyUpInner(38);
-    return;
-  }
-  if (ch == ExolveKB.DARROW_KEY) {
-    this.handleKeyUpInner(40);
-    return;
-  }
-  if (ch == ExolveKB.RARROW_KEY) {
-    this.handleKeyUpInner(39);
-    return;
-  }
-  if (ch == "*") {
-    this.markAsFave();
-    return;
-  }
-  if (ch == ExolveKB.NOTES_KEY) {
-    // TODO: use the click event!
-    this.focusOnNotes();
-    return;
-  }
-  /** TODO: unify the above */
-  if (ch == ExolveKB.DELETE_KEY) {
+  if (ch == ExolveKB.BACKSPACE_KEY) {
     ch = '';
   } else if (ch == ExolveKB.SPACE_KEY) {
     ch = ' ';
@@ -1492,7 +1456,7 @@ Exolve.prototype.phoneKBInput = function(ch) {
 }
 
 class ExolveKB {
-  static DELETE_KEY = "&#x232B;";
+  static BACKSPACE_KEY = "&#x232B;";
   static CLOSE_KEY = "&times;";
   static MORE_KEY = "More";
   static ENTER_KEY = "&#9166;";
@@ -1548,10 +1512,54 @@ class ExolveKB {
     return true;
   }
 
+  handleSpecialKey(ch) {
+    if (ch == ExolveKB.CLOSE_KEY || ch == ExolveKB.NOTES_KEY) {
+      /**
+       * When these buttons are pressed, we save that, and then
+       * actually handle in the subsequent clickHandler() call, to
+       * avoid triggering a click event on the underlying element
+       * (often a clue).
+       */
+      this.clickHandledKey = ch;
+      return true;
+    } else if (ch == ExolveKB.MORE_KEY) {
+      this.moreClicked();
+      return true;
+    }
+    if (!this.puz) {
+      return false;
+    }
+    if (ch == ExolveKB.ENTER_KEY) {
+      this.puz.toggleCurrDirAndActivate();
+      return true;
+    } else if (ch == ExolveKB.LARROW_KEY) {
+      this.puz.handleKeyUpInner(37);
+      return true;
+    } else if (ch == ExolveKB.UARROW_KEY) {
+      this.puz.handleKeyUpInner(38);
+      return true;
+    } else if (ch == ExolveKB.DARROW_KEY) {
+      this.puz.handleKeyUpInner(40);
+      return true;
+    } else if (ch == ExolveKB.RARROW_KEY) {
+      this.puz.handleKeyUpInner(39);
+      return true;
+    } else if (ch == "*") {
+      this.puz.markAsFave();
+      return true;
+    }
+    return false;
+  }
+
   clickHandler(e) {
     e.stopPropagation();
-    if (this.shouldClose && this.puz) {
+    if (!this.puz || !this.clickHandledKey) {
+      return;
+    }
+    if (this.clickHandledKey == ExolveKB.CLOSE_KEY) {
       this.puz.deactivator();
+    } else if (this.clickHandledKey == ExolveKB.NOTES_KEY) {
+      this.puz.focusOnNotes();
     }
   }
 
@@ -1589,7 +1597,7 @@ class ExolveKB {
     this.preview = document.createElement("div");
     this.preview.classList.add("xlv-kb-preview");
     this.container.appendChild(this.preview);
-    this.shouldClose = false;
+    this.clickHandledKey = null;
     this.hide();
     puz.frame.insertAdjacentElement('beforeend', this.container);
 
@@ -1613,7 +1621,7 @@ class ExolveKB {
       [
         ExolveKB.CLOSE_KEY,
         "Z", "X", "C", "V", "B", "N", "M",
-        ExolveKB.DELETE_KEY,
+        ExolveKB.BACKSPACE_KEY,
         ExolveKB.MORE_KEY
       ]
     ];
@@ -1642,7 +1650,7 @@ class ExolveKB {
           this.moreButton = btn;
         }
         const handlePress = (e) => {
-          this.shouldClose = false;
+          this.clickHandledKey = null;
           this.#showPreview(btn, ch);
           this.puz.phoneKBInput(ch);
         };
@@ -1662,13 +1670,6 @@ class ExolveKB {
     puz.refocus();
   }
   #showPreview(btn, ch) {
-    if (ch === ExolveKB.CLOSE_KEY ||
-        ch === ExolveKB.DELETE_KEY ||
-        ch === ExolveKB.NOTES_KEY ||
-        ch === ExolveKB.SPACE_KEY) {
-      // TODO unify
-      return;
-    }
     btn.appendChild(this.preview);
     this.preview.innerHTML = ch;
     this.preview.classList.add('xlv-kb-preview-active');
@@ -1741,16 +1742,6 @@ class ExolveKB {
       this.puz = puz;
     }
     this.container.style.display = 'flex';
-  }
-  /**
-   * When the "close" button is pressed, we save that, and then
-   * actually close in the subsequent clickHandler() call, to
-   * avoid triggering a click event on the underlying element
-   * (often a clue, which otherwise would just bring the keyboard
-   * back up again).
-   */
-  closeClicked() {
-    this.shouldClose = true;
   }
   moreClicked() {
     if (this.moreRow.style.display == 'none') {
