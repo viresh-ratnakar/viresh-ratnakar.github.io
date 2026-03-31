@@ -589,6 +589,41 @@ function Exolve(puzzleSpec,
     'show-notes-times': 'Show clue-solving times:',
     'concise-clue.hover': 'Some clue text has been trimmed here for brevity. You can see the full clue by clicking on it.',
     'preamble-link': '&Darr;Preamble',
+    'phone-kb-help': `
+      The Exolve on-screen keyboard can used for entering letters
+      into the grid. The "${ExolveKB.CLOSE_KEY}" button can be used
+      to hide it (it will be redisplayed when a grid cell is tapped).
+      <p>
+      Tapping the "More" button displays an additional row of buttons
+      on top. These include arrows (convenient for navigating
+      around the grid), and the following special buttons:
+      </p>
+      <ul>
+      <li>
+      <b>Notes</b>: Navigate to the notes section (from where you can
+          return to the grid using the Enter key). The notes section
+          uses the standard device keyboard, not the Exolve keyboard.
+      </li>
+      <li>
+      <b>*</b>: Mark the current clue as a fave within the notes
+          section, without navigating over to the notes section.
+      </li>
+      <li>
+      <b>${ExolveKB.ENTER_KEY}</b>: Toggle direction, if the cell has
+          lights along more than one direction.
+      </li>
+      <li>
+      <b>Space</b>: Clear cell and move forward, except in a diagramless
+          cell, in which case this toggles placement of a block.
+      </li>
+      <li>
+      <b>_, |</b>: Toggle bar-after/bar-under. These are only used when
+          diagramless bars are enabled in the puzzle.
+      </li>
+      </ul>
+      <center>
+        <b><i>Tap anywhere within this help text to dismiss it.</i></b>
+      </center>`
   };
 
   /**
@@ -1618,43 +1653,7 @@ class ExolveKB {
 
     this.help = document.createElement("div");
     this.help.classList.add("xlv-phone-kb-help");
-    this.help.innerHTML = `
-    The Exolve on-screen keyboard can used for entering letters
-    into the grid. The "${ExolveKB.CLOSE_KEY}" button can be used
-    to hide it (it will be redisplayed when a grid cell is tapped).
-    <p>
-    Tapping the "More" button displays an additional row of buttons
-    on top. These include arrows (convenient for navigating
-    around the grid), and the following special buttons:
-    </p>
-    <ul>
-    <li>
-    <b>Notes</b>: This will navigate you to the notes
-        section (from where you can return to the grid using the Enter key).
-        The notes section uses the standard device keyboard, not the Exolve
-        keyboard.
-    </li>
-    <li>
-    <b>*</b>: This marks the current clue as a fave within the notes
-        section, without navigating over to the notes section.
-    </li>
-    <li>
-    <b>${ExolveKB.ENTER_KEY}</b>: Toggle direction, if the cell has
-        lights along more than one direction.
-    </li>
-    <li>
-    <b>Space</b>: Clear cell and move forward, except in a diagramless
-        cell, in which case this toggles placement of a block.
-    </li>
-    <li>
-    <b>_, |</b>: These are only used when diagramless bars are enabled,
-        and are used in such puzzles for toggling bar-under/bar-after.
-    </li>
-    </ul>
-    <center>
-      <i>Tap anywhere within the help text to dismiss.</i>
-    </center>
-    `;
+    this.help.innerHTML = puz.textLabels["phone-kb-help"];
     this.help.addEventListener('click', (e) => {
       this.helpToggle();
     });
