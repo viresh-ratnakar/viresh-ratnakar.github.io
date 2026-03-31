@@ -467,9 +467,9 @@ function Exolve(puzzleSpec,
     'crossword-id': 'Crossword ID',
     'notes': 'Notes',
     'notes.hover': 'Show/hide notes panel.',
-    'notes-help': '<li>Ctrl-/ or Cmd-/ or Enter takes you back to the grid.</li>' +
-        '<li>Place * at the start of a clue\'s note to mark it as a fave.</li>' +
-        '<li>Hovering over a clue\'s notes shows the clue as a tooltip.</li>',
+    'notes-help': '<li>Ctrl/Cmd-/ or Enter to go from notes to grid.</li>' +
+        '<li>Place * at the start of a clue\'s note to mark a fave.</li>' +
+        '<li>Hover on a clue\'s note to see the clue as a tooltip.</li>',
     'jotter': 'Jotter',
     'jotter.hover': 'Show/hide a jotting pad that also lets you try out anagrams and subtractions.',
     'jotter-text.hover': 'You can shuffle letters by clicking above. If you enter something like [Alphabet - betas =] then it will be replaced by [lpha - s] (subtraction of common letters).',
@@ -1466,6 +1466,24 @@ class ExolveKB {
   static UARROW_KEY = "&uarr;";
   static DARROW_KEY = "&darr;";
   static NOTES_KEY = "Notes";
+  static HELP_KEY = "Help";
+  static ROUND_KEYS = new Set([
+    ExolveKB.CLOSE_KEY,
+    ExolveKB.MORE_KEY,
+    ExolveKB.HELP_KEY
+  ]);
+  static VERBOSE_KEYS = {
+    [ExolveKB.MORE_KEY]: "&hellip;",
+    [ExolveKB.SPACE_KEY]: "&blank;",
+    [ExolveKB.NOTES_KEY]: "&#128203;",
+    [ExolveKB.HELP_KEY]: "?"
+  };
+  static ARROW_KEYS = {
+    [ExolveKB.LARROW_KEY]: 37,
+    [ExolveKB.UARROW_KEY]: 38,
+    [ExolveKB.DARROW_KEY]: 40,
+    [ExolveKB.RARROW_KEY]: 39
+  };
   /**
    * The singleton instance.
    */
@@ -1520,10 +1538,13 @@ class ExolveKB {
        * avoid triggering a click event on the underlying element
        * (often a clue).
        */
-      this.clickHandledKey = ch;
+      this.keyForClickHandlker = ch;
       return true;
     } else if (ch == ExolveKB.MORE_KEY) {
-      this.moreClicked();
+      this.moreToggle();
+      return true;
+    } else if (ch == ExolveKB.HELP_KEY) {
+      this.helpToggle();
       return true;
     }
     if (!this.puz) {
@@ -1532,17 +1553,8 @@ class ExolveKB {
     if (ch == ExolveKB.ENTER_KEY) {
       this.puz.toggleCurrDirAndActivate();
       return true;
-    } else if (ch == ExolveKB.LARROW_KEY) {
-      this.puz.handleKeyUpInner(37);
-      return true;
-    } else if (ch == ExolveKB.UARROW_KEY) {
-      this.puz.handleKeyUpInner(38);
-      return true;
-    } else if (ch == ExolveKB.DARROW_KEY) {
-      this.puz.handleKeyUpInner(40);
-      return true;
-    } else if (ch == ExolveKB.RARROW_KEY) {
-      this.puz.handleKeyUpInner(39);
+    } else if (ExolveKB.ARROW_KEYS.hasOwnProperty(ch)) {
+      this.puz.handleKeyUpInner(ExolveKB.ARROW_KEYS[ch]);
       return true;
     } else if (ch == "*") {
       this.puz.markAsFave();
@@ -1553,12 +1565,12 @@ class ExolveKB {
 
   clickHandler(e) {
     e.stopPropagation();
-    if (!this.puz || !this.clickHandledKey) {
+    if (!this.puz || !this.keyForClickHandlker) {
       return;
     }
-    if (this.clickHandledKey == ExolveKB.CLOSE_KEY) {
+    if (this.keyForClickHandlker == ExolveKB.CLOSE_KEY) {
       this.puz.deactivator();
-    } else if (this.clickHandledKey == ExolveKB.NOTES_KEY) {
+    } else if (this.keyForClickHandlker == ExolveKB.NOTES_KEY) {
       this.puz.focusOnNotes();
     }
   }
@@ -1584,6 +1596,9 @@ class ExolveKB {
       background-color: ${puz.colorScheme['phone-kb-btn-bg']};
       color: ${puz.colorScheme['phone-kb-btn-text']};
     }
+    .xlv-phone-kb-help {
+      background-color: ${puz.colorScheme['phone-kb-btn-border']};
+    }
     .xlv-phone-kb-btn:active {
       background-color: ${puz.colorScheme['phone-kb-btn-bg-active']};
     }
@@ -1597,9 +1612,54 @@ class ExolveKB {
     this.preview = document.createElement("div");
     this.preview.classList.add("xlv-kb-preview");
     this.container.appendChild(this.preview);
-    this.clickHandledKey = null;
+    this.keyForClickHandlker = null;
     this.hide();
     puz.frame.insertAdjacentElement('beforeend', this.container);
+
+    this.help = document.createElement("div");
+    this.help.classList.add("xlv-phone-kb-help");
+    this.help.innerHTML = `
+    The Exolve on-screen keyboard can used for entering letters
+    into the grid. The "${ExolveKB.CLOSE_KEY}" button can be used
+    to hide it (it will be redisplayed when a grid cell is tapped).
+    <p>
+    Tapping the "More" button displays an additional row of buttons
+    on top. These include arrows (convenient for navigating
+    around the grid), and the following special buttons:
+    </p>
+    <ul>
+    <li>
+    <b>Notes</b>: This will navigate you to the notes
+        section (from where you can return to the grid using the Enter key).
+        The notes section uses the standard device keyboard, not the Exolve
+        keyboard.
+    </li>
+    <li>
+    <b>*</b>: This marks the current clue as a fave within the notes
+        section, without navigating over to the notes section.
+    </li>
+    <li>
+    <b>${ExolveKB.ENTER_KEY}</b>: Toggle direction, if the cell has
+        lights along more than one direction.
+    </li>
+    <li>
+    <b>Space</b>: Clear cell and move forward, except in a diagramless
+        cell, in which case this toggles placement of a block.
+    </li>
+    <li>
+    <b>_, |</b>: These are only used when diagramless bars are enabled,
+        and are used in such puzzles for toggling bar-under/bar-after.
+    </li>
+    </ul>
+    <center>
+      <i>Tap anywhere within the help text to dismiss.</i>
+    </center>
+    `;
+    this.help.addEventListener('click', (e) => {
+      this.helpToggle();
+    });
+    this.help.style.display = 'none';
+    this.container.appendChild(this.help);
 
     this.moreRow = null;
     this.moreButton = null;
@@ -1617,7 +1677,7 @@ class ExolveKB {
         ExolveKB.SPACE_KEY
       ],
       ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
-      ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
+      ["A", "S", "D", "F", "G", "H", "J", "K", "L", ExolveKB.HELP_KEY],
       [
         ExolveKB.CLOSE_KEY,
         "Z", "X", "C", "V", "B", "N", "M",
@@ -1640,17 +1700,17 @@ class ExolveKB {
         const btn = document.createElement("button");
         btn.innerHTML = ch;
         btn.classList.add("xlv-phone-kb-btn");
-        if (ch == ExolveKB.CLOSE_KEY || ch == ExolveKB.MORE_KEY) {
+        if (ExolveKB.ROUND_KEYS.has(ch)) {
           btn.classList.add("xlv-phone-kb-btn-round");
         }
-        if (ch == ExolveKB.MORE_KEY || ch == ExolveKB.SPACE_KEY || ch == ExolveKB.NOTES_KEY) {
+        if (ExolveKB.VERBOSE_KEYS.hasOwnProperty(ch)) {
           btn.classList.add("xlv-phone-kb-btn-small");
         }
         if (ch == ExolveKB.MORE_KEY) {
           this.moreButton = btn;
         }
         const handlePress = (e) => {
-          this.clickHandledKey = null;
+          this.keyForClickHandlker = null;
           this.#showPreview(btn, ch);
           this.puz.phoneKBInput(ch);
         };
@@ -1671,7 +1731,8 @@ class ExolveKB {
   }
   #showPreview(btn, ch) {
     btn.appendChild(this.preview);
-    this.preview.innerHTML = ch;
+    const pch = ExolveKB.VERBOSE_KEYS[ch] ?? ch;
+    this.preview.innerHTML = pch;
     this.preview.classList.add('xlv-kb-preview-active');
   }
 
@@ -1743,13 +1804,20 @@ class ExolveKB {
     }
     this.container.style.display = 'flex';
   }
-  moreClicked() {
+  moreToggle() {
     if (this.moreRow.style.display == 'none') {
       this.moreRow.style.display = '';
       this.moreButton.innerHTML = "Less";
     } else {
       this.moreRow.style.display = 'none';
       this.moreButton.innerHTML = "More";
+    }
+  }
+  helpToggle() {
+    if (this.help.style.display == 'none') {
+      this.help.style.display = '';
+    } else {
+      this.help.style.display = 'none';
     }
   }
   hide() {
