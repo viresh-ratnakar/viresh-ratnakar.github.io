@@ -710,8 +710,9 @@ a.xlv-link:hover {
   padding: 4px;
   font-size: 14px;
 }
-.xlv-phone-kb-help ul {
-  padding-left: 2ch;
+.xlv-phone-kb-help td {
+  margin: 2px;
+  vertical-align: top;
 }
 
 @media not print {

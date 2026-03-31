@@ -84,7 +84,7 @@ function Exolve(puzzleSpec,
                 visTop=0,
                 maxDim=0,
                 notTemp=true) {
-  this.VERSION = 'Exolve v1.69.5, March 29, 2026';
+  this.VERSION = 'Exolve v1.70, March 31, 2026';
   this.id = '';
 
   this.puzzleText = puzzleSpec;
@@ -590,7 +590,7 @@ function Exolve(puzzleSpec,
     'concise-clue.hover': 'Some clue text has been trimmed here for brevity. You can see the full clue by clicking on it.',
     'preamble-link': '&Darr;Preamble',
     'phone-kb-help': `
-      The Exolve on-screen keyboard can used for entering letters
+      Exolve's on-screen keyboard can used for entering letters
       into the grid. The "${ExolveKB.CLOSE_KEY}" button can be used
       to hide it (it will be redisplayed when a grid cell is tapped).
       <p>
@@ -598,32 +598,34 @@ function Exolve(puzzleSpec,
       on top. These include arrows (convenient for navigating
       around the grid), and the following special buttons:
       </p>
-      <ul>
-      <li>
-      <b>Notes</b>: Navigate to the notes section (from where you can
+      <table>
+      <tr>
+      <td><b>Notes</b></td><td>Navigate to the notes section (from where you can
           return to the grid using the Enter key). The notes section
-          uses the standard device keyboard, not the Exolve keyboard.
-      </li>
-      <li>
-      <b>*</b>: Mark the current clue as a fave within the notes
-          section, without navigating over to the notes section.
-      </li>
-      <li>
-      <b>${ExolveKB.ENTER_KEY}</b>: Toggle direction, if the cell has
-          lights along more than one direction.
-      </li>
-      <li>
-      <b>Space</b>: Clear cell and move forward, except in a diagramless
-          cell, in which case this toggles placement of a block.
-      </li>
-      <li>
-      <b>_, |</b>: Toggle bar-after/bar-under. These are only used when
-          diagramless bars are enabled in the puzzle.
-      </li>
-      </ul>
+          uses the standard device keyboard, not the Exolve keyboard.</td>
+      </tr>
+      <tr>
+      <td><b>*</b></td><td>Mark the current clue as a fave within the notes
+          section, without navigating over to the notes section.</td>
+      </tr>
+      <tr>
+      <td><b>${ExolveKB.ENTER_KEY}</b></td><td>Toggle direction, if the cell has
+          lights along more than one direction.</td>
+      </tr>
+      <tr>
+      <td><b>Space</b></td><td>Clear cell and move forward, except in a diagramless
+          cell, in which case this toggles placement of a block.</td>
+      </tr>
+      <tr>
+      <td><b>_, |</b></td><td>Toggle bar-under/bar-after, only used in
+          diagramless cells when diagramless bars are enabled.</td>
+      </tr>
+      </table>
+      <p>
       <center>
         <b><i>Tap anywhere within this help text to dismiss it.</i></b>
-      </center>`
+      </center>
+      </p>`
   };
 
   /**
