@@ -623,7 +623,7 @@ function Exolve(puzzleSpec,
       </table>
       <p>
       <center>
-        <b><i>Tap anywhere within this help text to dismiss it.</i></b>
+        <b><i>Tap anywhere in this help text to dismiss it.</i></b>
       </center>
       </p>`
   };
@@ -739,12 +739,12 @@ Exolve.prototype.init = function() {
   const basicHTML = `
     <div class="xlv-frame xlv-flex-col" tabindex="-1" id="${this.prefix}-frame">
       <div id="${this.prefix}-title-setter" class="xlv-title-setter">
-        <div id="${this.prefix}-title" class="xlv-title"></div>
-        <div id="${this.prefix}-setter" class="xlv-setter"></div>
+        <div id="${this.prefix}-title" style="display:none" class="xlv-title"></div>
+        <div id="${this.prefix}-setter" style="display:none" class="xlv-setter"></div>
         <a id="${this.prefix}-preamble-link" href="#${this.prefix}-preamble"
             class="xlv-preamble-link xlv-link">${this.textLabels['preamble-link']}</a>
       </div>
-      <div id="${this.prefix}-preamble" class="xlv-preamble"></div>
+      <div id="${this.prefix}-preamble" style="display:none" class="xlv-preamble"></div>
       <div id="${this.prefix}-clear-area" class="xlv-clear-area"></div>
       <div id="${this.prefix}-grid-and-clues" class="xlv-grid-and-clues-flex">
         <div id="${this.prefix}-grid-panel" class="xlv-grid-panel">
@@ -1188,16 +1188,14 @@ Exolve.prototype.init = function() {
   this.titleElt = document.getElementById(this.prefix + '-title');
   if (this.title) {
     this.titleElt.innerHTML = this.title;
-  } else {
-    this.titleElt.style.display = 'none';
+    this.titleElt.style.display = '';
   }
   this.setterElt = document.getElementById(this.prefix + '-setter');
   if (this.setter) {
     this.setterElt.innerHTML = `<span id="${this.prefix}-setter-by"
       >${this.textLabels['setter-by']}</span> ${this.setter}`;
     this.setterElt.style.color = this.colorScheme['imp-text'];
-  } else {
-    this.setterElt.style.display = 'none';
+    this.setterElt.style.display = '';
   }
   this.preambleElt = document.getElementById(this.prefix + '-preamble');
   this.preambleLinkElt = document.getElementById(this.prefix + '-preamble-link');
@@ -2793,6 +2791,7 @@ Exolve.prototype.parseAndDisplayPrelude = function() {
     return;
   }
   this.preambleElt.innerHTML = this.preamble;
+  this.preambleElt.style.display = '';
 }
 
 Exolve.prototype.parseAndDisplayPS = function() {

@@ -708,7 +708,8 @@ a.xlv-link:hover {
 }
 .xlv-phone-kb-help {
   padding: 4px;
-  font-size: 14px;
+  font-family: monospace;
+  font-size: 12px;
 }
 .xlv-phone-kb-help td {
   margin: 2px;
