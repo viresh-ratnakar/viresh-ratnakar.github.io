@@ -1543,6 +1543,10 @@ class ExolveKB {
     if (!ExolveKB.#instance) {
       ExolveKB.#instance = new ExolveKB(puz);
     }
+    if (puz.hasDgmlessCells) {
+      /** Show the extra row of keys by default */
+      ExolveKB.#instance.moreToggle(true);
+    }
     return ExolveKB.#instance;
   }
 
@@ -1805,8 +1809,8 @@ class ExolveKB {
     }
     this.container.style.display = 'flex';
   }
-  moreToggle() {
-    if (this.moreRow.style.display == 'none') {
+  moreToggle(forceShow=false) {
+    if (forceShow || (this.moreRow.style.display == 'none')) {
       this.moreRow.style.display = '';
       this.moreButton.innerHTML = "Less";
     } else {
