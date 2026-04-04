@@ -1,0 +1,2762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<base target="_parent">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" type="text/css" href="https://viresh-ratnakar.github.io/exolve-m.css">
+<script src="https://viresh-ratnakar.github.io/exolve-m.js"></script>
+
+<title>Crossword puzzles By Gussalufz (and doppelgängers, and friends!)</title>
+
+<style>
+
+body {
+  font-family: monospace;
+}
+a:link,
+a:active,
+a:visited {
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+.thc-duo {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  flex-wrap: wrap;
+}
+.puzlist-box {
+  box-sizing: border-box;
+  margin: 0 0 24px 0;
+  max-width: 1000px;
+}
+.narrow-box {
+  max-width: 400px;
+}
+.puzlist {
+  box-sizing: border-box;
+  max-height: 324px;
+  overflow-y: auto;
+}
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+.table-heading {
+  color: white;
+  background-color: #888888;
+  padding: 8px;
+  box-sizing: border-box;
+  width: 100%;
+  border: 1px solid black;
+}
+td {
+  padding: 10px;
+  vertical-align: top;
+  border: 1px solid darkgreen;
+  border-width: 0 thin 0 thin;
+}
+.puztitle {
+  font-weight: bold;
+}
+.puztagline {
+  font-size: small;
+  font-style: italic;
+  font-weight: normal;
+}
+.puzdetails {
+  font-size: small;
+  font-weight: normal;
+}
+nav * {
+  margin: 0 20px;
+}
+
+#exolve1 {
+  margin: 24px 0 0 0;
+}
+#gussalufz-wizard {
+  position: absolute;
+  top: 20px;
+  left:0;
+  width: 15%;
+  z-index: 1;
+  max-width: 180px;
+}
+.xlv-prefill {
+  font-weight: bold;
+}
+</style>
+
+<script>
+function shadeTable() {
+  let trs = document.getElementsByTagName('TR')
+  let parity = 0
+  for (tr of trs) {
+    if (parity == 0) {
+      tr.style.background = 'gainsboro'
+    }
+    parity = 1 - parity
+  }
+}
+</script>
+
+</head>
+
+<body onload="shadeTable()">
+
+<img id="gussalufz-wizard" alt="Old, cross-looking man holding a grid-wand" src="gussalufz-wizard.png">
+
+<center>
+<nav>
+<a href="#thc-crosswords">THC Crosswords</a>
+<a href="#crosswords">Other Crosswords</a>
+<a href="#exolve">Exolve</a>
+<a href="#exolve-player">Exolve Player</a>
+<a href="#exet">Exet</a>
+<a href="#exost">Exost</a>
+<a href="#webifi">Webifi</a>
+<a href="#scrypbles">Scrypbles</a>
+<a href="#resources">Resources</a>
+<a href="#about">About</a>
+<a href="#comments">Comments</a>
+</nav>
+</center>
+
+<div id="exolve"></div>
+
+<script>
+function customizeExolve(puz) {
+  if (puz.id != 'gussalufz-logo-v2') {
+    return;
+  }
+  document.getElementById('xlv1-title').style.display = 'none';
+  document.getElementById('xlv1-controls-etc').style.display = 'none';
+  puz.clearArea.style.display = 'none'
+}
+const puz = new Exolve(`
+exolve-begin
+  exolve-id: gussalufz-logo-v2
+  exolve-width: 18
+  exolve-height: 5
+  exolve-grid:
+    . 0 . 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+    0 0 G!U!S!S!A!L!U!F!Z!. . . 0 0 0 0 
+    . 0 . 0 0 0 0 0 0 0 0 0 0 0 0 . 0 . 
+    0 0 0 0 . . . 0 0 0 0 0 0 0 0 0 0 0
+    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 . 0 .
+  exolve-colour: lightgray a4 a2 c2 d2 d3 d5 k3 k4 k5 h1 h2 h3
+  exolve-colour: lightgray i1 j1 k1 l1 m1 n1 o1 l3 m3 n3 o3 r2 o4 p4 r4
+  exolve-colour: lightgray e3 e5 f3 f5 g3 g5 h3 h5 i3 i5 j3 j5
+  exolve-option: colour-prefill:black
+  exolve-option: ignore-unclued ignore-enum-mismatch
+  exolve-email: viresh@gmail.com
+exolve-end
+`, '', customizeExolve, false, 0, 0, false);
+</script>
+
+<center>
+
+<br>
+<br>
+
+<a name="thc-crosswords"></a>
+<div class="thc-duo">
+
+<div class="puzlist-box">
+
+<div class="table-heading">
+<h3>The Hindu Cryptic (THC) crosswords by Gussalufz</h3>
+Interactive versions of my THC puzzles that were
+published 4+ months back. Each puzzle includes revealable/checkable solutions
+and annotations as well as some notes by me, so be sure to
+click on "Reveal all!" after solving.
+</div>
+
+<div class="puzlist">
+<table>
+
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+  <span class="puztitle"><a href="thc/2025/gussalufz-thc-09-2025-grid-1-32-clues.html">It Opened With Open Government</a></span>
+
+<br>
+<br>
+<div class="puzdetails">
+  THC #14,607 from Tuesday, October 7, 2025
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+  <span class="puztitle"><a href="thc/2025/gussalufz-thc-08-2025-grid-4.1-30-clues.html">Both Sides Are Same</a></span>
+
+<br>
+<br>
+<div class="puzdetails">
+  THCOS #19 from Sunday, August 31, 2025
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+  <span class="puztitle"><a href="thc/2025/gussalufz-thc-07-2025-grid-3.1-31-clues.html">Like Us?</a></span>
+
+<br>
+<br>
+<div class="puzdetails">
+  THC #14,541 from Saturday, July 19, 2025
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+  <span class="puztitle"><a href="thc/2025/gussalufz-thc-06-2025-grid-2-29-clues.html">Baleful Nurse At Work</a></span>
+
+<br>
+<br>
+<div class="puzdetails">
+  THC #14,515 from Thursday, June 19, 2025
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+  <span class="puztitle"><a href="thc/2025/gussalufz-thc-05-2025-grid-1-32-clues.html">Khadi Urad</a></span>
+
+<br>
+<br>
+<div class="puzdetails">
+  THC #14,499 from Saturday, May 31, 2025
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+  <span class="puztitle"><a href="thc/2025/gussalufz-thc-04-2025-grid-4.1-30-clues.html">Statuesque</a></span>
+
+<br>
+<br>
+<div class="puzdetails">
+  The Hindu Cryptic On Sunday (THCOS) #2 from May 4, 2025
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+  <span class="puztitle"><a href="thc/2025/gussalufz-thc-03-2025-grid-3.1-31-clues.html">20 + 27</a></span>
+
+<br>
+<br>
+<div class="puzdetails">
+  THC #14,452 from Monday, April 7, 2025
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+  <span class="puztitle"><a href="thc/2025/gussalufz-thc-02-2025-grid-2-29-clues.html">How To Get, <i>How?</i></a></span>
+
+<br>
+<br>
+<div class="puzdetails">
+  THC #14,424 from Wednesday, March 5, 2025
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+  <span class="puztitle"><a href="thc/2025/gussalufz-thc-01-2025-grid-1-32-clues.html">Love<sup>?</sup></a></span>
+
+<br>
+<br>
+<div class="puzdetails">
+  THC #14,398 from Monday, February 3, 2025
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+  <span class="puztitle"><a href="thc/2024/gussalufz-thc-12-2024-grid-4-32-clues.html">CH-CH</a></span>
+
+<br>
+<br>
+<div class="puzdetails">
+  THC #14,371 from Wednesday, January 1, 2025
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+  <span class="puztitle"><a href="thc/2024/gussalufz-thc-11-2024-grid-3.1-31-clues.html">Silky Pad?</a></span>
+
+<br>
+<br>
+<div class="puzdetails">
+  THC #14,344 from Saturday, November 30, 2024
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+  <span class="puztitle"><a href="thc/2024/gussalufz-thc-10-2024-grid-2-29-clues.html">The + (Six Words)</a></span>
+
+<br>
+<br>
+<div class="puzdetails">
+  THC #14,319 from Thursday, October 31, 2024
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+  <span class="puztitle"><a href="thc/2024/gussalufz-thc-09-2024-grid-1-32-clues.html">Zero Hours</a></span>
+
+<br>
+<br>
+<div class="puzdetails">
+  THC #14,292 from Saturday, September 28, 2024
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+  <span class="puztitle"><a href="thc/2024/gussalufz-thc-08-2024-grid-4-32-clues.html">Kya? Phir Vahi?</a></span>
+
+<br>
+<br>
+<div class="puzdetails">
+  THC #14,263 from Monday, August 26, 2024
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+  <span class="puztitle"><a href="thc/2024/gussalufz-thc-07-2024-grid-3.1-31-clues.html">Tom-tomming Typhoons!</a></span>
+
+<br>
+<br>
+<div class="puzdetails">
+  THC #14,238 from Saturday, July 27, 2024
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+  <span class="puztitle"><a href="thc/2024/gussalufz-thc-06-2024-grid-2-29-clues.html">Semordnilap</a></span>
+
+<br>
+<br>
+<div class="puzdetails">
+  THC #14,214 from Saturday, June 29, 2024
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+  <span class="puztitle"><a href="thc/2024/gussalufz-thc-05-2024-grid-1-32-clues.html">21s?</a></span>
+
+<br>
+<br>
+<div class="puzdetails">
+  THC #14,189 from Friday, May 31, 2024
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+  <span class="puztitle"><a href="thc/2024/gussalufz-thc-04-2024-grid-4-32-clues.html">Let's Replay</a></span>
+
+<br>
+<br>
+<div class="puzdetails">
+  THC #14,163 from Wednesday, May 1, 2024
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+  <span class="puztitle"><a href="thc/2024/gussalufz-thc-03-2024-grid-3.1-31-clues.html">What's Up?</a></span>
+
+<br>
+<br>
+<div class="puzdetails">
+  THC #14,136 from Saturday, March 30, 2024
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+  <span class="puztitle"><a href="thc/2024/gussalufz-thc-02-2024-grid-2-29-clues.html">One Doesn't Belong?</a></span>
+
+<br>
+<br>
+<div class="puzdetails">
+  THC #14,108 from Tuesday, February 27, 2024
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+  <span class="puztitle"><a href="thc/2024/gussalufz-thc-01-2024-grid-1-32-clues.html">Kakamuchee</a></span>
+
+<br>
+<br>
+<div class="puzdetails">
+  THC #14,082 from Saturday, January 27, 2024
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+  <span class="puztitle"><a href="thc/2023/gussalufz-thc-12-2023-grid-4-32-clues.html">Do Jasoos</a></span>
+
+<br>
+<br>
+<div class="puzdetails">
+  THC #14,057 from Thursday, December 28, 2023
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+  <span class="puztitle"><a href="thc/2023/gussalufz-thc-11-2023-grid-3.1-31-clues.html">Stripper</a></span>
+
+<br>
+<br>
+<div class="puzdetails">
+  THC #14,031 from Tuesday, November 28, 2023
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+  <span class="puztitle"><a href="thc/2023/gussalufz-thc-10-2023-grid-2-29-clues.html">A Puzzle With Layers</a></span>
+
+<br>
+<br>
+<div class="puzdetails">
+  THC #14,006 from Saturday, October 28, 2023
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+  <span class="puztitle"><a href="thc/2023/gussalufz-thc-09-2023-grid-1-32-clues.html">L for Lufz</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,981 from Thursday, September 28, 2023
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2023/gussalufz-thc-08-2023-grid-4-32-clues.html">25 25</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,954 from Saturday, August 26, 2023
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2023/gussalufz-thc-07.2-2023-grid-3.1-31-clues.html">Woke Abruptly?</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,930 from Saturday, July 29, 2023
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2023/gussalufz-thc-07-2023-grid-2-29-clues.html">Covertly convert (13)</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,929 from Friday, July 28, 2023
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2023/gussalufz-thc-06-2023-grid-1-32-clues.html">Some Jazz Players?</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,902 from Tuesday, June 27, 2023
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2023/gussalufz-thc-05-2023-grid-4-32-clues.html">Sketchy People?</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,878 from Tuesday, May 30, 2023
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2023/gussalufz-thc-04-2023-grid-3.1-31-clues.html">A Tall Tale?</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,866 from Tuesday, May 16, 2023
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2023/gussalufz-thc-03-2023-grid-2-29-clues.html">Inner Secrets?</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,853 from Monday, May 1, 2023
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2023/gussalufz-thc-02.2-2023-grid-1-32-clues.html">Two Grid-related Transport Mechanisms</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,828 from Saturday, April 1, 2023
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2023/gussalufz-thc-02-2023-grid-4-32-clues.html">Pioneer</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,802 from Thursday, March 2, 2023
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2023/gussalufz-thc-01-2023-grid-3.1-31-clues.html">Madonna's in it</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,776 from Tuesday, January 31, 2023
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+  <span class="puztitle"><a href="thc/2022/gussalufz-thc-12-2022-grid-2-29-clues.html">Zzz...</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,751 from Saturday, December 31, 2022
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2022/gussalufz-thc-11.2-2022-grid-1-32-clues.html">What A Cracker!</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,726 from Friday, December 2, 2022
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2022/gussalufz-thc-11-2022-grid-4-32-clues.html">Nunc Est Bibendum!</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,711 from Tuesday, November 15, 2022
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+  <span class="puztitle"><a href="thc/2022/gussalufz-thc-10-2022-grid-3.1-31-clues.html">Bond's Story in 21, 23, 25</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,695 from Thursday, October 27, 2022
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+  <span class="puztitle"><a href="thc/2022/gussalufz-thc-09-2022-grid-2-29-clues.html">Charles's Story</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,671 from Tuesday, September 27, 2022
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2022/gussalufz-thc-08-2022-grid-1-32-clues.html">7 About 7</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,647 from Monday, August 29, 2022
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2022/gussalufz-thc-07-2022-grid-3.1-31-clues.html">9 + 21 = 25 + ?</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,633 from Friday, August 12, 2022
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2022/gussalufz-thc-07.2-2022-grid-4-32-clues.html">Don't Tell Anyone</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,619 from Wednesday, July 27, 2022
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2022/gussalufz-thc-06-2022-grid-3-34-clues.html">Prime Time</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,591 from Friday, June 24, 2022
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2022/gussalufz-thc-05-2022-grid-2-29-clues.html">Four of Clubs?</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,563 from Monday, May 23, 2022
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2022/gussalufz-thc-04-2022-grid-1-32-clues.html">Multilayered Puzzle</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,543 from Friday, April 29, 2022
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2022/gussalufz-thc-03-2022-grid-4-32-clues.html">Next, A Sheep Dancing</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  The Hindu Cryptic On Sunday #77, April 10, 2022
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2022/gussalufz-thc-01-2022-grid-2-29-clues.html">The Best Left-hander</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,502 from Saturday, March 12, 2022
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2022/gussalufz-thc-02-2022-grid-3-34-clues.html">Qaotic?</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,495 from Friday, March 4, 2022
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2021/gussalufz-thc-12-2021-grid-1-32-clues.html">Self-Reverential, Moi?</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,449 from Saturday, January 8, 2022
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2021/gussalufz-thc-11-2021-grid-4-32-clues.html">Puzzle's Pulse</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,425 from Saturday, December 11, 2021
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2021/gussalufz-thc-10-2021-grid-3-34-clues.html">Seeing Red?</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,401 from Saturday, November 13, 2021
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2021/gussalufz-thc-09-2021-grid-2-29-clues.html">Brainy, Essentially?</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,380 from Tuesday, October 19, 2021
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2021/gussalufz-thc-08-2021-grid-1-32-clues.html">Self-Referential, Moi? </a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,361 from Saturday, September 25, 2021
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2021/gussalufz-thc-06-2021-grid-3-34-clues.html">Rocket Scientist</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,335 from Wednesday, August 25, 2021
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2021/gussalufz-thc-07-2021-grid-4-32-clues.html">Boy!</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,310 from Tuesday, July 27, 2021
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2021/gussalufz-thc-04-2021-grid-1-32-clues.html">Aap Ki Yaad...</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,287 from Wednesday, June 30, 2021
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2021/gussalufz-thc-05-2021-grid-2-29-clues.html">Cross Words</a></span>
+
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,266 from Saturday, June 5, 2021
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2021/gussalufz-thc-03-2021-grid-4-32-clues.html">Visitors</a></span>
+
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,242 from Saturday, May 8, 2021
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2021/gussalufz-thc-02-2021-grid-3-34-clues.html">A Hidden Drawer</a></span>
+
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,221 from Wednesday, April 14, 2021
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2020/gussalufz-thc-12-2020-grid-1-32-clues.html">Running Theme</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,199 from Friday, March 19, 2021
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2020/gussalufz-thc-11-2020-grid-4-32-clues.html">Hacky</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,172 from Tuesday, February 16, 2021
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2021/gussalufz-thc-01-2021-grid-2-29-clues.html">Subject Matter</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,147 from Monday, January 18, 2021
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2020/gussalufz-thc-10-2020-grid-3-34-clues.html">Healthy Constitution</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,120 from Wednesday, December 16, 2020
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2020/gussalufz-thc-09-2020-grid-2-29-clues.html">Guru</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,094 from Monday, November 16, 2020
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2020/gussalufz-thc-08-2020-grid-1-32-clues.html">Consumer Products</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,072 from Wednesday, October 21, 2020
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2020/gussalufz-thc-07-2020-grid-4-32-clues.html">Dr. Who?</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,044 from Thursday, September 10, 2020
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2020/gussalufz-thc-06-2020-grid-3-34-clues.html">Ghalib, Tera...</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #13,013 from Thursday, August 13, 2020
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2020/gussalufz-thc-05-2020-grid-2-29-clues.html">Quaquaquaqua</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #12,983 from Thursday, July 9, 2020
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2020/gussalufz-thc-04-2020-grid-1-32-clues.html">Indie Comics?</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #12,950 from Monday, June 1, 2020
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2020/gussalufz-thc-03-2020-grid-4-32-clues.html">A Zoologist and DNA</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #12,917 from Thursday, April 23, 2020
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2020/gussalufz-thc-02-2020-grid-3-34-clues.html">Faster!</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #12,884 from Monday, March 16, 2020
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+<span class="puztitle"><a href="thc/2020/gussalufz-thc-01-2020-grid-2-29-clues.html">Thoda Khao...</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #12,852 from Friday, February 7, 2020
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+  <span class="puztitle"><a href="thc/2019/gussalufz-thc-12-2019-grid-1-32-clues.html">A Powerful Relationship</a></span>
+<br>
+<br>
+<div class="puzdetails">
+  THC #12,820 from Tuesday, December 31, 2019
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+
+</table>
+</div>
+</div>
+
+<div class="puzlist-box narrow-box">
+
+<div class="table-heading">
+<h3>Recent THC crosswords by Gussalufz</h3>
+The links below go to THC web site.
+<!--
+  Direct links to crosswords do not work any more, unfortunately. Use one of these:
+  https://www.thehindu.com/crosswords/hindu-cryptic
+  https://www.thehindu.com/crosswords/hindu-cryptic-sunday
+-->
+</div>
+
+<div class="puzlist">
+
+<table>
+
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+  <span class="puztitle"><a href="https://www.thehindu.com/crosswords/hindu-cryptic">Six For Dravid?</a></span>
+
+<br>
+<br>
+<div class="puzdetails">
+  THC #14,740 from Friday, March 13, 2026
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+  <span class="puztitle"><a href="https://www.thehindu.com/crosswords/hindu-cryptic">Flying Weapon, Eh?</a></span>
+
+<br>
+<br>
+<div class="puzdetails">
+  THC #14,712 from Monday, February 9, 2026
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+  <span class="puztitle"><a href="https://www.thehindu.com/crosswords/hindu-cryptic">Triple Or Nothing</a></span>
+
+<br>
+<br>
+<div class="puzdetails">
+  THC #14,682 from Saturday, January 3, 2026
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+  <span class="puztitle"><a href="https://www.thehindu.com/crosswords/hindu-cryptic">Jayant's Issue?</a></span>
+
+<br>
+<br>
+<div class="puzdetails">
+  THC #14,655 from Wednesday, December 3, 2025
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td class="puztd">
+  <span class="puztitle"><a href="https://www.thehindu.com/crosswords/hindu-cryptic-sunday">Nine Crowns</a></span>
+
+<br>
+<br>
+<div class="puzdetails">
+  THCOS #29 from Sunday, November 9, 2025
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+
+</table>
+</div>
+</div>
+
+</div>
+
+<br>
+<br>
+
+<a name="crosswords"></a>
+
+<div class="puzlist-box">
+
+<div class="table-heading">
+<h3>Other cryptic crosswords by Gussalufz (and doppelgängers, and friends!)</h3>
+Several puzzles have special effects and/or trickery.
+Nearly all puzzles are interactively solvable
+(please click on "Reveal all!" after solving, to see my notes).
+</div>
+
+<div class="puzlist">
+<table>
+
+        <!-- =========================== -->
+<tr>
+  <td>
+    acad-global-2025-02
+    <br>
+    <br>
+    December 2025
+  </td>
+  <td class="puztd">
+    <span class="puztitle"><a href="ixl/2025/gussalufz-acad-global-2025-02.html">ACAD Global 2025 #3</a></span>
+    <br>
+    <br>
+    <div class="puzdetails">
+      The third among the three crosswords that I set for ACAD Global 2025 (a daily online clue-solving contest).
+    </div>
+  </td>
+</tr>
+        <!-- =========================== -->
+<tr>
+  <td>
+    acad-global-2025-01
+    <br>
+    <br>
+    December 2025
+  </td>
+  <td class="puztd">
+    <span class="puztitle"><a href="ixl/2025/gussalufz-acad-global-2025-01.html">ACAD Global 2025 #2</a></span>
+    <br>
+    <br>
+    <div class="puzdetails">
+      The second among the three crosswords that I set for ACAD Global 2025 (a daily online clue-solving contest).
+    </div>
+  </td>
+</tr>
+        <!-- =========================== -->
+<tr>
+  <td>
+    acad-global-2024-01
+    <br>
+    <br>
+    December 2025
+  </td>
+  <td class="puztd">
+    <span class="puztitle"><a href="ixl/2024/gussalufz-acad-global-2024-01.html">ACAD Global 2025 #1</a></span>
+    <br>
+    <br>
+    <div class="puzdetails">
+      The first among the three crosswords that I set for ACAD Global 2025 (a daily online clue-solving contest).
+    </div>
+  </td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+Browser 245
+<br>
+<br>
+December 2025
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="https://thebrowser.com/crossword-archive/">The Browser Cryptic #245</a> </span>
+<br>
+<br>
+<div class="puztagline">
+  Themeless (ed. Dan Feyer)
+</div>
+<br>
+<div class="puzdetails">
+My swan song in the Browser (they are shutting down their crossword section at the end of the year). Working
+with Dan has been great; hope some other opportunities for collaborating materialize in the future.
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+ixl-2025-2
+<br>
+<br>
+October 2025
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="ixl/2025/gussalufz-ixl-2025-02.html">IXL 2025 Round 7</a></span>
+<br>
+<br>
+<div class="puztagline">
+  Themeless and ninaless.
+</div>
+<br>
+<div class="puzdetails">
+I was the anonymous setter for this Indian Crossword League (IXL) 2025
+online round crossword.
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+ixl-2025-1
+<br>
+<br>
+September 2025
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="ixl/2025/gussalufz-ixl-2025-01.html">IXL 2025 Round 2</a></span>
+<br>
+<br>
+<div class="puztagline">
+  Themeless and ninaless.
+</div>
+<br>
+<div class="puzdetails">
+I was the anonymous setter for this Indian Crossword League (IXL) 2025
+online round crossword.
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+Browser 231
+<br>
+<br>
+July 2025
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="https://thebrowser.com/crossword-archive/">The Browser Cryptic #231</a> </span>
+<br>
+<br>
+<div class="puztagline">
+  Themeless and ninaless (ed. Dan Feyer)
+</div>
+<br>
+<div class="puzdetails">
+Dan <i>elevates</i> crossword, and this one is no exception. It also has a new kind of wordplay (which I also tried in a THC around the same time).
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+wccc-2025
+<br>
+<br>
+June 2025
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="ixl/2025/gussalufz-wccc-2025-01.html">WCCC 2025 Individual Championship (Grid 2)</a></span>
+<br>
+<br>
+<div class="puztagline">
+  Themeless and ninaless
+</div>
+<br>
+<div class="puzdetails">
+I was the anonymous setter for this World Cryptic Crossword Championship (WCCC) 2025 Individual Championship crossword. It was the second of the two grids used. Matthew Marcus (USA) won the championship, but for this specific grid, the top three solvers were: Simon Anthony (England), Matthew Marcus (USA), Deane Short (England).
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+AVCX Mini
+<br>
+<br>
+June 2025
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="https://avxwords.com/puzzles/1857/">AVCX Mini Cryptic #2 6/26/2025</a> </span>
+<br>
+<br>
+<div class="puztagline">
+  Editor: Steve Mossberg
+</div>
+<br>
+<div class="puzdetails">
+A beginner-level mini cryptic (7x7), my first in AVCX ($1, or you can consider subscribing to AVCX).
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+Object: "11"
+<br>
+<br>
+May 2025
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="object/2025/gussalufz-object-2025-01.html">Object Cryptic Crossword: "11"</a> </span>
+<br>
+<br>
+<div class="puztagline">
+  "11"
+</div>
+<br>
+<div class="puzdetails">
+This is my fourth
+<a href="https://magazine.journeyofobjects.com/crossword/object-cryptic-crossword">Object</a> 
+magazine crossword (in their "mini-issue newspaper" again, I believe). The title alludes
+to a theme.
+
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+Browser 218
+<br>
+<br>
+April 2025
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="browser/2025/the-browser-vr-2025-01.html">The Browser Cryptic #218</a></span>
+<br>
+<br>
+<div class="puztagline">
+  Leo's Pet
+</div>
+<br>
+<div class="puzdetails">
+First of three 2025 Browser puzzles of mine (ed. Dan Feyer).
+<blockquote>
+The eight-letter final answer is also described early on in any meaningful reference.
+</blockquote>
+Made freely available here with kind permission from the editor.
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+Object 003
+<br>
+<br>
+February 2025
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="object/2023/gussalufz-object-003.html">Object Cryptic Crossword 003</a> </span>
+<br>
+<br>
+<div class="puztagline">
+  Kalaa-Kali
+</div>
+<br>
+<div class="puzdetails">
+This is my third <i>desi</i>-flavoured crossword to appear in 
+<a href="https://magazine.journeyofobjects.com/crossword/object-cryptic-crossword">Object</a> 
+magazine (in their "mini-issue newspaper"). It was drafted in 2023 and does have a theme.
+
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+ixl-2024-1
+<br>
+<br>
+December 2024
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="ixl/2024/gussalufz-ixl-2024-1.html">IXL 2024 Finals (Prelims)</a></span>
+<br>
+<br>
+<div class="puztagline">
+  Themeless and ninaless.
+</div>
+<br>
+<div class="puzdetails">
+I was the anonymous setter for this Indian Crossword League (IXL) 2024
+Finals crossword.
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+ixl-2024-2
+<br>
+<br>
+October 2024
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="ixl/2024/gussalufz-ixl-2024-2.html">IXL 2024 Round 3</a></span>
+<br>
+<br>
+<div class="puztagline">
+  Themeless and ninaless.
+</div>
+<br>
+<div class="puzdetails">
+I was the anonymous setter for this Indian Crossword League (IXL) 2024
+online round crossword.
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+5-must-get-4
+<br>
+<br>
+December 2024
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="gussalufz/2024/gussalufz-5-must-get-4.html">Five Must Get Four?</a> </span>
+<br>
+<br>
+<div class="puztagline">
+I had run this puzzle online, accepting solution submissions, in December 2024.
+<blockquote>
+A word of a kind has to be eliminated from the solution before entering it into the grid, for a small number of clues. The enumerations shown for these clues are for their grid entries. The eliminated words can be found elsewhere in the completed grid.
+</blockquote>
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+34
+<br>
+<br>
+October 2024
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="1ac/gussalufz-34-blowin.html">Blowin' In The Wind</a></span>
+<br>
+<br>
+<div class="puztagline">
+My fourth crossword in the Araucaria-founded
+<i><a href="https://www.1across.co.uk/">1 Across</a></i> magazine, UK,
+established in 1984. This crossowrd has been made available here freely with
+kind permission from 1 Across.
+<blockquote>
+There are eight numbers hidden in this grid, some running over from one solution to
+another and one being a Roman numeral. Each hidden number uses at least two letters.
+A significant word can then be unravelled from the letters appearing in these eight
+numbered squares in the grid.
+</blockquote>
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+Browser 181
+<br>
+<br>
+July 2024
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="browser/2024/the-browser-vr-06.html">The Browser Cryptic #181</a> </span>
+<br>
+<br>
+<div class="puztagline">
+  Cross Words: A Teacher's Admonition
+</div>
+<br>
+<div class="puzdetails">
+Yet another Browser puzzle of mine (ed. Dan Feyer).
+<blockquote>
+  The completed grid reveals the admonition. Who is the teacher?  (Two symmetrical
+  entries and one clue provide hints to the context.)
+</blockquote>
+Made freely available here with kind permission from the editor.
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+Object 005
+<br>
+<br>
+May 2024
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="object/2024/gussalufz-object-005.html">Object Cryptic Crossword 005</a> </span>
+<br>
+<br>
+<div class="puztagline">
+  What happened in India in May 2024?
+</div>
+<br>
+<div class="puzdetails">
+This is my second crossword to appear in 
+<a href="https://magazine.journeyofobjects.com/crossword/object-cryptic-crossword">Object</a> 
+magazine. My Object crosswords
+are quite Desi-flavoured and are somewhat on the easier side.
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+Browser 166
+<br>
+<br>
+March 2024
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="browser/2024/the-browser-vr-05.html">The Browser Cryptic #166</a> </span>
+<br>
+<br>
+<div class="puztagline">
+  Themeless
+</div>
+<br>
+<div class="puzdetails">
+Another puzzle by me appearing in The Browser (ed. Dan Feyer). I was quite
+pleased with 31A :-).
+This is my fourth crossword appearing in
+<a href="http://thebrowser.com/crossword">The Browser</a>.
+My Browser crosswords are made freely available here (roughly 6 months
+after publication) with kind permission from the editor.
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+32
+<br>
+<br>
+February 2024
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="gussalufz/2024/gussalufz-32-6989.html">69/89</a> </span>
+<br>
+<br>
+<div class="puztagline">
+Another variety cryptic that was run as an online contest.
+<blockquote>
+Connecting two entries of a kind will provide positional guidance for
+finding two headlines and their whereabouts in history.
+</blockquote>
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+ixl-2023-2
+<br>
+<br>
+December 2023
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="ixl/2023/gussalufz-ixl-2023-2.html">IXL 2023 Finals: Prelim-1</a></span>
+<br>
+<br>
+<div class="puztagline">
+A little homage in there.
+</div>
+<br>
+<div class="puzdetails">
+I was the anonymous setter for this Indian Crossword League (IXL) 2023
+crossword that was one of the two used to narrow down the finalists
+to pick the top six for the on-stage round.
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+Browser 144
+<br>
+<br>
+October 2023
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="browser/2023/the-browser-vr-03.html">The Browser Cryptic #144</a> </span>
+<br>
+<br>
+<div class="puztagline">
+  Title (three words)
+</div>
+<br>
+<div class="puzdetails">
+This is my third crossword appearing in
+<a href="http://thebrowser.com/crossword">The Browser</a>.
+It has a theme and
+the preamble asks solvers to find a "three-word title."
+My Browser crosswords are made freely available here (roughly 6 months
+after publication) with kind permission from the editor.
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+ixl-2023-1
+<br>
+<br>
+October 2023
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="ixl/2023/gussalufz-ixl-2023-1.html">IXL 2023 Round 5</a></span>
+<br>
+<br>
+<div class="puztagline">
+  Themeless and ninaless.
+</div>
+<br>
+<div class="puzdetails">
+I was the anonymous setter for this Indian Crossword League (IXL) 2023
+online round crossword.
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+29
+<br>
+<br>
+July 2023
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="1ac/gussalufz-29-determination.html">Determination</a></span>
+<br>
+<br>
+<div class="puztagline">
+My third crossword in the Araucaria-founded
+<i><a href="https://www.1across.co.uk/">1 Across</a></i> magazine, UK,
+established in 1984. This crossowrd has been made available here freely with
+kind permission from 1 Across.
+<blockquote>
+Solutions to four Down clues have a common element that's called out by the
+title. These solutions are also the definitions for four other special Down
+clues that do not include definitions. Solutions to these special Down clues
+have to be entered in the grid in a cryptic manner. Enumerations shown in these
+special clues are for the grid entries, not for the solutions. When finished,
+the phrase formed by the circled letters will also confirm what you did.
+</blockquote>
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+Browser 131
+<br>
+<br>
+July 2023
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="browser/2023/the-browser-vr-02.html">The Browser Cryptic #131</a> </span>
+<br>
+<br>
+<div class="puztagline">
+  Pioneer
+</div>
+<br>
+<div class="puzdetails">
+This is my second crossword appearing in
+<a href="http://thebrowser.com/crossword">The Browser</a>.
+It has a theme and an unusually hidden nina that solvers were asked to find
+(with a prize going to one lucky solver).
+My Browser crosswords are made freely available here (roughly 6 months
+after publication) with kind permission from the editor.
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+Object 001
+<br>
+<br>
+July 2023
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="object/2023/gussalufz-object-001.html">Object Cryptic Crossword 001</a> </span>
+<br>
+<br>
+<div class="puztagline">
+  Kutch ni Koyal!
+</div>
+<br>
+<div class="puzdetails">
+This is my first crossword in Object magazine, a sleek coffee-table-worthy
+magazine from Bombay that goes deep into Indian socio-political-cultural
+issues *and* fashion. I have tried to make my crossword reflect the authentic
+desi vibe of the mag.
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+By Hitchhiker &amp; Gussalufz
+<br>
+<br>
+April 2023
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="hitchhiker-gussalufz-2023-04.html">Random Number Doubled</a> </span>
+<br>
+<br>
+<div class="puztagline">
+My first collaboration with the hoopiest of all froods, Martin DeMello!
+</div>
+<br>
+<div class="puzdetails">
+We ran this one as an online contest in April 2023.
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+Browser 112
+<br>
+<br>
+February 2023
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="browser/2023/the-browser-vr-01.html">The Browser Cryptic #112</a> </span>
+<br>
+<br>
+<div class="puztagline">
+  Browser aficionados may spot a theme!
+</div>
+<br>
+<div class="puzdetails">
+This is my first (non-mini) cryptic in
+<a href="http://thebrowser.com/crossword">The Browser Crossword</a>.
+The Browser is a subscription-based newsletter from UK. Every Sunday, it carries
+a US-style cryptic crossword brilliantly edited by
+<a href="https://en.wikipedia.org/wiki/Dan_Feyer">Dan Feyer</a>.
+This puzzle has some pukka American features, such as American
+spellings, no Commonwealthy abbreviations, no setter-pseudonym, and a couple
+of crass surfaces :-). With kind permission from the editor, I've made this
+puzzle freely available here. I'll be doing the same with all my Browser
+crosswrods, roughly six months after they are first published.
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+ixl-2022-1
+<br>
+<br>
+December 2022
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="ixl/2022/gussalufz-ixl-2022-1.html">IXL 2022 Finals: On-stage Grid-2</a></span>
+<br>
+<br>
+<div class="puztagline">
+Also themeless and ninaless.
+</div>
+<br>
+<div class="puzdetails">
+I was the anonymous setter for this very last Indian Crossword League (IXL) 2022
+crossword that was solved on-stage by the finalists. This is a
+<a href="https://youtu.be/GgJLIblWRzg?t=10921">recording of the live
+  stream from the event</a>.
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+ixl-2022-2
+<br>
+<br>
+November 2022
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="ixl/2022/gussalufz-ixl-2022-2.html">IXL 2022 Round 8</a></span>
+<br>
+<br>
+<div class="puztagline">
+  Themeless and ninaless.
+</div>
+<br>
+<div class="puzdetails">
+I was the anonymous setter for this Indian Crossword League (IXL) 2022
+online round crossword.
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+ixl-2022-0
+<br>
+<br>
+October 2022
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="ixl/2022/gussalufz-28-ixl-2022-practice-round.html">IXL 2022 Practice Round</a></span>
+<br>
+<br>
+<div class="puztagline">
+  Swades.
+</div>
+<br>
+<div class="puzdetails">
+I was the anonymous setter for this Indian Crossword League (IXL) 2022 practice round crossword.
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+Browser-Mini-22-01
+<br>
+<br>
+November 2022
+</td>
+<td class="puztd">
+  <span class="puztitle"><a href="https://thebrowser.com/browser-sevens/#puzzle-10-by-gussalufz">Browser Sevens #10</a></span>
+<br>
+<br>
+<div class="puztagline">
+This is a mini cryptic (5x7) that's meant to be an easy puzzle (but hopefully
+is fun, nonetheless!).
+</div>
+<div class="puzdetails">
+This crossword was published on Tuesday, November 8, 2022 (the day of
+mid-term elections in the US).
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+27
+<br>
+<br>
+July 2022
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="1ac/gussalufz-27-missing-links.html">Missing Links</a></span>
+<br>
+<br>
+<div class="puztagline">
+My second crossword in
+<i><a href="https://www.1across.co.uk/">1 Across</a>,</i>
+in 1984. This crossowrd has been made available here freely with
+kind permission from 1 Across.
+a monthly subscription crossword magazine
+started by the legendary
+<a href="https://en.wikipedia.org/wiki/John_Galbraith_Graham">Araucaria</a>
+in 1984. This crossowrd has been made available here freely with
+kind permission from 1 Across.
+<blockquote>
+  Each across clue omits one or more letters from its wordplay.
+  Figure out a few ways to connect and recover the missing links.
+</blockquote>
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+ixl-2021-2
+<br>
+<br>
+December 2021
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="ixl/2021/gussalufz-ixl-09-2021-2.html">IXL 2021 Finals: Preliminary Round 2</a></span>
+<br>
+<br>
+<div class="puztagline">
+  Minus or plus?
+</div>
+<br>
+<div class="puzdetails">
+I was the anonymous setter for this Indian Crossword League (IXL) 2021 crossword, used in the finals.
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+ixl-2021-1
+<br>
+<br>
+November 2021
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="ixl/2021/gussalufz-ixl-08-2021-1.html">IXL 2021 Online Round 9</a></span>
+<br>
+<br>
+<div class="puztagline">
+  One does a lot of talking...
+</div>
+<br>
+<div class="puzdetails">
+I was the anonymous setter for this Indian Crossword League (IXL) 2021 crossword, used in an online round.
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+26
+<br>
+<br>
+December 2021
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="gussalufz-26-iitm-sans-solutions.html">Blame Ancients?</a></span>
+<br>
+<br>
+<div class="puztagline">
+This crossword is a part of IIT-Madras Alumni Association's 2021
+annual gathering event, <i>Sangam</i>. The crossword's theme is
+borrowed from the event's theme, which is,
+"Restoring Balance in STEM." It was run as an open contest in early 2022.
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+23
+<br>
+<br>
+August 2021
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="1ac/gussalufz-23-trump-is-trump.html">Trump is Trump</a></span>
+<br>
+<br>
+<div class="puztagline">
+  Is W the only titular connection?
+</div>
+<br>
+<div class="puzdetails">
+My first crossword in
+<i><a href="https://www.1across.co.uk/">1 Across</a>,</i>
+a monthly subscription crossword magazine
+started by the legendary
+<a href="https://en.wikipedia.org/wiki/John_Galbraith_Graham">Araucaria</a>
+in 1984. This crossowrd has been made available here freely with
+kind permission from 1 Across.
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+ixl-09-2020
+<br>
+<br>
+November 2020
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="ixl/2020/gussalufz-ixl-09-2020-solved.html">IXL 2020 City Round</a></span>
+<br>
+<br>
+<div class="puztagline">
+Encouraging words...
+</div>
+<br>
+<div class="puzdetails">
+I was the anonymous setter for this IXL 2020 crossword.
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+20
+<br>
+<br>
+October 2020
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="gussalufz-20-solved.html">Unlock and find a bug</a></span>
+<br>
+<br>
+<div class="puztagline">
+Elementary, etc.
+</div>
+<br>
+<div class="puzdetails">
+I ran this as another fun competition across a few online groups. Solvers'
+comments can be seen after clicking on "Reveal All" in the solved version.
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+By Ribelle &amp; Gussalufz
+<br>
+<br>
+September 2020
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="ribelle-gussalufz-1-solved.html">Chain Letters</a></span>
+<br>
+<br>
+<div class="puztagline">
+A puzzle jointly created with <a href="https://twitter.com/FatenIsmail2">Faten Ismail</a>,
+a brilliant and natural setter.
+<br>
+<br>
+We ran this as a fun competition across a few online groups. Solvers' comments
+can be seen after clicking on "Reveal All" in the solved version.
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+21
+<br>
+<br>
+July 2020
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="gussalufz-21-solved.html">Last Solo</a></span>
+<br>
+<br>
+<div class="puztagline">
+Is shahar mein...
+</div>
+<br>
+<div class="puzdetails">
+<a href="https://www.losaltosonline.com/news/sections/community/177-features/62809-cryptic-crossword">In the <i>Los Altos Town Crier</i></a>. Here's <a href="latc.html">another version of the same puzzle</a>, in which beginner solvers can get progressive hints for each clue.
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+19
+<br>
+<br>
+May 2020
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="gussalufz-19-solved.html">Wormholes</a></span>
+<br>
+<br>
+<div class="puztagline">
+Travellers...
+</div>
+<br>
+<div class="puzdetails">
+<a href="http://www.1across.org/2020/WH.html">
+In the 1ACross blog</a>
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+18
+<br>
+<br>
+February 2020
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="gussalufz-18-solved.html">Bar Bar Dekko</a></span>
+<br>
+<br>
+<div class="puztagline">
+Reading between lines?
+</div>
+<br>
+<div class="puzdetails">
+<a href="http://www.1across.org/2020/02/02/bar-bar-dekko/">
+In the 1ACross blog</a>
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+15
+<br>
+<br>
+December 2019
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="gussalufz-15-solved.html">Al's Trick</a></span>
+<br>
+<br>
+<div class="puztagline">
+Who is Al and what's his trick?
+</div>
+<br>
+<div class="puzdetails">
+<a href="http://www.1across.org/2019/11/03/als-trick/">
+In the 1ACross blog</a>
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+17
+<br>
+<br>
+July 2019
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="gussalufz-17-solved.html">Puzzling Times</a></span>
+<br>
+<br>
+<div class="puztagline">
+Sometimes...!
+</div>
+<br>
+<div class="puzdetails">
+In the book
+<i><a href="http://www.1across.org/book/cc2/">Cryptic Crossroads Volume 2</a></i>
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+16
+<br>
+<br>
+July 2019
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="gussalufz-16-solved.html">Untitled Crossword</a></span>
+<br>
+<br>
+<div class="puztagline">
+Ninas foreshadow Exolve!
+</div>
+<br>
+<div class="puzdetails">
+<a href="https://thehinducrosswordcorner.blogspot.com/2019/07/special-sunday-07-jul-2019-gussalufz.html">In THCC</a>
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+14
+<br>
+<br>
+June 2019
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="gussalufz-14-solved.html">Putting Two And Two Together</a></span>
+<br>
+<br>
+<div class="puztagline">
+Partly diagramless; metas probably my best.
+</div>
+<br>
+<div class="puzdetails">
+<a href="http://www.1across.org/2019/06/30/putting-two-and-two-together/">In the 1ACross blog</a>
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+13
+<br>
+<br>
+May 2019
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="gussalufz-13-solved.html">Cursory Appearances</a></span>
+<br>
+<br>
+<div class="puztagline">
+Why is "squinting" part of the instructions?
+</div>
+<br>
+<div class="puzdetails">
+<a href="http://www.1across.org/2019/04/17/cursory-appearances/">In the 1ACross blog</a>
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+12
+<br>
+<br>
+January 2019
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="gussalufz-12-solved.html">Fifteen Puzzles</a></span>
+<br>
+<br>
+<div class="puztagline">
+What is a fifteen puzzle?
+</div>
+<br>
+<div class="puzdetails">
+<a href="http://www.1across.org/2019/01/20/fifteen-puzzles/">In the 1ACross blog</a>
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+11
+<br>
+<br>
+December 2018
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="gussalufz-11-solved.html">Missing Instructions</a></span>
+<br>
+<br>
+<div class="puztagline">
+Find the instructions!
+</div>
+<br>
+<div class="puzdetails">
+<a href="http://www.1across.org/2018/11/18/missing-instructions/">In the 1ACross blog</a>
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+10
+<br>
+<br>
+August 2018
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="gussalufz-10-solved.html">King's Rule</a></span>
+<br>
+<br>
+<div class="puztagline">
+Hhgttg-themed clues, but is that it?
+</div>
+<br>
+<div class="puzdetails">
+<a href="http://www.1across.org/2018/08/01/kings-rule/">In the 1ACross blog</a>
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+8
+<br>
+<br>
+April 2018
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="gussalufz-8-solved.html">Do Squares Reveal?</a></span>
+<br>
+<br>
+<div class="puztagline">
+Does the title reveal?
+</div>
+<br>
+<div class="puzdetails">
+<a href="https://issuu.com/prestonpages/docs/pp-april18-lr/44">In Preston Pages</a>
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+5
+<br>
+<br>
+April 2018
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="gussalufz-5-solved.html">French Toast</a></span>
+<br>
+<br>
+<div class="puztagline">
+Appropriately numbered puzzle.
+</div>
+<br>
+<div class="puzdetails">
+<a href="http://www.1across.org/2018/04/18/french-toast/">In the 1ACross blog</a>
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+4
+<br>
+<br>
+January 2018
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="gussalufz-4-solved.html">Hidden Figure</a></span>
+<br>
+<br>
+<div class="puztagline">
+Rocket scientist needed.
+</div>
+<br>
+<div class="puzdetails">
+<a href="http://www.1across.org/2018/01/24/hidden-figure/">In the 1ACross blog</a>
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+3
+<br>
+<br>
+December 2017
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="gussalufz-3-solved.html">Smashing Plates</a></span>
+<br>
+<br>
+<div class="puztagline">
+Moving puzzle.
+</div>
+<br>
+<div class="puzdetails">
+<a href="http://www.1across.org/2017/11/22/smashing-plates/">In the 1ACross blog</a>
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+-
+<br>
+<br>
+September 2017
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="ragitvach-1-solved.html">22⅘ Across</a></span>
+<br>
+<br>
+<div class="puztagline">
+Fractionally crazy.
+</div>
+<br>
+<div class="puzdetails">
+<a href="http://www.1across.org/2017/09/23/1acgridfest-grid-9/">In the 1ACross blog</a>
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+2
+<br>
+<br>
+July 2017
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="gussalufz-2-solved.html">Many Rustams</a></span>
+<br>
+<br>
+<div class="puztagline">
+Lots hidden!
+</div>
+<br>
+<div class="puzdetails">
+In the book, <i><a href="https://books.google.com/books/about/Cryptic_Crossroads.html?id=kLUzDwAAQBAJ">Cryptic Crossroads</a></i>
+</div>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+1
+<br>
+<br>
+June 2016
+</td>
+<td class="puztd">
+<span class="puztitle"><a href="gussalufz-1-solved.html">Gussalufz</a></span>
+<br>
+<br>
+<div class="puztagline">
+My first grid after at least 10 years.
+</div>
+<br>
+<div class="puzdetails">
+In the 1ACross Facebook group
+</div>
+</td>
+</tr>
+
+</table>
+</div>
+
+</div>
+
+<br>
+<br>
+
+<a name="scrypbles"></a>
+
+<div class="puzlist-box">
+
+<div class="table-heading">
+<h3>Scrypbles: my articles/books on cryptics</h3>
+</div>
+
+<table>
+
+        <!-- =========================== -->
+<tr>
+<td>
+April 2025
+</td>
+<td>
+  <a href="writings/2025/linking-words-04-2025.html">Linking Words</a>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<a name="goddess-and-murphy"></a>
+<td>
+July 2024
+</td>
+<td>
+  <a href="https://www.amazon.com/Goddess-Murphy-Gussalufzs-cryptic-crosswords/dp/B0D9LVWLSV">
+  <img width="75" style="margin:0 8px" align="left" src="goddess-and-murphy-cover.jpg">
+  </a>
+  <a href="https://www.amazon.com/Goddess-Murphy-Gussalufzs-cryptic-crosswords/dp/B0D9LVWLSV"><i>Goddess &amp; Murphy: Gussalufz's first 50 cryptic crosswords from the Hindu</i></a>:
+  My first fifty THC crosswords are now available in convenient book form. Please contact me if you really want the printed book version but the price is unaffordable or the book is
+  not available in your region. The link above goes to the U.S. Amazon site. <a href="https://www.amazon.co.uk/Goddess-Murphy-Gussalufzs-cryptic-crosswords/dp/B0D9LVWLSV">Here's where
+    to get it using Amazon U.K.</a>
+  <br><br>
+  If you're in India and would like a copy, <a href="https://forms.gle/rCiixTzWPtgPu87i6">please use this form</a> (a friend of mine will ship it).
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+April 2023
+</td>
+<td>
+  <a href="writings/2023/cryptic-grammar-04-2023.html">Cryptic Grammar</a>
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+April 2022
+</td>
+<td>
+  <a href="writings/2022/composite-anagrams-04-2022.html">Composite Anagrams</a>
+</td>
+</tr>
+        <!-- =========================== -->
+
+</table>
+</div>
+
+<br>
+<br>
+
+<a name="resources"></a>
+
+<div class="puzlist-box">
+
+<div class="table-heading">
+<h3>Links to crossword resources</h3>
+</div>
+
+<table>
+
+        <!-- =========================== -->
+<tr>
+<td>
+<a name="exolve" href="https://github.com/viresh-ratnakar/exolve">Exolve</a>
+</td>
+<td>
+Free open source software (MIT License) for setting up interactively
+solvable crosswords. All my puzzles above are powered by it. I have
+developed this software and I actively maintain it. The link
+takes you to the Exolve GitHub project that includes a detailed README
+file with instructions.
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+<a name="exolve-player" href="https://exolve.app">Exolve Player: https://exolve.app</a>
+</td>
+<td>
+This is a powerful web app that uses Exolve to provide you with interactively solvable
+crosswords from .puz and ipuz files. Of course, you can also open Exolve-formatted files
+with it. Any crossword opened with Exolve Player will also have the Webifi interface
+available (see below).
+<br>
+<br>
+Moreover, it also lets you create an interactive version for any standard blocked crossword,
+<i>starting from just the text of the clues</i> (copied from a PDF or any web site),
+by automatically inferring the grid using clue numbers and enumerations.
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+<a name="exet" href="https://exet.app">Exet: https://exet.app</a>
+</td>
+<td>
+Free open source software (MIT License) for constructing crosswords.
+You can save the crosswords as Exolve files as well as .puz files.
+I have developed this software and I actively maintain it. You can
+directly start using the web app link given to the left, or you can
+access the
+<a href="https://github.com/viresh-ratnakar/exet">Exet GitHub project</a>
+for the source code and documentation.
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+<a name="exet-hi" href="https://viresh-ratnakar.github.io/exet-hindi.html">Exet-Hindi</a>
+<br>
+<a name="exet-pt-br" href="https://viresh-ratnakar.github.io/exet-brazilian.html">Exet-Brazilian</a>
+</td>
+<td>
+Versions of Exet for creating Hindi iand Portuguese (Brazilian) crosswords!
+Early days for these, lots of rough edges, but they will only get better.
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+<a name="exost" href="https://xlufz.ratnakar.org/exost.html">Exost</a>
+</td>
+<td>
+I set up this site for hosting crosswords in late 2025. I already owned the
+site and was paying for it (for <a href="https://xlufz.ratnakar.org/">xlufz</a>,
+a service used in Exet for annotating indicator lists). So, I decided to have a
+bit of fun coding up this service, and added it to the same site. My goal is to
+keep this service free, simple, hassle-free, and no-string-attached (no
+tracking, no ads, no cookies, no A.I., no heavy-duty sign-ups, ...). It offers
+all the powerful features that the Exolve format enables (but, of course, you
+can simply upload a .puz or .ipuz file too). The main goal is to allow anyone to
+put up a crossword that they wish to share with friends and family or the whole
+world. All you need is an email address (where you'll receive your password).
+<br>
+<br>
+Exost is integrated in Exolve Player and Exet too. You can directly upload to
+it from those web apps. I intend to keep this a simple service: all it will do is
+let you upload crosswords and get URLs to serve them from, which is a huge barrier
+for most folks. Exost has no comments features, no community creation, etc. Of
+course, someone can build these features while using Exost to host crosswords
+(but to them, I would say: just give the excellent
+<a href="https://mycrossword.co.uk/">mycrossword.co.uk</a> site a try first).
+<br>
+<br>
+Do send me bug reports, comments, and suggestions for Exost, preferably via
+emailing <a href="mailto:exost.exolve@gmail.com">exost.exolve@gmail.com</a>.
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+<a name="webifi" href="https://github.com/viresh-ratnakar/webifi">Webifi</a>
+</td>
+<td>
+Free open source software (MIT License) that complements Exolve by
+adding an "interactive-fictionesque" solving interface to crosswords.
+You can navigate through clues, enter solutions, get assistance, etc.,
+all in a manner similar to playing a text adventure game. You can use
+audio output and (if available on your platform) voice input, to create a
+screen-free crossword-solving experience. Webifi is enabled on most
+of my crosswords here, and in any crossword opened with Exolve Player.
+See documentation and details at the
+<a href="https://github.com/viresh-ratnakar/webifi">Webifi GitHub project</a>.
+</td>
+</tr>
+        <!-- =========================== -->
+<tr>
+<td>
+<a href="http://www.sarahlolley.com/intro-to-cryptic-crosswords.html">Intro to
+Cryptic Crosswords</a>
+</td>
+<td>
+When someone asks me to recommend a good introduction for cryptic
+crosswords, Sarah Lolley's excellent site is what I usually start with.
+</td>
+</tr>
+
+        <!-- =========================== -->
+<tr>
+<td>
+<a href="https://www.crosswordunclued.com">Crossword Unclued</a>
+</td>
+<td>
+@ShuchiU's blog with excellent articles on various aspects of cryptic
+crosswords, including nice compilations of lists of indicator words.
+</td>
+</tr>
+
+        <!-- =========================== -->
+<tr>
+<td>
+<a href="http://bigdave44.com/">Big Dave's Crossword Blog</a>
+</td>
+<td>
+Blog articles on Daily and Sunday Telegraph cryptic crosswords.
+Many other interesting sections (such as an annotated list of mythological
+characters).
+</td>
+</tr>
+
+        <!-- =========================== -->
+<tr>
+<td>
+<a href="http://www.fifteensquared.net/">Fifteensquared</a>
+</td>
+<td>
+Daily analysis of most British newspaper cryptic crosswords. If I come up with
+an indicator that I'm not sure of, I search in this site to see if someone
+else has pulled off the same trick previously, without inviting ridicule.
+</td>
+</tr>
+
+        <!-- =========================== -->
+<tr>
+<td>
+<a href="https://offgrid.tlmb.net/">Off-Grid</a>
+</td>
+<td>
+A wonderful podcast that's not <i>quite</i> about crosswords:
+hosts Dave &amp; Void structure a freewheeling discussion loosely
+around a specific crossword in each episode, alongside a guest ("General
+Knowledge") who also quizzes them. The General's voice in
+<a href="https://offgrid.tlmb.net/2021/12/19/universally-sized-ep-13/">Episode 13</a>
+and
+<a href="https://offgrid.tlmb.net/2024/10/27/gold-coach-handle-ep-45/">Episode 45</a>
+might be familiar to some!
+</td>
+</tr>
+
+        <!-- =========================== -->
+<tr>
+<td>
+<a href="https://charliemethven.com/tips">Charlie Methven's tips on setting</a>
+</td>
+<td>
+Charlie Methven (who sets as Chameleon and Methuselah) has written a comprehensive
+series of "sometimes opinionated" tips on cryptic setting, packed with useful
+insights on surface readings, cryptic grammar, punctuation nuances, etc.
+</td>
+</tr>
+
+</table>
+
+</div>
+
+<br>
+<br>
+
+<a name="about"></a>
+<div class="puzlist-box">
+
+<div class="table-heading">
+<h3>About</h3>
+</div>
+
+<table>
+
+        <!-- =========================== -->
+<tr>
+<td>
+Me<br>
+<img alt="Old, cross-looking man holding a grid-wand" width="100" src="gussalufz-wizard.png">
+</td>
+<td>
+I'm Viresh Ratnakar, a cryptic crossword enthusiast and
+a setter for the Hindu Cryptic (and elsewhere).
+Other interests: Books. Running. Cooking. Eating.
+Writing. Coding. Movies. TV. Cricket on TV. Red wine.
+Beer. Scotch. Dogs.  I get along best with dogs.
+
+<br>
+<br>
+Here's <a href="https://www.losaltosonline.com/community/stay-at-home-special-los-altos-crossword-setter-creates-local-puzzle/article_8f32082c-a137-548c-926f-4618b29097ce.html">a feature on me</a> that appeared in
+<i>Los Altos Town Crier,</i> accompanying
+an entry-level, <a href="gussalufz-21-solved.html">locally-themed crossword</a> that I constructed for them.
+
+<br>
+<br>
+<a name="gussalufz"></a>
+I usually set crosswords under the pseudonym <i>Gussalufz,</i> which is a cross-lingual portmanteau word of sorts. <i>Gussa</i> in Hindi ("गुस्सा") means "cross" (as in "angry"), and <i>lufz</i> in Hindi/Urdu ("लफ्ज़") means "word." You can hear the pronunciation by clicking on the "speaker" icon in the Hindi panel, using <a href="https://translate.google.com/?sl=hi&tl=en&text=%E0%A4%97%E0%A5%81%E0%A4%B8%E0%A5%8D%E0%A4%B8%E0%A4%BE%20%E0%A4%B2%E0%A4%AB%E0%A5%8D%E0%A5%9B%20&op=translate">this Google Translate link</a>.
+</td>
+</tr>
+
+        <!-- =========================== -->
+<tr>
+<td>
+Contact
+</td>
+<td>
+<a href="https://twitter.com/vireshratnakar/">@vireshratnakar</a> on Twitter,
+<a rel="me" href="https://mastodon.social/@viresh">@viresh@mastodon.social</a> on Mastodon,
+<a rel="me" href="https://bsky.app/profile/viresh.bsky.social">@viresh.bsky.social</a> on Bluesky,
+viresh at gmail d0t com.
+</td>
+</tr>
+
+</table>
+</div>
+
+<div>
+  <h3>Comments</h3>
+  <script src="https://utteranc.es/client.js"
+        repo="viresh-ratnakar/viresh-ratnakar.github.io"
+        issue-term="url"
+        theme="github-light"
+        crossorigin="anonymous"
+        async>
+  </script>
+</div>
+
+</center>
+
+</body>
+</html>
