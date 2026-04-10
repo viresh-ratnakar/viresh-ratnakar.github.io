@@ -24,7 +24,7 @@ SOFTWARE.
 The latest code and documentation for Exet can be found at:
 https://github.com/viresh-ratnakar/exet
 
-Current version: v0.97, September 16, 2025
+Current version: v1.03, December 26, 2025
 */
 
 function ExetModals() {
@@ -45,12 +45,12 @@ ExetModals.prototype.handleClick = function(e) {
 // If caller calls this in response to a click event e, then caller should also
 // call e.stopPropagation().
 ExetModals.prototype.showModal = function(elt) {
-  this.hide()
+  this.hide();
   if (!elt) {
-    return
+    return;
   }
   this.modal = elt;
-  this.modal.style.display = 'block'
+  this.modal.style.display = 'block';
 }
 
 ExetModals.prototype.hide = function() {
@@ -65,7 +65,7 @@ ExetModals.prototype.hide = function() {
 }
 
 function Exet() {
-  this.version = 'v0.97.1, September 21, 2025';
+  this.version = 'v1.03, December 26, 2025';
   this.puz = null;
   this.prefix = '';
   this.suffix = '';
@@ -82,6 +82,8 @@ function Exet() {
   this.noStemDupes = exetLexicon.hasOwnProperty('stems');
   this.asymOK = false;
   this.tryReversals = false;
+  this.lightRegexps = {};
+  this.lightRegexpsC = {};
   this.DEFAULT_MINPOP = exetConfig.defaultPopularity;
   this.setMinPop(this.DEFAULT_MINPOP)
   this.DRAFT = '[DRAFT]';
@@ -106,7 +108,7 @@ function Exet() {
   /**
    * Max lengths of preferred/disallowed word lists.
    */
-  this.MAX_PREFLEX = 10000;
+  this.MAX_PREFLEX = 50000;
 
   // Start in the Exet tab
   this.currTab = "exet"
@@ -120,14 +122,15 @@ function Exet() {
   this.throttledMetadataTimer = null;
   this.throttledCharadeTimer = null;
   this.viabilityUpdateTimer = null;
-  this.inputLagMS = 400
-  this.longInputLagMS = 2000
-  this.sweepMS = 500
+  this.throttledLightRegexpTimer = null;
+  this.inputLagMS = 400;
+  this.longInputLagMS = 2000;
+  this.sweepMS = 500;
 
   // Params for light choices shown.
-  this.sweepMaxChoices = 5000
-  this.sweepMaxChoicesSmall = 4
-  this.shownLightChoices = 200
+  this.sweepMaxChoices = 5000;
+  this.sweepMaxChoicesSmall = 4;
+  this.shownLightChoices = 200;
 
   /**
    * Local storage usage. Filled by the first call to checkStorage().
@@ -173,6 +176,10 @@ function Exet() {
     `You can use autofill to create pangrams, and even <i>constrained</i>
      pangrams, where all the letters in the alphabet get used over some
      specified cells, such as circled cells and unchecked cells.`,
+    `You can specify a regular expression that constrains fill-choices
+     shown for a light (for example, forcing a palindrome, or a specific
+     substring) using the "Regexp constraint" option in the hamburger menu above
+     the current clue.`,
     `You can create a <i>3-D</i> crossword using
      <i>Open &gt; New 3-D grid:</i>. You can also reverse some lights with
      <i>Edit &gt; Reverse current light</i>. You can let autofill suggest
@@ -200,9 +207,15 @@ Exet.prototype.renderPreview = function(spec, eltId) {
 }
 
 Exet.prototype.setMinPop = function(m) {
-  if (m < 0) m = 0
-  this.minpop = m
-  this.indexMinPop = Math.floor(exetLexicon.startLen * (100 - m) / 100)
+  if (m < 0) {
+    m = 0;
+  }
+  if (m > 100) {
+    m = 100;
+  }
+  this.minpop = m;
+  this.indexMinPop = Math.max(
+      1, Math.floor(exetLexicon.startLen * (100 - m) / 100));
 }
 
 Exet.prototype.startNav = function(dir='A', row=0, col=0) {
@@ -273,9 +286,9 @@ Exet.prototype.setPuzzle = function(puz) {
   }
   if (puz.columnarLayout) {
     puz.columnarLayout = false;
-    puz.gridcluesContainer.className = 'xlv-grid-and-clues-flex';
-    puz.cluesContainer.className = 'xlv-clues xlv-clues-flex';
   }
+  puz.gridcluesContainer.className = 'xlv-grid-and-clues-flex';
+  puz.cluesContainer.className = 'xlv-clues';  /** remove xlv-clues-flex */
   let gridFillChanges = false;
   for (let i = 0; i < puz.gridHeight; i++) {
     for (let j = 0; j < puz.gridWidth; j++) {
@@ -323,7 +336,7 @@ Exet.prototype.setPuzzle = function(puz) {
         '<\/body>\n' +
         '<\/html>\n'
   }
-  this.exolveOtherSec = ''
+  this.exolveOtherSec = '';
 
   const sectionsToSkip = ['begin', 'grid', 'width', 'height', 'id', 'title',
                           'setter', 'copyright', 'nina', 'colour', 'color',
@@ -479,70 +492,71 @@ Exet.prototype.setPuzzle = function(puz) {
   }
 
   this.replaceHandlers()
+
   this.hideExolveElement('controls');
   this.hideExolveElement('saving');
   this.hideExolveElement('tools-link');
   this.hideExolveElement('print');
   this.hideExolveElement('webifi');
   this.hideExolveElement('notes');
-  this.hideExolveElement('jotter');
+  // this.hideExolveElement('jotter');
   this.hideExolveElement('report-bug');
   this.hideExolveElement('exolve-link');
   this.hideExolveElement('postscript');
 
-  this.copyright = document.getElementById(`${this.puz.prefix}-copyright`)
+  this.copyright = document.getElementById(`${this.puz.prefix}-copyright`);
   this.copyright.innerHTML = `<span class="xet-action">Edit optional
       copyright notice: Ⓒ &nbsp;</span><span
       class="xet-editable"
       id="xet-copyright" contenteditable=true spellcheck=false
-      oninput="exet.updateMetadata()">${this.puz.copyright}</span>`
-  this.copyright.style.display = ''
-  this.xetCopyright = document.getElementById('xet-copyright')
-  this.xetCopyright.title = 'Click to edit copyright'
+      oninput="exet.updateMetadata()">${this.puz.copyright}</span>`;
+  this.copyright.style.display = '';
+  this.xetCopyright = document.getElementById('xet-copyright');
+  this.xetCopyright.title = 'Click to edit copyright';
 
-  this.title = document.getElementById(`${this.puz.prefix}-title`)
+  this.title = document.getElementById(`${this.puz.prefix}-title`);
   this.title.innerHTML = `<span class="xet-action">Edit optional
       title:</span><span
       class="xet-editable"
       id="xet-title" contenteditable=true spellcheck=false
-      oninput="exet.updateMetadata()">${this.puz.title}</span>`
-  this.title.style.display = ''
-  this.xetTitle = document.getElementById('xet-title')
-  this.xetTitle.title = 'Click to edit title'
+      oninput="exet.updateMetadata()">${this.puz.title}</span>`;
+  this.title.style.display = '';
+  this.xetTitle = document.getElementById('xet-title');
+  this.xetTitle.title = 'Click to edit title';
 
-  this.setter = document.getElementById(`${this.puz.prefix}-setter`)
+  this.setter = document.getElementById(`${this.puz.prefix}-setter`);
   this.setter.innerHTML = `<span class="xet-action">Edit optional
       setter(s):</span><span
       class="xet-editable"
       id="xet-setter" contenteditable=true spellcheck=false
-      oninput="exet.updateMetadata()">${this.puz.setter}</span>`
-  this.setter.style.display = ''
-  this.xetSetter = document.getElementById('xet-setter')
-  this.xetSetter.title = 'Click to edit setter'
+      oninput="exet.updateMetadata()">${this.puz.setter}</span>`;
+  this.setter.style.display = '';
+  this.xetSetter = document.getElementById('xet-setter');
+  this.xetSetter.title = 'Click to edit setter';
 
-  this.preamble = document.getElementById(`${this.puz.prefix}-preamble`)
-  this.explanations = document.getElementById(`${this.puz.prefix}-explanations`)
+  this.preamble = document.getElementById(`${this.puz.prefix}-preamble`);
+  this.explanations = document.getElementById(`${this.puz.prefix}-explanations`);
 
   // Make clues-box divs wider
-  const cbs = document.getElementsByClassName('xlv-clues-box')
+  const cbs = document.getElementsByClassName('xlv-clues-box');
   for (let x = 0; x < cbs.length; x++) {
-    cbs[x].style.width = '600px'
+    cbs[x].style.width = '600px';
   }
 
-  const aLabel = document.getElementById(`${this.puz.prefix}-across-label`)
-  aLabel.insertAdjacentHTML('beforeend', ` (${numA} clues)`)
-  const dLabel = document.getElementById(`${this.puz.prefix}-down-label`)
-  dLabel.insertAdjacentHTML('beforeend', ` (${numD} clues)`)
-  const zLabel = document.getElementById(`${this.puz.prefix}-z3d-label`)
-  zLabel.insertAdjacentHTML('beforeend', ` (${numZ} clues)`)
+  const aLabel = document.getElementById(`${this.puz.prefix}-across-label`);
+  aLabel.insertAdjacentHTML('beforeend', ` (${numA} clues)`);
+  const dLabel = document.getElementById(`${this.puz.prefix}-down-label`);
+  dLabel.insertAdjacentHTML('beforeend', ` (${numD} clues)`);
+  const zLabel = document.getElementById(`${this.puz.prefix}-z3d-label`);
+  zLabel.insertAdjacentHTML('beforeend', ` (${numZ} clues)`);
 
-  this.frame = document.createElement('div')
-  this.frame.className = 'xet-frame'
-  this.frame.id = 'xet-frame'
-  this.puz.gridPanel.after(this.frame)
+  this.frame = document.createElement('div');
+  this.frame.className = 'xet-frame';
+  this.frame.id = 'xet-frame';
+  this.puz.gridPanel.after(this.frame);
 
-  delete this.shownChoicesHash
-  this.populateFrame()
+  delete this.shownChoicesHash;
+  this.populateFrame();
 
   // Make current cell closer to white (so nina/colour can be seen better
   // when overlapping).
@@ -554,7 +568,7 @@ Exet.prototype.setPuzzle = function(puz) {
   // Add darkness and viability indicators ("viablots").
   for (let i = 0; i < puz.gridHeight; i++) {
     for (let j = 0; j < puz.gridWidth; j++) {
-      let gridCell = puz.grid[i][j]
+      const gridCell = puz.grid[i][j]
       if (gridCell.isLight && gridCell.solution == '?') {
         const viablot =
             document.createElementNS('http://www.w3.org/2000/svg', 'circle');
@@ -565,19 +579,19 @@ Exet.prototype.setPuzzle = function(puz) {
             null, 'cy', puz.cellTopPos(i, puz.circleR + puz.GRIDLINE +
                                           (puz.cellH/2 - puz.circleR)));
         viablot.setAttributeNS(null, 'class', 'xlv-cell-circle');
-        viablot.style.fill = 'transparent'
+        viablot.style.fill = 'transparent';
         viablot.setAttributeNS(null, 'r', puz.circleR * 0.1);
-        gridCell.viablot = viablot
-        gridCell.cellGroup.appendChild(viablot)
+        gridCell.viablot = viablot;
+        gridCell.cellGroup.appendChild(viablot);
         viablot.addEventListener('click', puz.cellActivator.bind(puz, i, j));
       } else if (!gridCell.isLight) {
-        const border = 4
-        let darkness =
+        const border = 4;
+        const darkness =
           document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         darkness.setAttributeNS(null, 'x', this.puz.cellLeftPos(
-            j, this.puz.GRIDLINE + border))
+            j, this.puz.GRIDLINE + border));
         darkness.setAttributeNS(null, 'y', this.puz.cellTopPos(
-            i, this.puz.GRIDLINE + border))
+            i, this.puz.GRIDLINE + border));
         darkness.setAttributeNS(null, 'width',
                                 this.puz.cellW - (2 * border));
         darkness.setAttributeNS(null, 'height',
@@ -587,42 +601,43 @@ Exet.prototype.setPuzzle = function(puz) {
           gridCell.cellGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
           this.puz.svg.appendChild(gridCell.cellGroup);
         }
-        gridCell.cellGroup.appendChild(darkness)
-        gridCell.darkness = darkness
-        gridCell.cellGroup.addEventListener('click', this.navDarkness.bind(this, i, j))
+        gridCell.cellGroup.appendChild(darkness);
+        gridCell.darkness = darkness;
+        gridCell.cellGroup.addEventListener('click', this.navDarkness.bind(this, i, j));
       }
     }
   }
 
   // Display lexicon info
-  const status = document.getElementById(`${this.puz.prefix}-status`)
+  const status = document.getElementById(`${this.puz.prefix}-status`);
   status.insertAdjacentHTML(
       'beforeend',
       `<span> Lexicon: ${exetLexicon.id} ${exetLexicon.language}
-          ${exetLexicon.script}${exetLexicon.maxCharCodes > 1 ? ' [' + exetLexicon.maxCharCodes + ']' : ''}.</span>`)
+          ${exetLexicon.script}${exetLexicon.maxCharCodes > 1 ? ' [' + exetLexicon.maxCharCodes + ']' : ''}.</span>`);
   // Make the puzzle ID visible. But in a div, saving vspace.
-  const idPara = document.getElementById(this.puz.prefix + '-id')
+  const idPara = document.getElementById(this.puz.prefix + '-id');
   if (idPara) {
     status.insertAdjacentHTML(
         'beforebegin', `<div class="xlv-metadata">${idPara.innerHTML}</div>`);
   }
 
   // Display sweeping activity indicator
-  const gridParent = document.getElementById(`${this.puz.prefix}-grid-parent`)
+  const gridParent = document.getElementById(`${this.puz.prefix}-grid-parent`);
   gridParent.insertAdjacentHTML('beforeend',
     `<div class="xet-sweeping-box"
        title="When there is a flashing red circle here, Exet is ` +
        'autofilling and/or pruning away non-viable grid-fill suggestions ' +
        'in the background"> ' +
-       '<div class="xet-sweeping" id="xet-sweeping"></div></div>')
-  this.sweepIndicator = document.getElementById('xet-sweeping')
+       '<div class="xet-sweeping" id="xet-sweeping"></div></div>');
+  this.sweepIndicator = document.getElementById('xet-sweeping');
 
-  this.puz.viable = true
-  this.fillState = new ExetFillState(this.puz)
-
-  this.initAutofill()
+  this.fillState = new ExetFillState(this.puz);
+  this.fillState.markClueEnds();  /** Needed for some options */
   this.resetViability();
-  this.updateSweepInd()
+
+  this.autofill = new ExetAutofill();
+
+  this.updateSweepInd();
   this.reposition();
 }
 
@@ -860,6 +875,8 @@ Exet.prototype.makeExetTab = function() {
           <hr>
           <div title="Try to autofill the remaining grid"
             class="xet-dropdown-item" id="xet-autofill">Autofill:
+            <div id="xet-autofill-active"><span id="xet-autofill-active-msg"></span>
+                &#9654;</div>
             <div class="xet-dropdown-submenu xet-autofill-panel">
               <div>
                 <button id="xet-autofill-startstop"
@@ -1067,16 +1084,20 @@ Exet.prototype.makeExetTab = function() {
             </div>
           </div>
 
-          <div class="xet-dropdown-item" onclick="exet.puz.clearCurr()">
+          <div class="xet-dropdown-item"
+              title="Will not ask for confirmation before clearing."
+              onclick="exet.puz.clearCurr()">
              Clear current light (Ctrl-q)
           </div>
 
-          <div class="xet-dropdown-item" onclick="exet.puz.clearAll()">
+          <div class="xet-dropdown-item"
+              title="Will ask for confirmation before clearing."
+              onclick="exet.puz.clearAll()">
              Clear all the lights! (Ctrl-Q)
           </div>
 
           <div class="xet-dropdown-item"
-               title="Reverse the orientation of the currently active light. If it's part of a linked group of clues, the linked group will get broken up."
+               title="Reverse the orientation of the currently active light (will ask for confirmation). If it's part of a linked group of clues, the linked group will get broken up."
                onclick="exet.reverseLight()">
              Reverse current light
           </div>
@@ -1213,11 +1234,20 @@ Exet.prototype.makeExetTab = function() {
               </div>
             </div>
           </div>
+          <hr>
+          <div id="xet-xst-show-panel" class="xet-dropdown-item">
+            Upload for hosting at Exost
+          </div>
         </div>
       </li>
       <li class="xet-dropdown">
         <div class="xet-dropbtn" id="xet-storage-heading">Storage</div>
         <div class="xet-dropdown-content" id="xet-storage">
+          <div class="xet-dropdown-item" onclick="exetRevManager.autofree()"
+              title="Back up all current crosswords to exet-backup-[timestamp].json and then purge every other old revision (keeping latest 25 and latest hour's revisions untouched). A convenient combination of the next two menu choices."
+              id="xet-auto-free-space">
+            <span class="xet-green">Auto-Free!</span>: Save back-up file, then purge some old revisions
+          </div>
           <div class="xet-dropdown-item" id="xet-manage-storage">
             Manage local storage (Used =
                 <span id="xet-local-storage-used"></span> MB,
@@ -1226,7 +1256,7 @@ Exet.prototype.makeExetTab = function() {
           </div>
           <div class="xet-dropdown-item"
              onclick="exetRevManager.saveAllRevisions()">
-            Back up all current crosswords to file (exet-backup-<i>timestamp</i>.json)
+            Back up all current crosswords to exet-backup-<i>timestamp</i>.json
             <br></br>
             <span id="xet-last-backup">Last backed up at:
               <span id="xet-last-backup-time"></span></span>
@@ -1284,13 +1314,15 @@ Exet.prototype.makeExetTab = function() {
   <div id="xet-temp" style="display:none">
   </div>
 
-  <div class="xet-controls-row xet-panel xet-high-tall-box">
-    <div class="xet-controls-col" style="position:relative">
+  <div class="xet-controls-row xet-high-tall-box">
+    <div class="xet-controls-col xet-panel-left" style="position:relative">
+      <span class="xet-light-regexp-icon"
+          title="This light has a regexp constraint, click to view/edit."
+          id="xet-light-regexp-icon">&#128279;</span>
       <div class="xet-fills-heading">
-        <span style="font-weight:bold" title="Please note that any lexicon ` +
-            `in use by this software is inevitably likely to have some ` +
-            `errors and omissions.">Choose grid-fill:</span>
-        <button class="xlv-small-button" style="padding:5px 4px"
+        <span style="font-weight:bold" title="Click on a suggestion below to ` +
+            `select it.">Choose grid-fill:</span>
+        <button class="xlv-small-button" style="padding:5px 4px;color:black"
             title="Click to see grid-fill possibilities from web sources of words and phrases"
             id="xet-show-web-fills">Web sources
           <div class="xet-web-fills-panel"
@@ -1301,11 +1333,11 @@ Exet.prototype.makeExetTab = function() {
       </div>
       <div class="xet-choices-box" id="xet-light-choices-box">
         <table id="xet-light-choices"
-          title="Click to choose this entry"
+          title="Click to choose this entry (green if in the preferred fills list)"
           class="xet-choices">
         </table>
         <table id="xet-light-rejects"
-          title="Click to choose this entry that matches the letters filled so far, but does not seem viable towards a complete grid-fill"
+          title="Click to choose this entry that matches the letters filled so far, but does not seem viable towards a complete grid-fill (green if in the preferred fills list)"
           class="xet-choices">
         </table>
       </div>
@@ -1332,10 +1364,14 @@ Exet.prototype.makeExetTab = function() {
           id="xet-preflex-editor" style="display:none">
         <div>
           List of preferred words/phrases (up to ${this.MAX_PREFLEX}):
+          <span class="xet-processing" style="display:none"
+              id="xet-preflex-processing">
+            (processing...)
+          </span>
         </div>
         <div class="xet-choices-box xet-mid-tall-box">
           <div style="height:100ch;width:30ch" id="xet-preflex-input"
-            contenteditable="true"
+            contenteditable="true" class="xet-preflex-entry"
             oninput="exet.throttledUpdatePreflex()"></div>
         </div>
       </div>
@@ -1347,57 +1383,57 @@ Exet.prototype.makeExetTab = function() {
         </div>
         <div class="xet-choices-box xet-mid-tall-box">
           <textarea rows="100" cols="25" id="xet-unpreflex-input"
+            class="xet-unpreflex-entry"
             oninput="exet.throttledUpdateUnpreflex()"></textarea>
         </div>
       </div>
     </div>
-    <div class="xet-controls-col">
-      <div class="xet-controls-row xet-clues-box">
-        <div class="xet-fill-settings">
-          <div>
-            <b title="Limit fill suggestions to words/phrases above this ` +
-              `percentile threshold of popularity">Minimum popularity score:</b>
+    <div class="xet-controls-col xet-panel-right">
+      <div id="xet-fill-settings" class="xet-fill-settings">
+        <div class="xet-controls-col">
+          <div title="Limit fill suggestions to words/phrases above this ` +
+              `percentile threshold of popularity. Set this to 100 to use ` +
+              `only the preferred fills list.">
+            <b>Minimum popularity score:</b>
             <input id="xet-minpop" name="xet-minpop" class="xlv-answer"
-              size="4" maxlength="4" type="text"></input> %ile<br>
-            <span id="xet-minpop-incl">${Number(
-                this.indexMinPop - 1).toLocaleString()}</span> out of
-            ${Number(exetLexicon.startLen - 1).toLocaleString()} words/phrases
-            <br>
-            <table>
-            <tr>
-              <td>
-                <b title="If checked, this excludes proper nouns from ` +
-                    `fill suggestions">No proper nouns:</b>
-                <input id="xet-no-proper-nouns" name="xet-no-proper-nouns"
-                    value="no-proper-nouns" type="checkbox">
-                </input>
-              </td>
-              <td>
-                <b title="If checked, this allows trying reversals of unfilled ` +
-                    `lights, when finding fill suggestions">Try reversals:</b>
-                <input id="xet-try-reversals" name="xet-try-reversals"
-                    value="try-reversals" type="checkbox">
-                </input>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <b title="If checked, this excludes word choices that have ` +
-                    `the same stemmed forms as any other entries (e.g., if ` +
-                    `SWIM is picked, then SWIMS will not be considered)">` +
-                    `No stem-dupes:</b>
-                <input id="xet-no-stem-dupes" name="xet-no-stem-dupes"
-                    value="no-stem-dupes" type="checkbox">
-                </input>
-              </td>
-              <td>
-              </td>
-            </tr>
-            </table>
+              size="4" maxlength="4" type="text"></input> %ile
+            <span class="xet-fill-settings-summary"
+                title="Note that the number of lexicon entries indicated here could include some already counted in preferred fills, if there is overlap.">
+              (<span id="xet-minpop-incl">${Number(
+                  this.indexMinPop - 1).toLocaleString()}</span> of
+              ${Number(exetLexicon.startLen - 1).toLocaleString()} words/phrases)
+            </span>
+          </div>
+          <div class="xet-controls-row">
+            <span>
+              <b title="If checked, this excludes proper nouns from ` +
+                `fill suggestions">No proper nouns:</b>
+              <input id="xet-no-proper-nouns" name="xet-no-proper-nouns"
+                  value="no-proper-nouns" type="checkbox">
+              </input>
+            </span>
+            <span>
+              <b title="If checked, this allows trying reversals of unfilled ` +
+                  `lights, when finding fill suggestions">Try reversals:</b>
+              <input id="xet-try-reversals" name="xet-try-reversals"
+                  value="try-reversals" type="checkbox">
+              </input>
+            </span>
+            <span>
+              <b title="If checked, this excludes word choices that have ` +
+                  `the same stemmed forms as any other entries (e.g., if ` +
+                  `SWIM is picked, then SWIMS will not be considered)">` +
+                  `No stem-dupes:</b>
+              <input id="xet-no-stem-dupes" name="xet-no-stem-dupes"
+                  value="no-stem-dupes" type="checkbox">
+              </input>
+            </span>
           </div>
         </div>
-        <div id="xet-scratch-pad" class="xet-scratch-pad">
-        </div>
+      </div>
+      <div id="xet-clues" class="xet-panel xet-clues-panel xet-clues-box"
+        title="You can edit the current clue as shown above ` +
+          `the grid by clicking on it.">
       </div>
     </div>
   </div>
@@ -1456,32 +1492,32 @@ Exet.prototype.makeExetTab = function() {
 </div>
   `;
   // Set up menu click handling
-  const menuButtons = exetTab.content.getElementsByClassName('xet-dropbtn')
+  const menuButtons = exetTab.content.getElementsByClassName('xet-dropbtn');
   for (let i = 0; i < menuButtons.length; i++) {
-    let menuPanel = menuButtons[i].nextElementSibling
+    let menuPanel = menuButtons[i].nextElementSibling;
     menuButtons[i].addEventListener('click', e => {
       if (menuPanel.id && menuPanel.id == "xet-analysis") {
-        exet.updateAnalysis(menuPanel)
+        exet.updateAnalysis(menuPanel);
       } else if (menuPanel.id && menuPanel.id == "xet-save") {
-        exet.updateSavePanel(menuPanel)
+        exet.updateSavePanel(menuPanel);
       }
-      exetModals.showModal(menuPanel)
-      e.stopPropagation()
-    })
+      exetModals.showModal(menuPanel);
+      e.stopPropagation();
+    });
     menuButtons[i].addEventListener('mouseenter', e => {
-      exetModals.hide()
-    })
+      if (!exetModals.modal ||
+          !exetModals.modal.classList.contains('xet-dropdown-content')) {
+        return;
+      }
+      exetModals.hide();
+    });
   }
-  this.tips = document.getElementById("xet-tips")
-  this.tip = document.getElementById("xet-tip")
+  this.tips = document.getElementById("xet-tips");
+  this.tip = document.getElementById("xet-tip");
   this.setRandomTip();
 
   this.lChoices = document.getElementById("xet-light-choices");
   this.lRejects = document.getElementById("xet-light-rejects");
-  this.preflexUsed = document.getElementById("xet-preflex-used");
-  this.preflexSize = document.getElementById("xet-preflex-size");
-  this.preflexEditor = document.getElementById("xet-preflex-editor");
-  this.preflexInput = document.getElementById("xet-preflex-input");
   this.webFillsPanel = document.getElementById("xet-web-fills-panel");
   this.showWebFillsButton = document.getElementById("xet-show-web-fills");
   if (!exetConfig.webFills || exetConfig.webFills.length == 0) {
@@ -1489,34 +1525,23 @@ Exet.prototype.makeExetTab = function() {
   } else {
     this.showWebFillsButton.addEventListener('click', e=> {
       exet.showWebFills();
-      e.stopPropagation()
+      e.stopPropagation();
     });
   }
-  this.renderPreflex();
-  document.getElementById("xet-edit-preflex").addEventListener('click', e=> {
-    exet.renderPreflex();
-    exetModals.showModal(exet.preflexEditor);
-    e.stopPropagation();
-  });
-  this.unpreflexSize = document.getElementById("xet-unpreflex-size");
-  this.unpreflexEditor = document.getElementById("xet-unpreflex-editor");
-  this.unpreflexInput = document.getElementById("xet-unpreflex-input");
-  this.renderUnpreflex();
-  document.getElementById("xet-edit-unpreflex").addEventListener('click', e=> {
-    exetModals.showModal(exet.unpreflexEditor);
-    e.stopPropagation();
-  });
+
+  this.fillSettings = document.getElementById("xet-fill-settings");
   this.minpopInclSpan = document.getElementById("xet-minpop-incl");
   this.minpopInput = document.getElementById("xet-minpop");
   this.minpopInput.value = this.minpop;
+  this.renderMinPop();
   this.minpopInput.addEventListener('change', e => {
     if (isNaN(this.minpopInput.value) ||
-        this.minpopInput.value < 0 || this.minpopInput.value >= 100) {
+        this.minpopInput.value < 0 || this.minpopInput.value > 100) {
       this.minpopInput.value = this.minpop;
       return;
     }
     this.setMinPop(this.minpopInput.value);
-    this.minpopInclSpan.innerText = Number(this.indexMinPop - 1).toLocaleString();
+    this.renderMinPop();
     this.resetViability();
     exetRevManager.throttledSaveRev(exetRevManager.REV_FILL_OPTIONS_CHANGE);
   });
@@ -1543,36 +1568,73 @@ Exet.prototype.makeExetTab = function() {
     this.noProperNounsInput.disabled = true;
     this.noProperNounsInput.title = 'Proper-noun filtering is only available for Latin currently';
   }
-  this.tryReversalsInput = document.getElementById("xet-try-reversals")
-  this.tryReversalsInput.checked = this.tryReversals
+  this.tryReversalsInput = document.getElementById("xet-try-reversals");
+  this.tryReversalsInput.checked = this.tryReversals;
   this.tryReversalsInput.addEventListener('change', e => {
-    this.tryReversals = this.tryReversalsInput.checked
-    this.resetViability()
-    exetRevManager.throttledSaveRev(exetRevManager.REV_OPTIONS_CHANGE)
-  })
+    this.tryReversals = this.tryReversalsInput.checked;
+    this.resetViability();
+    exetRevManager.throttledSaveRev(exetRevManager.REV_OPTIONS_CHANGE);
+  });
 
-  this.revChooser = document.getElementById("xet-rev-chooser")
-  let showPuzChooser = document.getElementById("xet-show-puz-chooser")
+  this.lightRegexpIcon = document.getElementById("xet-light-regexp-icon");
+  this.lightRegexpIcon.style.display = 'none';
+  this.lightRegexpIcon.addEventListener('click', this.showLightRegexpPanel.bind(this));
+
+  this.preflexUsed = document.getElementById("xet-preflex-used");
+  this.preflexSize = document.getElementById("xet-preflex-size");
+  this.preflexEditor = document.getElementById("xet-preflex-editor");
+  this.preflexInput = document.getElementById("xet-preflex-input");
+  this.preflexWait = document.getElementById("xet-preflex-processing");
+  this.renderPreflex();
+  document.getElementById("xet-edit-preflex").addEventListener('click', e=> {
+    exet.renderPreflex();
+    exetModals.showModal(exet.preflexEditor);
+    e.stopPropagation();
+  });
+  this.unpreflexSize = document.getElementById("xet-unpreflex-size");
+  this.unpreflexEditor = document.getElementById("xet-unpreflex-editor");
+  this.unpreflexInput = document.getElementById("xet-unpreflex-input");
+  this.renderUnpreflex();
+  document.getElementById("xet-edit-unpreflex").addEventListener('click', e=> {
+    exetModals.showModal(exet.unpreflexEditor);
+    e.stopPropagation();
+  });
+
+  this.revChooser = document.getElementById("xet-rev-chooser");
+  let showPuzChooser = document.getElementById("xet-show-puz-chooser");
   showPuzChooser.addEventListener('click', e => {
-    exetRevManager.choosePuzRev(false, null, exet.revChooser, exetFromHistory);
-    exetModals.showModal(exet.revChooser)
-    e.stopPropagation()
+    exetRevManager.choosePuzRev({
+        elt: exet.revChooser,
+        callback: exetFromHistory,
+        sortBy: 'timestamp',
+        sortOrder: 'decreasing'
+    });
+    exetModals.showModal(exet.revChooser);
+    e.stopPropagation();
   })
-  const showRevChooser = document.getElementById("xet-show-rev-chooser")
+  const showRevChooser = document.getElementById("xet-show-rev-chooser");
   showRevChooser.addEventListener('click', e => {
-    exetRevManager.choosePuzRev(false, this.puz, exet.revChooser,
-                                exetFromHistory);
-    exetModals.showModal(exet.revChooser)
-    e.stopPropagation()
+    exetRevManager.choosePuzRev({
+        onlyPuz: this.puz,
+        elt: exet.revChooser,
+        callback: exetFromHistory,
+    });
+    exetModals.showModal(exet.revChooser);
+    e.stopPropagation();
   })
   const manageStorage = document.getElementById("xet-manage-storage");
   this.lsUsedSpan = document.getElementById("xet-local-storage-used");
   this.lsFreeSpan = document.getElementById("xet-local-storage-free");
   this.storageHeading = document.getElementById("xet-storage-heading");
   manageStorage.addEventListener('click', e => {
-    exetRevManager.choosePuzRev(true, null, exet.revChooser, null);
-    exetModals.showModal(exet.revChooser)
-    e.stopPropagation()
+    exetRevManager.choosePuzRev({
+        forStorage: true,
+        elt: exet.revChooser,
+        sortBy: 'space',
+        sortOrder: 'decreasing'
+    });
+    exetModals.showModal(exet.revChooser);
+    e.stopPropagation();
   });
 
   // Saving options
@@ -1647,6 +1709,12 @@ Exet.prototype.makeExetTab = function() {
     e.stopPropagation();
   });
 
+  document.getElementById("xet-xst-show-panel").addEventListener(
+      'click', e => {
+    this.showExostPanel();
+    e.stopPropagation();
+  });
+
   this.tweakColourNina = document.getElementById("xet-tweak-colour-nina")
   this.tweakColourNina.style.left = "100%";
   document.getElementById(this.puz.prefix + '-grid-parent').appendChild(
@@ -1685,23 +1753,8 @@ Exet.prototype.makeExetTab = function() {
     exetRevManager.saveLocal(exetRevManager.SPECIAL_KEY, JSON.stringify(exetState));
   });
 
-  // Move the scratch pad over to here.
-  const scratchP = document.getElementById("xet-scratch-pad")
-  this.puz.scratchPad.rows = "3"
-  this.puz.scratchPad.cols = "32"
-  const scratchPLabel = document.getElementById(this.puz.prefix + '-shuffle')
-  scratchPLabel.style.padding = '8px 0'
-  scratchPLabel.style.fontWeight = 'bold'
-  scratchP.appendChild(scratchPLabel)
-  scratchP.appendChild(this.puz.scratchPad)
-
   // Pull in the clues.
-  this.cluesPanel = document.createElement('div')
-  this.cluesPanel.id = 'xet-clues'
-  this.cluesPanel.className = 'xet-panel xet-mid-tall-box xet-clues-box'
-  this.cluesPanel.title = 'You can edit the current clue as shown above ' +
-                          'the grid by clicking on it.'
-  scratchP.after(this.cluesPanel)
+  this.cluesPanel = document.getElementById("xet-clues");
   this.cluesPanel.appendChild(document.getElementById(
         `${this.puz.prefix}-clues`))
 }
@@ -1862,7 +1915,7 @@ Exet.prototype.getLightInfos = function() {
         index = fillClue.lChoices[0];
         solText = exetLexicon.getLex(index);
       }
-      let pop = 5 * Math.round(20 * (lexl - index) / lexl);
+      const pop = 5 * Math.round(20 * (lexl - index) / lexl);
       label += ': ' + solText;
       this.addStat(allInfo.popularities, pop, label);
       this.addStat(dirInfo.popularities, pop, label);
@@ -1871,16 +1924,26 @@ Exet.prototype.getLightInfos = function() {
         this.addStat(allInfo.substrings, substring, label);
         this.addStat(dirInfo.substrings, substring, label);
       }
+      /**
+       * Include filled entries in reporting stem-dupes in clues.
+       */
+      const depunctSol = exetLexicon.depunct(solText, true /* forDeduping */);
+      const words = depunctSol.split(' ');
+      for (const word of words) {
+        const stem = exetLexicon.stem(word).toLowerCase();
+        this.addStat(allInfo.words, stem, label);
+        this.addStat(dirInfo.words, stem, label);
+      }
     }
     this.addStat(allInfo.lengths, theClue.enumLen, label);
     this.addStat(dirInfo.lengths, theClue.enumLen, label);
-    let depunctClue = exetLexicon.depunct(theClue.clue, true /* forDeduping */);
+    const depunctClue = exetLexicon.depunct(theClue.clue, true /* forDeduping */);
     if (depunctClue && !this.isDraftClue(theClue.clue)) {
       allInfo.set += 1;
       dirInfo.set += 1;
       const labelAndClue = label + ' [' + depunctClue + ']';
-      let words = depunctClue.split(' ');
-      for (let word of words) {
+      const words = depunctClue.split(' ');
+      for (const word of words) {
         const stem = exetLexicon.stem(word).toLowerCase();
         this.addStat(allInfo.words, stem, labelAndClue);
         this.addStat(dirInfo.words, stem, labelAndClue);
@@ -1891,7 +1954,7 @@ Exet.prototype.getLightInfos = function() {
     if (theClue.anno) {
       allInfo.annos += 1;
       dirInfo.annos += 1;
-      let anno = this.essenceOfAnno(theClue.anno);
+      const anno = this.essenceOfAnno(theClue.anno);
       if (anno) {
         this.addStat(allInfo.annotations, anno, label);
         this.addStat(dirInfo.annotations, anno, label);
@@ -2259,6 +2322,126 @@ Exet.prototype.updateOtherSections = function() {
       this.exolveOtherSec = saved;
     }
   }, 2000);
+}
+
+Exet.prototype.uploadToExost = function(solved=true) {
+  const exolve = this.getExolve('', false, solved);
+  this.exost.uploadExolve(exolve, this.puz);
+}
+
+Exet.prototype.exostUploadCallback = function(result) {
+  /** Can't use "this" as we detach this function before use */
+  if (result.error) {
+    console.log('Exost upload failed: ' + result.error);
+    return;
+  }
+  if (result.url) {
+    exet.exostState.url = result.url;
+    exet.exostState.urlElt.href = result.url;
+    exet.exostState.urlElt.innerText = result.url;
+    exet.exostState.urlRow.style.display = '';
+  }
+}
+
+Exet.prototype.showExostPanel = function() {
+  /**
+   * We reuse an Exost panel across multiple crosswords so that the user's
+   * email address and password fields are retained.
+   */
+  if (!this.exostState) {
+    this.exostState = {id: ''};
+    this.exostState.panel = document.createElement('div');
+    this.exostState.panel.className = 'xet-xst-panel';
+    this.exostState.panel.style.display = 'none';
+    this.exostState.panel.innerHTML = `
+      <p>
+        <b>Upload/update at <a target="_blank"
+           href="https://xlufz.ratnakar.org/exost.html">Exost</a>
+           crossword hosting</b>
+      </p>
+      <table>
+        <tr>
+          <td colspan="2">
+            <label for="xet-xst-email">Email: </label>
+            <input type="email" class="xlv-answer" id="xet-xst-email" size="32" placeholder="your@email.address">
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2">
+            <label for="xet-xst-pwd">Password: </label>
+            <input type="password" class="xlv-answer" id="xet-xst-pwd" size="28" placeholder="Retrievable via email">
+          </td>
+        </tr>
+        <tr>
+          <td>
+            Get your password emailed to you:
+          </td>
+          <td>
+            <button class="xlv-small-button" onclick="exet.exost.requestPwd()">Request</button>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2">
+            <span class="xet-xst-status" id="xet-xst-pwd-status"></span>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            Upload/update Exost-hosted version:
+          </td>
+          <td>
+            <button class="xlv-small-button" onclick="exet.uploadToExost(true)">With solutions</button>
+            <button class="xlv-small-button" onclick="exet.uploadToExost(false)">Sans solutions</button>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2">
+            <span class="xet-xst-status" id="xet-xst-upload-status"></span>
+          </td>
+        </tr>
+        <tr id="xet-xst-url-row">
+          <td colspan="2">
+            Exost URL: <a class="xet-xst-status" target="_blank" id="xet-xst-url"></a>
+            <button id="xet-xst-cpurl-u" onclick="exet.exost.copyURL(exet.exostState.url, false, 'xet-xst-cpurl-u')"
+              title="Copy Exost URL">&#128279;</button>
+            <button id="xet-xst-cpurl-e" onclick="exet.exost.copyURL(exet.exostState.url, true, 'xet-xst-cpurl-e')"
+              title="Copy Exost iframe embed code">&lt;/&gt;</button>
+          </td>
+        </tr>
+      </table>
+      <p style="font-size:90%;font-style:italic">
+        You can view the list of all your uploaded crosswords (and delete any,
+        if you wish to) at the <a target="_blank"
+          href="https://xlufz.ratnakar.org/exost.html">Exost</a> site. Please
+        note that by uploading your crossword, you're agreeing to the simple
+        terms and conditions listed on the Exost site. In particular, please
+        note that if you've opened someone else's crossword on this page, you
+        shouldn't be uploading it for hosting anywhere unless you've received
+        explicit permission from them.
+      </p>
+    `;
+  }
+  this.frame.appendChild(this.exostState.panel);
+
+  this.exost = new ExolveExost({
+    exostURL: 'https://xlufz.ratnakar.org/exost.html',
+    apiServer: 'https://xlufz.ratnakar.org/exost.php',
+    emailEltId: 'xet-xst-email',
+    pwdEltId: 'xet-xst-pwd',
+    pwdStatusEltId: 'xet-xst-pwd-status',
+    uploadStatusEltId: 'xet-xst-upload-status',
+    uploadCallback: exet.exostUploadCallback
+  });
+  this.exostState.urlRow = document.getElementById('xet-xst-url-row');
+  this.exostState.urlElt = document.getElementById('xet-xst-url');
+  this.exostState.uploadStatus = document.getElementById('xet-xst-upload-status');
+  if (this.exostState.id != this.puz.id) {
+    this.exostState.id = this.puz.id;
+    this.exostState.url = '';
+    this.exostState.urlRow.style.display = 'none';
+    this.exostState.uploadStatus.innerHTML = '';
+  }
+  exetModals.showModal(this.exostState.panel);
 }
 
 Exet.prototype.trimUrl = function(url) {
@@ -2639,7 +2822,7 @@ Exet.prototype.addDeletionCharades = function() {
 }
 
 Exet.prototype.updateCharadesPartial = function(work=100, sleep=50) {
-  let startTS = Date.now()
+  const startTS = Date.now()
   if (!this.charadeDeletionsAdded) {
     this.addDeletionCharades();
   }
@@ -3276,7 +3459,7 @@ Exet.prototype.printWindower = function(actionScript, solved) {
         '<\/script>\n' +
         '<\/body>\n' +
         '<\/html>\n'
-  const pwin = window.open('', '', 'left=0,top=0');
+  const pwin = window.open('', '', 'left=0,top=0,width=1000,height=1500');
   pwin.document.write(html);
   pwin.document.close();
   pwin.focus();
@@ -3596,26 +3779,26 @@ Exet.prototype.restoreParam = function(id, section) {
 }
 
 Exet.prototype.navDarkness = function(row, col, ev=null) {
-  darkness = this.puz.grid[row][col].darkness
+  const darkness = this.puz.grid[row][col].darkness;
   if (!darkness) {
-    return
+    return;
   }
   if (ev) ev.stopPropagation();
-  this.puz.deactivateCurrCell()
-  this.puz.currRow = row
-  this.puz.currCol = col
+  this.puz.deactivateCurrCell();
+  this.puz.currRow = row;
+  this.puz.currCol = col;
 
-  darkness.style.fill = this.puz.colorScheme['caret']
+  darkness.style.fill = this.puz.colorScheme['caret'];
 
-  let cellLeft = this.puz.cellLeftPos(col, this.puz.GRIDLINE)
-  let cellTop = this.puz.cellTopPos(row, this.puz.GRIDLINE)
-  this.puz.gridInputWrapper.style.left = '' + cellLeft + 'px'
-  this.puz.gridInputWrapper.style.top = '' + cellTop + 'px'
-  this.puz.gridInput.value = ''
-  this.puz.gridInputRarr.style.display = 'none'
-  this.puz.gridInputDarr.style.display = 'none'
-  this.puz.gridInputLarr.style.display = 'none'
-  this.puz.gridInputUarr.style.display = 'none'
+  let cellLeft = this.puz.cellLeftPos(col, this.puz.GRIDLINE);
+  let cellTop = this.puz.cellTopPos(row, this.puz.GRIDLINE);
+  this.puz.gridInputWrapper.style.left = '' + cellLeft + 'px';
+  this.puz.gridInputWrapper.style.top = '' + cellTop + 'px';
+  this.puz.gridInput.value = '';
+  this.puz.gridInputRarr.style.display = 'none';
+  this.puz.gridInputDarr.style.display = 'none';
+  this.puz.gridInputLarr.style.display = 'none';
+  this.puz.gridInputUarr.style.display = 'none';
   if (this.puz.layers3d > 1) {
     const li = row % this.puz.h3dLayer;
     const offset = (this.puz.h3dLayer - li) * this.puz.offset3d;
@@ -3625,8 +3808,8 @@ Exet.prototype.navDarkness = function(row, col, ev=null) {
     this.puz.gridInputWrapper.style.transform = transform;
   }
 
-  this.puz.gridInputWrapper.style.display = ''
-  this.puz.gridInput.focus()
+  this.puz.gridInputWrapper.style.display = '';
+  this.puz.gridInput.focus();
 }
 
 Exet.prototype.arrowNav = function(key) {
@@ -3719,10 +3902,10 @@ Exet.prototype.replaceHandlers = function() {
       exet.markNinasAsPrefilled();
       if (exet.clearAllSaved.apply(exet.puz, arguments)) {
         for (let ci in exet.puz.clues) {
-          exet.puz.clues[ci].clue = exet.draftClue(ci)
-          exet.puz.clues[ci].solution = ''
+          exet.puz.clues[ci].clue = exet.draftClue(ci);
+          exet.puz.clues[ci].solution = '';
           exet.puz.setClueSolution(ci);
-          exet.puz.clues[ci].anno = ''
+          exet.puz.clues[ci].anno = '';
         }
         exet.unmarkNinasAsPrefilled();
         exet.updatePuzzle(exetRevManager.REV_GRIDFILL_CHANGE);
@@ -3736,14 +3919,14 @@ Exet.prototype.replaceHandlers = function() {
     return function() {
       exet.finishClueChanges();
       let ret = exet.cnavToInnerSaved.apply(exet.puz, arguments);
-      exet.scrollCluesIfNeeded()
-      exet.makeClueEditable()
-      exet.reposition()
-      exet.renderClue()
-      exet.updateFillChoices()
+      exet.scrollCluesIfNeeded();
+      exet.makeClueEditable();
+      exet.reposition();
+      exet.renderClue();
+      exet.updateFillChoices();
       exet.startDeadendSweep(exet.currClueIndex());
-      exet.handleTabClick(exet.currTab)
-      return ret
+      exet.handleTabClick(exet.currTab);
+      return ret;
     };
   })();
   this.puz.activateCell = (function() {
@@ -3752,17 +3935,17 @@ Exet.prototype.replaceHandlers = function() {
       let ret = exet.activateCellSaved.apply(exet.puz, arguments);
       let gridCell = exet.puz.currCell()
       if (gridCell && !gridCell.isLight && gridCell.darkness) {
-        exet.navDarkness(exet.puz.currRow, exet.puz.currCol)
+        exet.navDarkness(exet.puz.currRow, exet.puz.currCol);
       }
-      return ret
+      return ret;
     };
   })();
   this.puz.deactivateCurrCell = (function() {
     exet.dccSaved = exet.puz.deactivateCurrCell;
     return function() {
-      let gridCell = exet.puz.currCell()
+      let gridCell = exet.puz.currCell();
       if (gridCell && gridCell.darkness) {
-        gridCell.darkness.style.fill = 'transparent'
+        gridCell.darkness.style.fill = 'transparent';
       }
       exet.dccSaved.apply(exet.puz);
     };
@@ -3772,14 +3955,14 @@ Exet.prototype.replaceHandlers = function() {
     return function() {
       exet.finishClueChanges();
       exet.dcclueSaved.apply(exet.puz);
-      exet.reposition()
+      exet.reposition();
     };
   })();
   this.puz.handleKeyUpInner = (function() {
     exet.hkuiSaved = exet.puz.handleKeyUpInner;
     return function(key, shift=false) {
       if (key >= 37 && key <= 40) {
-        return exet.arrowNav(key)
+        return exet.arrowNav(key);
       }
       return exet.hkuiSaved.apply(exet.puz, arguments);
     };
@@ -3904,8 +4087,16 @@ Exet.prototype.resizeRHS = function() {
     document.body.insertAdjacentElement('afterbegin', this.customStyles);
   }
   const windowH = this.puz.getViewportHeight();
-  const extraH = Math.max(0, windowH - 740);
-  const style = `
+  const extraH = Math.max(0, windowH - 720);
+  const windowW = this.puz.getViewportWidth();
+  const gridPanelBox = this.puz.gridPanel.getBoundingClientRect();
+  const frameW =
+    Math.max(580, windowW - 52 - Math.floor(gridPanelBox.width));
+  const sectionW = frameW - 16;
+  const halfSectionW = Math.floor(sectionW / 2) - 16;
+  const cluesW = frameW - 320;
+  this.fillSettings.style.width = '' + cluesW + 'px';
+  let style = `
     .xet-about,
     .xet-analysis {
       height: ${440 + extraH}px;
@@ -3914,43 +4105,82 @@ Exet.prototype.resizeRHS = function() {
       max-height: ${435 + extraH}px;
     }
     .xet-high-tall-box {
-      height: ${460 + extraH}px;
+      height: ${450 + extraH}px;
     }
     .xet-half-section,
     .xet-section {
-      height: ${450 + extraH}px;
+      height: ${410 + extraH}px;
     }
-    #xet-light-choices-box {
-      height: ${340 + extraH}px;
-    }
+    #xet-light-choices-box,
+    .xet-clues-panel,
     .xet-mid-tall-box {
-      height: ${325 + extraH}px;
+      height: ${330 + extraH}px;
+    }
+    .xet-section {
+      width: ${sectionW}px;
+    }
+    .xet-half-section {
+      width: ${halfSectionW}px;
+    }
+    .xet-frame {
+      width: ${frameW}px;
     }
     .xet-tab-content {
       height: ${500 + extraH}px;
+      width: ${frameW}px;
     }
   `;
+  if (windowW < 1400) {
+    style += `
+      .xet-analysis {
+        right: 0;
+      }
+      .xet-tab button {
+        font-size: 11px;
+        width: 70px;
+      }
+      .xet-tab button:hover {
+        font-size: 12px;
+        width: 80px;
+      }
+    `;
+  }
   this.customStyles.innerHTML = style;
+  this.puz.equalizeClueWidths(cluesW);
 }
 
 Exet.prototype.reposition = function() {
-  this.title.className = 'xlv-title'
-  this.setter.className = 'xlv-setter'
-  this.preamble.className = 'xlv-preamble'
-  this.title.title = ''
-  this.setter.title = ''
-  this.preamble.title = ''
-  const clueBox = this.puz.currClue.getBoundingClientRect()
+  // TODO
+  console.log('reposition() called');
+  if (this.puz.squareDim < 31 &&
+      (this.puz.getViewportDim() - this.puz.viewportDim > 25)) {
+    /**
+     * The window is substantially bigger than when we created the grid. Let's
+     * just force a redraw (we don't use Exolve's resizing because that would
+     * create a new puz.grid and we would have to take care of re-adding
+     * viablots and forcedLetters * to the reborn gridCell.cellGroup fields.
+     */
+    console.log('updatePuzzle() called just to resize from ' + this.puz.viewportDim + ' to ' + this.puz.getViewportDim());
+    this.updatePuzzle();  /** revType = default 0 won't actually save */
+    return;
+  }
+  this.title.className = 'xlv-title';
+  this.setter.className = 'xlv-setter';
+  this.preamble.className = 'xlv-preamble';
+  this.title.title = '';
+  this.setter.title = '';
+  this.preamble.title = '';
+  const clueBox = this.puz.currClue.getBoundingClientRect();
   if (this.puz.currClueIndex && clueBox.top > 0) {
     const top = clueBox.top - this.TOP_CLEARANCE;
     const right = clueBox.right;
     for (let elt of [this.title, this.setter, this.preamble]) {
       const box = elt.firstElementChild ?
         elt.firstElementChild.getBoundingClientRect() :
-        elt.getBoundingClientRect()
+        elt.getBoundingClientRect();
       if (box.bottom >= top && box.left <= right) {
-        elt.className += ' xet-blur'
-        elt.title = 'Click to make visible'
+        elt.className += ' xet-blur';
+        elt.title = 'Click to make visible';
       }
     }
   }
@@ -3958,20 +4188,19 @@ Exet.prototype.reposition = function() {
     this.xetCurrClue.style.maxHeight = this.puz.currClue.style.maxHeight;
   }
 
-  const clearAreaBox = this.puz.clearArea.getBoundingClientRect()
+  const clearAreaBox = this.puz.clearArea.getBoundingClientRect();
 
   const colourNinaWidth = Math.min(300, (clearAreaBox.width - clueBox.width) / 2);
   this.tweakColourNina.style.width = colourNinaWidth + 'px';
 
-  const xetFormat = document.getElementById('xet-format')
+  const xetFormat = document.getElementById('xet-format');
   if (xetFormat) {
     const previewWidth = Math.min(480, (clearAreaBox.width - clueBox.width) / 2);
     for (let tag of Object.keys(this.formatTags)) {
-      const preview = document.getElementById('xet-format-' + tag + '-preview')
+      const preview = document.getElementById('xet-format-' + tag + '-preview');
       preview.style.width = previewWidth + 'px';
     }
   }
-
   this.resizeRHS();
 }
 
@@ -4131,70 +4360,157 @@ Exet.prototype.maybeShowFormat = function() {
   }
 }
 
-Exet.prototype.makeClueEditable = function() {
+Exet.prototype.getLightRegexp = function(ci) {
+  if (!this.lightRegexps.hasOwnProperty(ci)) {
+    return '';
+  }
+  return this.lightRegexps[ci];
+}
+
+Exet.prototype.getLightRegexpC = function(ci) {
+  if (!this.lightRegexpsC.hasOwnProperty(ci)) {
+    return null;
+  }
+  return this.lightRegexpsC[ci];
+}
+
+Exet.prototype.compileLightRegexps = function() {
+  this.lightRegexpsC = {};
+  const keys = Object.keys(this.lightRegexps);
+  for (const ci of keys) {
+    this.setLightRegexp(ci, this.lightRegexps[ci]);
+  }
+}
+
+/**
+ * Returns triple in array: [isValid, changed, reStrUsed]
+ */
+Exet.prototype.setLightRegexp = function(ci, reStr) {
+  const oldStr = this.lightRegexps.hasOwnProperty(ci) ?
+    this.lightRegexps[ci] : '';
+  let rePart = reStr;
+  let flagsPart = '';
+  let re = null;
+  try {
+    const reForSlashFormat = /^\/([^/]*)\/([^/]*)/;
+    const slashMatch = reForSlashFormat.exec(reStr);
+    if (slashMatch) {
+      rePart = slashMatch[1];
+      flagsPart = slashMatch[2];
+    }
+    re = rePart ? new RegExp(rePart, flagsPart) : null;
+  } catch (err) {
+    return [false, false, oldStr];
+  }
+  if (!re) {
+    if (this.lightRegexps.hasOwnProperty(ci)) {
+      delete this.lightRegexps[ci];
+      delete this.lightRegexpsC[ci];
+    }
+  } else {
+    this.lightRegexpsC[ci] = re;
+    this.lightRegexps[ci] = reStr;
+  }
+  const newStr = this.lightRegexps.hasOwnProperty(ci) ?
+    this.lightRegexps[ci] : '';
+  return [true, newStr != oldStr, newStr];
+}
+
+Exet.prototype.handleLightRegexpEntry = function() {
+  const ci = this.currClueIndex();
+  if (!this.lightRegexpEntry || !ci) {
+    return;
+  }
+  const res = this.setLightRegexp(ci, this.lightRegexpEntry.value.trim());
+  const valid = res[0];
+  const changed = res[1];
+  const reStr = res[2];
+  if (changed) {
+    this.lightRegexpIcon.style.display = reStr ? '' : 'none';
+    this.resetViability();
+    exetRevManager.throttledSaveRev(exetRevManager.REV_FILL_OPTIONS_CHANGE);
+  }
+  if (valid) {
+    this.lightRegexpInvalid.style.color = 'transparent';
+    this.lightRegexpRevert.innerHTML = '';
+  } else {
+    this.lightRegexpInvalid.style.color = 'gray';
+    this.lightRegexpRevert.innerHTML = reStr;
+  }
+}
+
+Exet.prototype.throttledLightRegexpEntry = function(evt) {
+  this.lightRegexpInvalid.style.color = 'transparent';
+  if (this.throttledLightRegexpTimer) {
+    clearTimeout(this.throttledLightRegexpTimer);
+  }
+  this.throttledLightRegexpTimer = setTimeout(() => {
+    this.handleLightRegexpEntry();
+    this.throttledLightRegexpTimer = null;
+  }, this.longInputLagMS);
+}
+
+Exet.prototype.makeLightRegexpPanel = function(theClue) {
+  const old = document.getElementById('xet-light-regexp-panel');
+  if (old) {
+    old.remove();
+  }
+  const label = this.puz.clueLabelDisp(theClue);
+  this.lightRegexpPanel = document.createElement('div');
+  this.lightRegexpPanel.id = 'xet-light-regexp-panel';
+  this.lightRegexpPanel.className = 'xet-above-clue-panel';
+  this.lightRegexpPanel.title = 'Specify a regexp constraining the entry in ' + label + '. Press Escape or click anywhere outside to dismiss.';
+  this.lightRegexpPanel.innerHTML = `
+    <div style="padding:6px">
+      &#128279; ${label}:
+      <input id="xet-light-regexp" name="xet-light-regexp"
+        class="xlv-answer" size="40" placeholder="Enter regular expression to match ${label}."
+        type="text"></input>
+      <div id="xet-light-regexp-invalid" style="margin-bottom:4px">
+        Invalid regexp, will revert to:
+        [<span id="xet-light-regexp-revert"></span>]
+      </div>
+      <div>
+        Regexp constraints are descibed in this <a target="_blank"
+        href="https://github.com/viresh-ratnakar/exet/blob/master/README.md#light-specific-menu">Exet README section</a>.
+      </div>
+    </div>
+  `;
+  this.lightRegexpPanel.style.display = 'none';
+  this.puz.currClue.appendChild(this.lightRegexpPanel);
+  this.lightRegexpEntry = document.getElementById('xet-light-regexp');
+  this.lightRegexpInvalid = document.getElementById('xet-light-regexp-invalid');
+  this.lightRegexpInvalid.style.color = 'transparent';
+  this.lightRegexpRevert = document.getElementById('xet-light-regexp-revert');
+  const re = this.getLightRegexp(theClue.index);
+  this.lightRegexpEntry.value = re;
+  this.lightRegexpIcon.style.display = re ? '' : 'none';
+  this.lightRegexpEntry.addEventListener('input', this.throttledLightRegexpEntry.bind(this));
+}
+
+Exet.prototype.showLightRegexpPanel = function(evt) {
   const theClue = this.currClue();
   if (!theClue) {
-    return
+    return;
   }
-  /**
-   * Wrap xlv-curr-clue's children in a new div of class xet-curr-clue.
-   * xet-curr-clue will copy max-height from Exolve's settings
-   * of xlv-curr-clue, and it will have overflow-y=auto. But xlv-curr-clue
-   * itself will have overflow=visible, so that the "linking" and "format"
-   * floating elements will get shown.
-   */
-  this.xetCurrClue = document.createElement('div');
-  this.xetCurrClue.className = 'xet-curr-clue';
-  this.xetCurrClue.id = 'xet-curr-clue';
-  this.xetCurrClue.style.width = this.puz.currClue.style.width;
-  this.xetCurrClue.style.maxHeight = this.puz.currClue.style.maxHeight;
-  const currClueInner = this.puz.currClueInner ?? this.puz.currClue;
-  while (currClueInner.children.length > 0) {
-    this.xetCurrClue.appendChild(currClueInner.children[0]);
+  if (!this.lightRegexpPanel) {
+    console.log('showLightRegexpPanel() called prematurely!');
+    return;
   }
-  currClueInner.appendChild(this.xetCurrClue);
+  exetModals.showModal(this.lightRegexpPanel);
+  evt.stopPropagation();
+  this.lightRegexpEntry.focus();
+}
 
-  const currClueText = document.getElementById(
-      `${exet.puz.prefix}-curr-clue-text`)
-  currClueText.innerHTML = `<span class="xet-action">Edit clue: </span><span
-    id="xet-clue-stat" class="xet-clue-stat"></span><span
-    contenteditable="true" class="xet-editable" id="xet-clue"></span>`
-  this.currClueIsDraft = this.isDraftClue(theClue.clue)
-  // We make the raw clue text editable here, including any tags or
-  // in-clue-anno markers (~{...}~).
-  const xetClue = document.getElementById("xet-clue")
-  xetClue.spellcheck = exetState.spellcheck
-  xetClue.innerText = this.currClueIsDraft ?
-    theClue.clue.substr(this.DRAFT.length).trim() : theClue.clue
-  const handler = this.throttledClueChange.bind(this)
-  xetClue.addEventListener('input', handler)
-  this.setDraftToggler()
-  const xetClueStat = document.getElementById("xet-clue-stat")
-  xetClueStat.addEventListener('click', e => {
-    e.stopPropagation()
-    exet.currClueIsDraft = !exet.currClueIsDraft;
-    exet.setDraftToggler()
-    exet.handleClueChange()
-  });
-
-  const spacer = document.createElement('span')
-  spacer.innerHTML = `<br><span class="xet-action">Edit
-      optional anno: </span>`
-  this.xetCurrClue.appendChild(spacer)
-
-  let xetAnno = document.createElement('span')
-  xetAnno.className = 'xet-anno xet-editable'
-  xetAnno.id = 'xet-anno'
-  xetAnno.contentEditable = true
-  xetAnno.spellcheck = exetState.spellcheck
-  xetAnno.innerText = theClue.anno
-  this.xetCurrClue.appendChild(xetAnno)
-  xetAnno.addEventListener('input', handler)
-
+Exet.prototype.makeLinkingPanel = function() {
+  const oldLinking = document.getElementById('xet-linking');
+  if (oldLinking) {
+    oldLinking.remove();
+  }
   this.linking = document.createElement('div');
   this.linking.id = 'xet-linking';
-  this.linking.className = 'xet-linking';
-  this.linking.title = 'Press the "Add" button after entering the clue to link to';
+  this.linking.className = 'xet-above-clue-panel';
+  this.linking.title = 'Press the "Add" button after entering the clue to link to. Press Escape or click anywhere outside to dismiss.';
   this.linking.innerHTML = `
     <button id="xet-add-linked" class="xlv-small-button">Add</button>
     <input id="xet-add-linked-num" name="xet-add-linked-num"
@@ -4205,27 +4521,14 @@ Exet.prototype.makeClueEditable = function() {
     Break linked clues
     `;
   this.linking.style.display = 'none';
-  const oldLinking = document.getElementById('xet-linking')
-  if (oldLinking) {
-    oldLinking.remove()
-  }
-  this.puz.currClue.appendChild(this.linking)
+  this.puz.currClue.appendChild(this.linking);
   document.getElementById("xet-add-linked").addEventListener(
       'click', this.addLinkedClue.bind(this));
   this.unlink = document.getElementById("xet-unlink");
   this.unlink.addEventListener('click', this.unlinkCurrClue.bind(this));
-  if (theClue.childrenClueIndices && theClue.childrenClueIndices.length > 0) {
-    this.unlink.style.display = '';
-  } else {
-    this.unlink.style.display = 'none';
-  }
-  const ccLabel = document.getElementById(`${this.puz.prefix}-curr-clue-label`)
-  ccLabel.title = 'Click to add or break up linked clues';
-  ccLabel.addEventListener('click', e => {
-    exetModals.showModal(this.linking)
-    e.stopPropagation()
-  });
+}
 
+Exet.prototype.makeFormatPanel = function() {
   const previewPanel = `
     <div class="xet-action xet-placeholder"></div>
     <div class="xet-format-preview">
@@ -4246,15 +4549,15 @@ Exet.prototype.makeClueEditable = function() {
       <hr>
       <div class="xet-action">Preview with "def"s revealed:</div>
       <div class="xet-format-preview xet-placeholder"></div>
-    </div>`
+    </div>`;
 
-  const oldFormat = document.getElementById('xet-format')
+  const oldFormat = document.getElementById('xet-format');
   if (oldFormat) {
-    oldFormat.remove()
+    oldFormat.remove();
   }
-  const format = document.createElement('div')
-  format.id = 'xet-format'
-  format.className = 'xet-format'
+  const format = document.createElement('div');
+  format.id = 'xet-format';
+  format.className = 'xet-format';
   // Divs of class xet-placeholder will get populated based
   // upon the current selection.
   format.innerHTML = `
@@ -4333,9 +4636,151 @@ Exet.prototype.makeClueEditable = function() {
           </div>
         </button>
       </span>
-    </div>`
-  this.puz.currClue.appendChild(format)
+    </div>`;
+  this.puz.currClue.appendChild(format);
+}
 
+Exet.prototype.makeClueEditable = function() {
+  const theClue = this.currClue();
+  if (!theClue) {
+    return;
+  }
+  /**
+   * Wrap xlv-curr-clue's children in a new div of class xet-curr-clue.
+   * xet-curr-clue will copy max-height from Exolve's settings
+   * of xlv-curr-clue, and it will have overflow-y=auto. But xlv-curr-clue
+   * itself will have overflow=visible, so that the "linking" and "format"
+   * floating elements will get shown.
+   */
+  this.xetCurrClue = document.createElement('div');
+  this.xetCurrClue.className = 'xet-curr-clue';
+  this.xetCurrClue.id = 'xet-curr-clue';
+  this.xetCurrClue.style.width = this.puz.currClue.style.width;
+  this.xetCurrClue.style.maxHeight = this.puz.currClue.style.maxHeight;
+  const currClueInner = this.puz.currClueInner ?? this.puz.currClue;
+  while (currClueInner.children.length > 0) {
+    this.xetCurrClue.appendChild(currClueInner.children[0]);
+  }
+  currClueInner.appendChild(this.xetCurrClue);
+
+  const nextprevSpanXlv = document.getElementById(this.puz.prefix + '-nextprev-span');
+  if (nextprevSpanXlv) {
+    /** Old version of Exolve */
+    nextprevSpanXlv.remove();
+  }
+  let nextprevSpan = document.getElementById('xet-nextprev-span');
+  if (!nextprevSpan) {
+    nextprevSpan = document.createElement('span');
+    nextprevSpan.id = 'xet-nextprev-span';
+  }
+  this.puz.currClue.appendChild(nextprevSpan);
+  nextprevSpan.innerHTML = `
+      <button id="xet-clue-menu-button"
+          style="padding: 1px 4px"
+          title="Click to see more options for ${this.puz.clueLabelDisp(theClue)}."
+          class="xlv-small-button xlv-nextprev">&#9776;<div
+            id="xet-clue-menu" class="xet-clue-menu">
+        <div class="xet-clue-menu-item" id="xet-clue-menu-linking"
+          title="Click to create or break a linked group of clues. Also accessible by clicking the clue number to the left of 'Edit clue: ...'.">
+        Link/Unlink
+        </div>
+        <div class="xet-clue-menu-item" id="xet-clue-menu-regexp"
+          title="Click to add or edit a regexp constraint on the grid-fill in this light.">
+        &#128279; Regexp constraint
+        </div>
+        <div class="xet-clue-menu-item" id="xet-clue-menu-clear"
+          onclick="exet.puz.clearCurr()"
+          title="Click to clear the current light (will not ask for confirmation).">
+        Clear (Ctrl-q)
+        </div>
+        <div class="xet-clue-menu-item" id="xet-clue-menu-reverse"
+          onclick="exet.reverseLight()"
+          title="Click to reverse the current light (will ask for confirmation). Will also break any linked groups this light is a part of.">
+        Reverse
+        </div>
+      </div></button>
+      <button id="xet-prev"
+        class="xlv-small-button xet-nextprev"
+        title="${this.puz.textLabels['curr-clue-prev.hover']}"
+          >${this.puz.textLabels['curr-clue-prev']}</button>
+      <button id="xet-next"
+        class="xlv-small-button xlv-nextprev"
+        title="${this.puz.textLabels['curr-clue-next.hover']}"
+          >${this.puz.textLabels['curr-clue-next']}</button>
+      `;
+  this.clueMenuButton = document.getElementById('xet-clue-menu-button');
+  this.clueMenu = document.getElementById('xet-clue-menu');
+  this.clueMenuButton.addEventListener('click', e => {
+    exetModals.showModal(this.clueMenu);
+    e.stopPropagation();
+  });
+  this.prevButton = document.getElementById('xet-prev');
+  this.prevButton.addEventListener('click', e => {
+    exet.puz.cnavPrev();
+  });
+  this.nextButton = document.getElementById('xet-next');
+  this.nextButton.addEventListener('click', e => {
+    exet.puz.cnavNext();
+  });
+  const clueMenuLinking = document.getElementById('xet-clue-menu-linking');
+  const clueMenuRegexp = document.getElementById('xet-clue-menu-regexp');
+  this.makeLightRegexpPanel(theClue);
+  clueMenuRegexp.addEventListener('click', this.showLightRegexpPanel.bind(this));
+
+  const currClueText = document.getElementById(
+      `${exet.puz.prefix}-curr-clue-text`);
+  currClueText.innerHTML = `<span class="xet-action">Edit clue: </span><span
+    id="xet-clue-stat" class="xet-clue-stat"></span><span
+    contenteditable="true" class="xet-editable" id="xet-clue"></span>`;
+  this.currClueIsDraft = this.isDraftClue(theClue.clue);
+  // We make the raw clue text editable here, including any tags or
+  // in-clue-anno markers (~{...}~).
+  const xetClue = document.getElementById("xet-clue");
+  xetClue.spellcheck = exetState.spellcheck;
+  xetClue.innerText = this.currClueIsDraft ?
+    theClue.clue.substr(this.DRAFT.length).trim() : theClue.clue;
+  const handler = this.throttledClueChange.bind(this);
+  xetClue.addEventListener('input', handler);
+  this.setDraftToggler();
+  const xetClueStat = document.getElementById("xet-clue-stat");
+  xetClueStat.addEventListener('click', e => {
+    e.stopPropagation();
+    exet.currClueIsDraft = !exet.currClueIsDraft;
+    exet.setDraftToggler();
+    exet.handleClueChange();
+  });
+
+  const spacer = document.createElement('span');
+  spacer.innerHTML = `<br><span class="xet-action">Edit
+      optional anno:&nbsp;</span>`;
+  this.xetCurrClue.appendChild(spacer);
+
+  const xetAnno = document.createElement('span');
+  xetAnno.className = 'xet-anno xet-editable';
+  xetAnno.id = 'xet-anno';
+  xetAnno.contentEditable = true;
+  xetAnno.spellcheck = exetState.spellcheck;
+  xetAnno.innerText = theClue.anno;
+  this.xetCurrClue.appendChild(xetAnno);
+  xetAnno.addEventListener('input', handler);
+
+  this.makeLinkingPanel();
+  if (theClue.childrenClueIndices && theClue.childrenClueIndices.length > 0) {
+    this.unlink.style.display = '';
+  } else {
+    this.unlink.style.display = 'none';
+  }
+
+  const ccLabel = document.getElementById(`${this.puz.prefix}-curr-clue-label`);
+  ccLabel.title = 'Click to add or break up linked clues';
+  const linkingShower = e => {
+    exetModals.showModal(this.linking);
+    e.stopPropagation();
+  };
+  ccLabel.addEventListener('click', linkingShower);
+  clueMenuLinking.addEventListener('click', linkingShower);
+
+  this.makeFormatPanel();
   const formatShortcut = (e) => {
     if (!e.ctrlKey && !e.metaKey) return true;
     const tag = (e.key == 'd') ? 'def' : e.key.toLowerCase();
@@ -4354,8 +4799,8 @@ Exet.prototype.makeClueEditable = function() {
     }
     return false;
   };
-  xetClue.addEventListener('keydown', formatShortcut)
-  xetAnno.addEventListener('keydown', formatShortcut)
+  xetClue.addEventListener('keydown', formatShortcut);
+  xetAnno.addEventListener('keydown', formatShortcut);
 
   this.puz.resizeCurrClueAndControls();
   this.reposition();
@@ -4367,7 +4812,7 @@ Exet.prototype.throttledClueChange = function() {
   }
   this.maybeShowFormat();
   this.throttledClueTimer = setTimeout(() => {
-    this.handleClueChange()
+    this.handleClueChange();
     this.throttledClueTimer = null;
   }, this.longInputLagMS);
 }
@@ -4494,6 +4939,14 @@ Exet.prototype.randomIndex = function(candidates, noSkipping) {
   return Math.floor(Math.random() * candidates.length);
 }
 
+Exet.prototype.shuffle = function(arr) {
+  // Fisher-Yates shuffle of arr[]
+  for (let i = arr.length - 1; i > 0; i--) {
+    let j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
 Exet.prototype.automagicBlocksInner = function(chequered, targetNumClues, showAlerts=true) {
   const minSpan = chequered ? 4 : 3;
   const grid = this.puz.grid;
@@ -4600,7 +5053,7 @@ Exet.prototype.automagicBlocksInner = function(chequered, targetNumClues, showAl
     if (numCandidates == 0) {
       break;
     }
- }
+  }
   if (totalChanges == 0) {
     if (showAlerts) {
       alert('Add automagic blocks: found no further candidate cells ' +
@@ -4648,871 +5101,6 @@ Exet.prototype.automagicBlocks = function(noTarget=true) {
   }
   return false;
 }
-
-// --------------- Autofill-related code --------------------------------------
-
-/**
- * Is [r,c] a cell to be counted for a constrained pangram?
- */
-Exet.prototype.pangramCell = function(r, c, fillState) {
-  const gridCell = exet.puz.grid[r][c];
-  if (!gridCell.isLight) {
-    return false;
-  }
-
-  if (this.autofill.pangramAll) {
-    return true;
-  }
-  if (this.autofill.pangramCircled && gridCell.hasCircle) {
-    return true;
-  }
-  let numLights = 0;
-  if (gridCell.acrossClueLabel) numLights++;
-  if (gridCell.downClueLabel) numLights++;
-  if (gridCell.z3dClueLabel) numLights++;
-  if (this.autofill.pangramChecked && numLights > 1) {
-    return true;
-  }
-  if (this.autofill.pangramUnchecked && numLights == 1) {
-    return true;
-  }
-  if (!this.autofill.pangramFirsts && !this.autofill.pangramLasts) {
-    return false;
-  }
-
-  let firsts = [];
-  if (gridCell.startsAcrossClue) firsts.push('A' + gridCell.startsClueLabel);
-  if (gridCell.startsDownClue) firsts.push('D' + gridCell.startsClueLabel);
-  if (gridCell.startsZ3dClue) firsts.push('Z' + gridCell.startsClueLabel);
-  let lasts = [];
-  if (this.autofill.pangramLasts || this.tryReversals) {
-    if (gridCell.endsAcrossClue) lasts.push('A' + gridCell.endsAcrossClue);
-    if (gridCell.endsDownClue) lasts.push('D' + gridCell.endsDownClue);
-    if (gridCell.endsZ3dClue) lasts.push('Z' + gridCell.endsZ3dClue);
-  }
-  if (this.tryReversals &&
-      (!this.autofill.pangramFirsts || !this.autofill.pangramLasts)) {
-    const realFirsts = [];
-    const revFirsts = [];
-    for (let ci of firsts) {
-      const clue = fillState.clues[ci];
-      if (clue && clue.lChoices.length == 1 && clue.lChoices[0] < 0) {
-        revFirsts.push(ci);
-      } else {
-        realFirsts.push(ci);
-      }
-    }
-    const realLasts = [];
-    const revLasts = [];
-    for (let ci of lasts) {
-      const clue = fillState.clues[ci];
-      if (clue && clue.lChoices.length == 1 && clue.lChoices[0] < 0) {
-        revLasts.push(ci);
-      } else {
-        realLasts.push(ci);
-      }
-    }
-    firsts = realFirsts.concat(revLasts);
-    lasts = realLasts.concat(revFirsts);
-  }
-  if (this.autofill.pangramFirsts && firsts.length > 0) {
-    return true;
-  }
-  if (this.autofill.pangramLasts && lasts.length > 0) {
-    return true;
-  }
-  return false;
-}
-
-Exet.prototype.setScore = function(fillState) {
-  fillState.scoreF = 0;  /* fullness */
-  fillState.scoreV = 0;  /* viability */
-  fillState.scoreP = 0;  /* popularity */
-  fillState.score = 0;
-
-  fillState.unfilled = [];
-  fillState.lettersUsed = {};
-  fillState.constrLetters = {};
-  fillState.reversals = 0;
-  let numEntries = 0;
-  for (let ci in fillState.clues) {
-    const theClue = fillState.clues[ci];
-    if (theClue.lChoices.length == 1 && theClue.lChoices[0] < 0) {
-      fillState.reversals++;
-    }
-    if (!theClue.parentClueIndex) {
-      let scoreP = 0;
-      /* we use popularity of the first choice */
-      if (theClue.lChoices.length > 0) {
-        let pindex = theClue.lChoices[0];
-        if (pindex < 0) pindex = 0 - pindex;
-        if (pindex >= exetLexicon.startLen) {
-          /* we really prefer preflex entries */
-          pindex = 0;
-        }
-        scoreP = (exetLexicon.startLen - pindex) / exetLexicon.startLen;
-      }
-      ++numEntries;
-      fillState.scoreP += scoreP;
-    }
-  }
-  if (numEntries > 0) {
-    fillState.scoreP /= numEntries;
-  }
-  fillState.score += fillState.scoreP;
-  let numLightCells = 0;
-  for (let i = 0; i < fillState.gridHeight; i++) {
-    for (let j = 0; j < fillState.gridWidth; j++) {
-      let fillCell = fillState.grid[i][j]
-      if (!fillCell.isLight) {
-        continue
-      }
-      numLightCells++;
-      if (fillCell.solution != '?' || fillCell.currLetter != '?') {
-        let c = fillCell.solution
-        if (c == '?') c = fillCell.currLetter
-        console.assert(c, i, j, fillCell)
-        fillState.lettersUsed[c] = true
-        if (this.pangramCell(i, j, fillState)) {
-          fillState.constrLetters[c] = true;
-        }
-        continue
-      }
-      if (fillCell.viability <= 0) {
-        fillState.unfilled.push([i, j, fillCell.viability]);
-        fillState.scoreV = - Number.MAX_VALUE;
-        fillState.score = fillState.scoreV;
-        fillState.viable = false;
-        return;
-      }
-      fillState.scoreV += Math.log(fillCell.viability);
-      fillState.unfilled.push([i, j, fillCell.viability]);
-    }
-  }
-  fillState.numLettersUsed = Object.keys(fillState.lettersUsed).length;
-  const constrUsed = Object.keys(fillState.constrLetters);
-  fillState.numConstrLetters = constrUsed.length;
-  if (numLightCells == 0) {
-    return;
-  }
-  let boost = 0
-  if (this.autofill.boostPangram) {
-    for (let c of constrUsed) {
-      boost += exetLexicon.letterRarity(c);
-    }
-  }
-  if (this.autofill.boostPangram &&
-      constrUsed.length < exetLexicon.letters.length) {
-    // Sort fillState.unfilled by ascending frequency of unused letter choices,
-    // then by ascending viability. But add a little random salt to the rarity,
-    // to avoid favouring low-numbered cells.
-    for (let x of fillState.unfilled) {
-      if (!this.pangramCell(x[0], x[1], fillState)){
-        x.push(0);
-        continue;
-      }
-      let cell = fillState.grid[x[0]][x[1]]
-      let choices = Object.keys(cell.cChoices)
-      let maxRarity = 0
-      for (let c of choices) {
-        if (fillState.constrLetters[c]) {
-          continue;
-        }
-        const rarity = exetLexicon.letterRarity(c)
-        if (rarity > maxRarity) maxRarity = rarity
-      }
-      x.push(maxRarity > 0 ? (maxRarity + 0.1 * Math.random()) : 0);
-    }
-    fillState.unfilled.sort((a, b) => a[3] == b[3] ? a[2] - b[2] : b[3] - a[3]);
-  } else {
-    fillState.unfilled.sort((a, b) => a[2] - b[2]);
-  }
-  fillState.scoreV /= 100;
-  fillState.score += fillState.scoreV;
-
-  const f = numLightCells - fillState.unfilled.length;
-  const progressWeight = 30;
-  fillState.scoreF = progressWeight * (f + boost) / 100;
-  fillState.score += fillState.scoreF;
-}
-
-Exet.prototype.getAutofillBase = function() {
-  let fillState = new ExetFillState(this.fillState)
-  fillState.delta = []
-  fillState.preflexUsed = {}
-  fillState.numPreflexUsed = 0
-  this.setScore(fillState)
-  return fillState
-}
-
-Exet.prototype.isFull = function(candidate) {
-  return candidate.unfilled.length == 0
-}
-
-Exet.prototype.beamSearchStep = function() {
-  if (this.autofill.throttledTimer) {
-    clearTimeout(this.autofill.throttledTimer)
-  }
-  if (this.autofill.beam.size() == 0) {
-    return
-  }
-  let startTS = Date.now()
-  this.autofill.throttledTimer = null;
-  this.autofill.step++
-  this.autofill.stepSpan.innerText = this.autofill.step
-  this.addAutofillChildren()
-  this.autofill.currBeamSpan.innerText = this.autofill.beam.size()
-
-  this.autofill.msUsed += (Date.now() - startTS)
-  this.autofill.timeSpan.innerText = this.autofill.msUsed
-  this.autofill.speedSpan.innerText = (this.autofill.msUsed /
-      this.autofill.step).toFixed(0)
-
-  const best = this.refreshAutofill();
-  if (best) {
-    this.updateAutofill(best)
-    if (this.isFull(best)) {
-      if (this.autofill.boostPangram &&
-          best.numConstrLetters != exetLexicon.letters.length &&
-          this.autofill.loopForPangram) {
-        this.autofill.accept.disabled = true
-        this.autofill.clear.disabled = true
-        this.resetAutofill('Looping for pangram')
-        this.resetViability()
-        this.startstopAutofill();
-      } else {
-        this.autofill.accept.disabled = false
-        this.autofill.clear.disabled = false
-        this.resetAutofill('Succeeded!')
-      }
-    } else {
-      this.autofill.throttledTimer = setTimeout(() => {
-        exet.beamSearchStep();
-      }, this.autofill.lag);
-    }
-  } else {
-    this.autofill.accept.disabled = false
-    this.autofill.clear.disabled = false
-    this.resetAutofill('<span class="xet-red">Failed.</span> ' +
-                       '<span class="xet-small-action">Do try again; if failure ' +
-                       'persists, try lowering min popularity score or ' +
-                       'increasing beam width</span>')
-  }
-}
-
-Exet.prototype.shuffle = function(arr) {
-  // Fisher-Yates shuffle of arr[]
-  for (let i = arr.length - 1; i > 0; i--) {
-    let j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-}
-
-Exet.prototype.hashCandidate = function(candidate) {
-  let fills = '';
-  for (let i = 0; i < candidate.gridHeight; i++) {
-    for (let j = 0; j < candidate.gridWidth; j++) {
-      const gridCell = candidate.grid[i][j];
-      if (!gridCell.isLight) continue;
-      fills += gridCell.currLetter || '?';
-    }
-  }
-  candidate.fills = fills;
-  return exetLexicon.javaHash(fills);
-}
-
-Exet.prototype.getCurrEntry = function(candidate, ci) {
-  const cells = this.puz.getAllCells(ci);
-  let entry = '';
-  for (const cell of cells) {
-    const gridCell = candidate.grid[cell[0]][cell[1]];
-    entry += gridCell.currLetter;
-  }
-  return entry;
-}
-
-Exet.prototype.hasPatternOfDeath = function(candidate) {
-  for (let i = 0; i < candidate.gridHeight; i++) {
-    for (let j = 0; j < candidate.gridWidth; j++) {
-      const gridCell = candidate.grid[i][j];
-      if (!gridCell.isLight) continue;
-      if (gridCell.currLetter != '?') continue;
-      const puzCell = this.puz.grid[i][j];
-      if (!puzCell.acrossClueLabel || !puzCell.downClueLabel) continue;
-      const aci = this.puz.getDirClueIndex('A', puzCell.acrossClueLabel);
-      const dci = this.puz.getDirClueIndex('D', puzCell.downClueLabel);
-      console.assert(aci && dci, aci, dci);
-      const ac = candidate.clues[aci];
-      const dc = candidate.clues[dci];
-      if (ac.solution != dc.solution) {
-        continue;
-      }
-      const acEntry = this.getCurrEntry(candidate, aci);
-      const dcEntry = this.getCurrEntry(candidate, dci);
-      if (acEntry != dcEntry) {
-        continue;
-      }
-      const loc = acEntry.indexOf('?');
-      console.assert(loc >= 0, acEntry);
-      if (acEntry.substr(0, loc).indexOf('?') >= 0 ||
-          acEntry.substr(loc + 1).indexOf('?') >= 0) {
-        continue;
-      }
-      /* Across and down solutions are identical, and have the
-       * current cell as the only unfilled cell. This is not
-       * fillable!
-       */
-      return true;
-    }
-  }
-  return false;
-}
-
-Exet.prototype.maybeAddAutofillCandidate = function(candidate) {
-  if (!candidate.viable) return false;
-  const h = this.hashCandidate(candidate);
-  if (this.autofill.triedHashes[h]) {
-    return false;
-  }
-  this.autofill.triedHashes[h] = true;
-  if (this.hasPatternOfDeath(candidate)) {
-    return false;
-  }
-  this.autofill.beam.add(candidate);
-  return true;
-}
-
-Exet.prototype.addAutofillChildren = function() {
-  /** How many light choices do we consider for each light: */
-  const constrainerLimit = 2000;
-  /** How many iterations of refineLightChoices to vet: */
-  const refinementSweeps = 2;
-
-  const priorityLoops = 20;
-  if (this.autofill.priorityClues.length > 0 &&
-      this.autofill.priorityLoop < priorityLoops) {
-    /**
-     * We're still doing the first phase of trying to fit the
-     * preflex entries.
-     */
-    this.autofillPriorityClues(refinementSweeps, constrainerLimit);
-    ++this.autofill.priorityLoop;
-    return;
-  }
-  if (this.autofill.beam.size() == 0) {
-    return;
-  }
-  const candidate = this.autofill.beam.pop(true);
-  if (!candidate || !candidate.unfilled || candidate.unfilled.length == 0) {
-    return;
-  }
-
-  // Try filling up to "toAdd" cells from the top few
-  let toAdd = 1;
-  const cellChoices = [];
-  if (this.autofill.boostPangram &&
-      candidate.numConstrLetters < exetLexicon.letters.length) {
-    /** prioritize the pangram, pick the top-priority cell */
-    cellChoices.push(0);
-    toAdd = 0;
-  }
-  const cellIndexLimit = Math.min(candidate.unfilled.length, 4);
-  for (let i = 0; i < toAdd; i++) {
-    let cellIndex = Math.floor(Math.random() * cellIndexLimit);
-    if (!cellChoices.includes(cellIndex)) {
-      cellChoices.push(cellIndex);
-    }
-  }
-  let numChildren = 0;
-  const maxChildren = 50;
-  for (let cellIndex of cellChoices) {
-    const row = candidate.unfilled[cellIndex][0];
-    const col = candidate.unfilled[cellIndex][1];
-    const cell = candidate.grid[row][col];
-    const choices = Object.keys(cell.cChoices);
-    for (let c of choices) {
-      const child = new ExetFillState(candidate);
-      const childCell = child.grid[row][col];
-      childCell.cChoices = {};
-      childCell.cChoices[c] = true;
-      childCell.currLetter = c;
-      child.delta = candidate.delta.slice();
-      child.delta.push([row, col, c]);
-      for (let s = 0; s < refinementSweeps && child.viable; s++) {
-        if (!this.refineLightChoices(child, constrainerLimit)) break;
-      }
-      if (child.viable) {;
-        this.setScore(child);
-        if (this.maybeAddAutofillCandidate(child)) {
-          if (++numChildren >= maxChildren) {
-            break;
-          }
-        }
-      }
-    }
-    if (numChildren >= maxChildren) {
-      break;
-    }
-  }
-}
-
-Exet.prototype.getAutofillPriorityClues = function() {
-  let pclues = []
-  if (this.preflex.length == 0) {
-    return pclues
-  }
-  for (let ci in this.puz.clues) {
-    let theClue = this.puz.clues[ci]
-    if (theClue.solution.indexOf('?') < 0) continue
-    if (this.preflexByLen[theClue.enumLen]) {
-      let toTry = {}
-      for (let idx of this.preflexByLen[theClue.enumLen]) {
-        toTry[idx] = true
-      }
-      pclues.push([ci, toTry])
-    }
-  }
-  this.shuffle(pclues)
-  return pclues
-}
-
-/**
- * Add a candidate to the beam that starts with the base and
- * adds as many preflexes as possible, in random order.
- */
-Exet.prototype.autofillPriorityClues = function(refinementSweeps, constrainerLimit) {
-  if (this.autofill.priorityClues.length == 0) {
-    return;
-  }
-  const usedP = {};
-  const child = new ExetFillState(this.autofill.base);
-  child.delta = this.autofill.base.delta.slice();
-  const priClueIndices = {};
-  for (let i = 0; i < this.autofill.priorityClues.length; i++) {
-    priClueIndices[i] = true;
-  }
-  while (child.viable) {
-    const rem = Object.keys(priClueIndices);
-    if (rem.length == 0) {
-      break;
-    }
-    const ki = Math.floor(Math.random() * rem.length);
-    const idx = rem[ki];
-    delete priClueIndices[idx];
-    const ciToTry = this.autofill.priorityClues[idx];
-    const ci = ciToTry[0];
-    const theClue = child.clues[ci];
-    if (!theClue || !theClue.lChoices || !theClue.lChoices.length) {
-      continue;
-    }
-    const numChoices = theClue.lChoices.length;
-    const toTry = ciToTry[1];
-    const numToTry = Object.keys(toTry).length;
-    for (let i = 0; i < numChoices; i++) {
-      const p = theClue.lChoices[i];
-      if (toTry[p] && !usedP[p]) {
-        const cells = this.puz.getAllCells(ci);
-        const entry = exetLexicon.getLex(p);
-        let key = exetLexicon.lexkey(entry);
-        if (p < 0) key.reverse();
-        child.clues[ci].lChoices = [p];
-        child.clues[ci].lRejects = [];
-        for (let j = 0; j < cells.length; j++) {
-          let row = cells[j][0];
-          let col = cells[j][1];
-          let childCell = child.grid[row][col];
-          let c = key[j];
-          childCell.cChoices = {};
-          childCell.cChoices[c] = true;
-          childCell.currLetter = c;
-          child.delta.push([row, col, c]);
-        }
-        usedP[p] = true;
-        for (let s = 0; s < refinementSweeps && child.viable; s++) {
-          if (!this.refineLightChoices(child, constrainerLimit)) break;
-        }
-        break;
-      }
-    }
-  }
-  for (let s = 0; s < refinementSweeps && child.viable; s++) {
-    if (!this.refineLightChoices(child, constrainerLimit)) break;
-  }
-  if (child.viable) {
-    this.setScore(child);
-    this.maybeAddAutofillCandidate(child);
-  }
-}
-
-Exet.prototype.updateAutofillPreflex = function() {
-  this.autofill.preflexTotalSpan.innerText = this.preflex.length;
-  this.autofill.unpreflexTotalSpan.innerText = this.unpreflex.length;
-  this.autofill.minpopSpan.innerText = this.minpop;
-  this.autofill.indexMinPopSpan.innerText = Number(
-      this.indexMinPop - 1).toLocaleString();
-  this.autofill.properNounsSpan.innerText = this.noProperNouns ?
-      "disallowed" : "allowed";
-  this.autofill.stemDupesSpan.innerText = this.noStemDupes ?
-      "disallowed" : "allowed";
-  this.autofill.tryReversalsSpan.innerText = this.tryReversals ?
-      "allowed" : "disallowed";
-}
-
-Exet.prototype.markClueEnds = function() {
-  for (let r = 0; r < this.puz.gridHeight; r++) {
-    for (let c = 0; c < this.puz.gridWidth; c++) {
-      const gridCell = this.puz.grid[r][c];
-      if (!gridCell.isLight) {
-        continue;
-      }
-      if (gridCell.startsAcrossClue) {
-        const last =
-            gridCell.startsAcrossClue[gridCell.startsAcrossClue.length - 1];
-        const lastCell = this.puz.grid[last[0]][last[1]];
-        lastCell.endsAcrossClue = gridCell.startsClueLabel;
-      }
-      if (gridCell.startsDownClue) {
-        const last =
-            gridCell.startsDownClue[gridCell.startsDownClue.length - 1];
-        const lastCell = this.puz.grid[last[0]][last[1]];
-        lastCell.endsDownClue = gridCell.startsClueLabel;
-      }
-      if (gridCell.startsZ3dClue) {
-        const last =
-            gridCell.startsZ3dClue[gridCell.startsZ3dClue.length - 1];
-        const lastCell = this.puz.grid[last[0]][last[1]];
-        lastCell.endsZ3dClue = gridCell.startsClueLabel;
-      }
-    }
-  }
-}
-
-Exet.prototype.startstopAutofill = function() {
-  if (!this.autofill.running) {
-    if (this.puz.numCellsToFill == this.puz.numCellsFilled) {
-      alert('The grid is already full')
-      return
-    }
-    let beamWidth = parseInt(this.autofill.beamWidthInp.value)
-    if (isNaN(beamWidth) || beamWidth <= 0) {
-      this.autofill.beamWidthInp.value = this.autofill.beamWidth
-    } else {
-      this.autofill.beamWidth = beamWidth
-      this.autofill.beam.relimit(beamWidth)
-    }
-    if (this.autofill.beam.size() == 0) {
-      let candidate = this.getAutofillBase()
-      if (!candidate.viable) {
-        alert('Autofill will not work on the current grid. Perhaps retry ' +
-              'after clearing some constraining lights or modifying the grid?')
-        return
-      }
-      this.autofill.base = candidate;
-      this.autofill.priorityClues = this.getAutofillPriorityClues();
-      this.autofill.priorityLoop = 0;
-      this.autofill.beam.add(candidate);
-      this.autofill.currBeamSpan.innerText = this.autofill.beam.size()
-    }
-
-    if (this.viabilityUpdateTimer) {
-      clearTimeout(this.viabilityUpdateTimer);
-      this.viabilityUpdateTimer = null;
-    }
-
-    this.updateAutofillPreflex()
-    this.autofill.running = true
-    this.autofill.status = 'Running'
-    this.autofill.accept.disabled = true
-    this.autofill.clear.disabled = true
-    this.autofill.statusSpan.innerHTML = this.autofill.status
-    this.sweepIndicator.className = 'xet-sweeping-animated'
-    this.autofill.startstop.innerText = 'Pause'
-    this.autofill.startstop.className = 'xlv-button xet-pink-button'
-    this.autofill.boostPangram = this.autofill.pangramInp.checked
-    this.autofill.loopForPangram = this.autofill.pangramLoopInp.checked
-    this.autofill.pangramAll = this.autofill.pangramAllInp.checked
-    this.autofill.pangramCircled = this.autofill.pangramCircledInp.checked
-    this.autofill.pangramChecked = this.autofill.pangramCheckedInp.checked
-    this.autofill.pangramUnchecked = this.autofill.pangramUncheckedInp.checked
-    this.autofill.pangramFirsts = this.autofill.pangramFirstsInp.checked
-    this.autofill.pangramLasts = this.autofill.pangramLastsInp.checked
-
-    if ((this.autofill.pangramFirsts && this.tryReversals) ||
-        this.autofill.pangramLasts) {
-      this.markClueEnds();
-    }
-    if (this.autofill.throttledTimer) {
-      clearTimeout(this.autofill.throttledTimer)
-    }
-    this.autofill.throttledTimer = setTimeout(() => {
-      this.beamSearchStep();
-    }, this.autofill.lag);
-  } else {
-    this.autofill.running = false
-    this.updateSweepInd()
-    this.autofill.startstop.innerText = 'Start'
-    this.autofill.startstop.className = 'xlv-button'
-    this.autofill.status = 'Stopped'
-    this.autofill.accept.disabled = false
-    this.autofill.clear.disabled = false
-    this.autofill.statusSpan.innerHTML = this.autofill.status
-    clearTimeout(this.autofill.throttledTimer)
-    this.autofill.throttledTimer = null
-  }
-}
-
-Exet.prototype.resetAutofill = function(status) {
-  this.autofill.beam = new ExetDher(this.autofill.beamWidth);
-  this.autofill.step = 0;
-  this.autofill.msUsed = 0;
-  this.autofill.triedHashes = {};
-  this.updateAutofillPreflex();
-  if (!this.autofill.running) {
-    return
-  }
-  if (this.autofill.throttledTimer) {
-    clearTimeout(this.autofill.throttledTimer)
-    this.autofill.throttledTimer = null
-  }
-  this.autofill.status = status
-  this.autofill.statusSpan.innerHTML = status
-  this.autofill.running = false
-  this.updateSweepInd()
-  this.autofill.startstop.innerText = 'Start'
-  this.autofill.startstop.className = 'xlv-button'
-}
-
-Exet.prototype.updateAutofill = function(candidate) {
-  console.assert(this.autofill.base, this.autofill);
-  this.fillState = new ExetFillState(this.autofill.base);
-  // Show light-fill suggestions from full lights.
-  for (let ci in candidate.clues) {
-    const lChoices = candidate.clues[ci].lChoices;
-    if (lChoices.length != 1) {
-      continue;
-    }
-    const theClue = this.fillState.clues[ci];
-    console.assert(theClue, ci);
-    theClue.lChoices = lChoices;
-    theClue.lRejects = candidate.clues[ci].lRejects || [];
-  }
-  // Show grid-cell suggestions. 
-  for (let row = 0; row < this.puz.gridHeight; row++) {
-    for (let col = 0; col < this.puz.gridWidth; col++) {
-      const gridCell = this.puz.grid[row][col];
-      if (!gridCell.isLight) {
-        continue;
-      }
-      const choices = candidate.grid[row][col].cChoices;
-      if (Object.keys(choices).length == 1) {
-        this.fillState.grid[row][col].cChoices = choices;
-      }
-    }
-  }
-  this.updateViablots();
-}
-
-Exet.prototype.initAutofill = function() {
-  if (!this.autofill || this.autofill.id != this.puz.id) {
-    this.autofill = {
-      id: this.puz.id,
-      candidates: [],
-      beamWidth: 64,
-      beam: new ExetDher(64),
-      step: 0,
-      numCells: this.puz.gridWidth * this.puz.gridHeight * this.puz.layers3d,
-      running: false,
-      throttledTimer: null,
-      lag: 200,
-      status: 'None',
-      boostPangram: false,
-      loopForPangram: false,
-      pangramAll: true,
-      pangramCircled: false,
-      pangramChecked: false,
-      pangramUnchecked: false,
-      pangramFirsts: false,
-      pangramLasts: false,
-      triedHashes: {},
-    };
-  }
-  const analysis = new ExetAnalysis(
-      this.puz.grid, this.puz.gridWidth, this.puz.gridHeight, this.puz.layers3d);
-  this.autofill.barred = analysis.numBars() > 0;
-  this.autofill.doublyChecked = analysis.unchequeredOK(false);
-  this.autofill.clear = document.getElementById("xet-autofill-clear")
-  this.autofill.clear.disabled = true
-  this.autofill.clear.addEventListener('click', e => {
-    this.autofill.accept.disabled = true;
-    this.autofill.clear.disabled = true;
-    this.resetAutofill('Cleared');
-    this.resetViability();
-  })
-  this.autofill.accept = document.getElementById("xet-autofill-accept");
-  this.autofill.accept.disabled = true;
-  this.autofill.accept.addEventListener('click', e => {
-    this.autofill.accept.disabled = true;
-    this.autofill.clear.disabled = true;
-    this.acceptAll();
-  })
-  this.autofill.startstop = document.getElementById("xet-autofill-startstop");
-  if (this.autofill.running) {
-    this.autofill.startstop.innerText = 'Pause';
-    this.autofill.startstop.className = 'xlv-button xet-pink-button';
-  }
-  this.autofill.startstop.addEventListener(
-      'click', this.startstopAutofill.bind(this));
-
-  this.autofill.beamWidthInp = document.getElementById(
-      'xet-autofill-max-beam');
-  this.autofill.beamWidthInp.value = this.autofill.beamWidth;
-
-  this.autofill.pangramInp = document.getElementById(
-      'xet-autofill-boost-pangram');
-  this.autofill.pangramInp.checked = this.autofill.boostPangram;
-  this.autofill.pangramLoopInp = document.getElementById(
-      'xet-autofill-pangram-loop');
-  this.autofill.pangramLoopInp.checked = this.autofill.loopForPangram;
-
-  this.autofill.pangramDetails = document.getElementById(
-      'xet-autofill-pangram-details');
-  this.autofill.pangramAllInp = document.getElementById(
-      'xet-autofill-pangram-all');
-  this.autofill.pangramAllInp.checked = this.autofill.pangramAll;
-  this.autofill.pangramCircledInp = document.getElementById(
-      'xet-autofill-pangram-circled');
-  this.autofill.pangramCircledInp.checked = this.autofill.pangramCircled;
-  this.autofill.pangramCheckedInp = document.getElementById(
-      'xet-autofill-pangram-checked');
-  this.autofill.pangramCheckedInp.checked = this.autofill.pangramChecked;
-  this.autofill.pangramUncheckedInp = document.getElementById(
-      'xet-autofill-pangram-unchecked');
-  this.autofill.pangramUncheckedInp.checked = this.autofill.pangramUnchecked;
-  this.autofill.pangramFirstsInp = document.getElementById(
-      'xet-autofill-pangram-firsts');
-  this.autofill.pangramFirstsInp.checked = this.autofill.pangramFirsts;
-  this.autofill.pangramLastsInp = document.getElementById(
-      'xet-autofill-pangram-lasts');
-  this.autofill.pangramLastsInp.checked = this.autofill.pangramLasts;
-  const pangramOptionsSanitizer = (e) => {
-    this.autofill.pangramAllInp.checked = 
-        (!this.autofill.pangramCircledInp.checked &&
-         !this.autofill.pangramCheckedInp.checked &&
-         !this.autofill.pangramUncheckedInp.checked &&
-         !this.autofill.pangramFirstsInp.checked &&
-         !this.autofill.pangramLastsInp.checked) ||
-        (this.autofill.pangramCheckedInp.checked &&
-         this.autofill.pangramUncheckedInp.checked);
-  };
-  for (let elt of [this.autofill.pangramCircledInp,
-                   this.autofill.pangramCheckedInp,
-                   this.autofill.pangramUncheckedInp,
-                   this.autofill.pangramFirstsInp,
-                   this.autofill.pangramLastsInp]) {
-    elt.addEventListener('change', pangramOptionsSanitizer);
-  }
-  this.autofill.pangramAllInp.addEventListener('change', (e) => {
-    if (this.autofill.pangramAllInp.checked) {
-      this.autofill.pangramCircledInp.checked = false;
-      this.autofill.pangramCheckedInp.checked = false;
-      this.autofill.pangramUncheckedInp.checked = false;
-      this.autofill.pangramFirstsInp.checked = false;
-      this.autofill.pangramLastsInp.checked = false;
-    } else {
-      this.autofill.pangramAllInp.checked = 
-          (!this.autofill.pangramCircledInp.checked &&
-           !this.autofill.pangramCheckedInp.checked &&
-           !this.autofill.pangramUncheckedInp.checked &&
-           !this.autofill.pangramFirstsInp.checked &&
-           !this.autofill.pangramLastsInp.checked) ||
-          (this.autofill.pangramCheckedInp.checked &&
-           this.autofill.pangramUncheckedInp.checked);
-    }
-  });
-
-  this.autofill.stepSpan = document.getElementById('xet-autofill-step');
-  this.autofill.stepSpan.innerText = this.autofill.step;
-
-  this.autofill.statusSpan = document.getElementById('xet-autofill-status');
-  this.autofill.statusSpan.innerHTML = this.autofill.status;
-
-  this.autofill.timeSpan = document.getElementById('xet-autofill-time');
-  this.autofill.speedSpan = document.getElementById('xet-autofill-speed');
-
-  this.autofill.currBeamSpan = document.getElementById('xet-autofill-curr-beam');
-  this.autofill.currBeamSpan.innerText = this.autofill.beam.limit();
-
-  this.autofill.scoreSpan = document.getElementById('xet-autofill-score');
-  this.autofill.scoreVSpan = document.getElementById('xet-autofill-score-v');
-  this.autofill.scorePSpan = document.getElementById('xet-autofill-score-p');
-  this.autofill.scoreFSpan = document.getElementById('xet-autofill-score-f');
-
-  this.autofill.reversalsSpan = document.getElementById('xet-autofill-reversals');
-
-  this.autofill.preflexTotalSpan = document.getElementById(
-      'xet-autofill-preflex-total');
-  this.autofill.preflexUsedSpan = document.getElementById(
-      'xet-autofill-preflex-used');
-  this.autofill.unpreflexTotalSpan = document.getElementById(
-      'xet-autofill-unpreflex-total');
-  this.autofill.minpopSpan = document.getElementById('xet-autofill-minpop');
-  this.autofill.indexMinPopSpan = document.getElementById(
-      'xet-autofill-index-minpop');
-  this.autofill.properNounsSpan = document.getElementById(
-      'xet-autofill-proper-nouns');
-  this.autofill.stemDupesSpan = document.getElementById(
-      'xet-autofill-stem-dupes');
-  this.autofill.tryReversalsSpan = document.getElementById(
-      'xet-autofill-try-reversals');
-  this.autofill.pangramSpan = document.getElementById('xet-autofill-letters');
-  this.autofill.pangramConstrSpan = document.getElementById(
-      'xet-autofill-pangram-cletters');
-  this.autofill.pangramConstrSpan.style.display = 'none';
-  this.autofill.isPangram = document.getElementById('xet-is-pangram');
-
-  this.refreshAutofill();
-}
-
-Exet.prototype.refreshAutofill = function() {
-  this.autofill.pangramConstrSpan.style.display =
-      this.autofill.pangramAll ? 'none' : '';
-  this.autofill.isPangram.style.display = 'none';
-
-  if (this.autofill.step > (this.autofill.numCells * 3)) {
-    console.log('Autofill seems to be stuck in a loop, quitting it.');
-    return null;
-  }
-
-  const candidate = this.autofill.beam.peep(true);
-  if (!candidate) {
-    return null;
-  }
-
-  this.autofill.pangramDetails.open = this.autofill.boostPangram &&
-      !this.autofill.pangramAll;
-  this.autofill.preflexUsedSpan.innerText = candidate.numPreflexUsed;
-  this.autofill.pangramSpan.innerText = candidate.numLettersUsed;
-  this.autofill.pangramConstrSpan.innerText =
-      `(${candidate.numConstrLetters} in pangram cells)`;
-  if (candidate.numLettersUsed == exetLexicon.letters.length) {
-    let isPangram = 'Pangram!';
-    if (!this.autofill.pangramAll &&
-        candidate.numConstrLetters == exetLexicon.letters.length) {
-      isPangram = 'Pangram <i>with</i> constraints!';;
-    }
-    this.autofill.isPangram.innerHTML = isPangram;
-    this.autofill.isPangram.style.display = '';
-  }
-  this.autofill.scoreSpan.innerText = candidate.score.toFixed(2);
-  this.autofill.scoreVSpan.innerText = candidate.scoreV.toFixed(2);
-  this.autofill.scorePSpan.innerText = candidate.scoreP.toFixed(2);
-  this.autofill.scoreFSpan.innerText = candidate.scoreF.toFixed(2);
-  this.autofill.reversalsSpan.innerText = candidate.reversals;
-
-  return candidate;
-}
-
-// ------- End of autofill-related code ---------------------------------------
 
 // Can be called with e as an event or as a key directly
 Exet.prototype.handleKeyDown = function(e) {
@@ -5593,7 +5181,7 @@ Exet.prototype.throttledGridInput = function(e) {
     clearTimeout(this.throttledGridTimer);
   }
   this.throttledGridTimer = setTimeout(() => {
-    this.handleGridInput()
+    this.handleGridInput();
     this.throttledGridTimer = null;
   }, this.inputLagMS);
 }
@@ -5800,7 +5388,18 @@ Exet.prototype.killInvalidatedClues = function() {
           oldClue.clue, oldClue.dir, fullNewLabels);
     }
   }
-  xetTemp.innerHTML = ''
+
+  const newLightRegexps = {};
+  for (const oldCi in getsRelocated) {
+    if (!this.lightRegexps.hasOwnProperty(oldCi)) {
+      continue;
+    }
+    newLightRegexps[getsRelocated[oldCi]] = this.lightRegexps[oldCi];
+  }
+  this.lightRegexps = newLightRegexps;
+  this.compileLightRegexps();
+
+  xetTemp.innerHTML = '';
   newPuz.destroy();
   return Object.keys(cellsToIndex).length;
 }
@@ -5853,8 +5452,8 @@ Exet.prototype.maybeAdjustEnum = function(ci) {
 }
 
 Exet.prototype.addLinkedClue = function() {
-  if (!this.puz) return
-  let ci = this.currClueIndex()
+  if (!this.puz) return;
+  let ci = this.currClueIndex();
   let theClue = this.puz.clues[ci];
   if (!theClue) return;
   const num = document.getElementById("xet-add-linked-num");
@@ -5865,7 +5464,7 @@ Exet.prototype.addLinkedClue = function() {
       parsed.dirIsPrefix || parsed.skip != clueLabel.length) {
     alert('Please provide a clue number and direction suffix ' +
           '(a/d/b/u for 2-D, ac/aw/dn/ba/to/up for 3-D) and nothing else');
-    return
+    return;
   }
   const cci = this.puz.getDirClueIndex(parsed.dir, parsed.label);
   if (cci == ci) {
@@ -5875,21 +5474,21 @@ Exet.prototype.addLinkedClue = function() {
   const cClue = this.puz.clues[cci];
   if (!cClue) {
     alert(parsed.label + parsed.dirStr + ' is not a valid clue to link to');
-    return
+    return;
   }
   if (parsed.reversed != cClue.reversed) {
     alert(parsed.label + parsed.dirStr + ' does not have the current light ' +
           'orientation: reversed should be ' + cClue.reversed);
-    return
+    return;
   }
   if (cClue.parentClueIndex) {
     alert(parsed.label + parsed.dirStr +
           ' is already part of another linked clue');
-    return
+    return;
   }
   if (cClue.childrenClueIndices && cClue.childrenClueIndices.length > 0) {
     alert(parsed.label + parsed.dirStr + ' is itself a linked clue');
-    return
+    return;
   } 
   const oldParentCells = this.puz.getAllCells(ci);
   const childCells = this.puz.getAllCells(cci);
@@ -5910,8 +5509,8 @@ Exet.prototype.addLinkedClue = function() {
   theClue.displayLabel = theClue.displayLabel + ', ' + parsed.label + parsed.dirStr;
   // update enum of clue
   this.maybeAdjustEnum(ci);
-  theClue.solution = ''
-  theClue.anno = ''
+  theClue.solution = '';
+  theClue.anno = '';
   this.updatePuzzle(exetRevManager.REV_GRIDFILL_CHANGE);
 }
 
@@ -5956,8 +5555,11 @@ Exet.prototype.reverseLight = function() {
   }
   const parent = clue.parentClueIndex ? this.puz.clues[clue.parentClueIndex] :
       clue;
-  if (parent.solution && parent.solution.indexOf('?') < 0 &&
-      !confirm('Sure you want to reverse an already-filled light?')) {
+  let msg = 'Are you sure you want to reverse this light?';
+  if (parent.solution && parent.solution.indexOf('?') < 0) {
+    msg = 'Are you sure you want to reverse this already-filled light?';
+  }
+  if (!confirm(msg)) {
     return;
   }
   this.reverseLightInner(clue);
@@ -6515,20 +6117,30 @@ Exet.prototype.restoreCursor = function() {
 }
 
 Exet.prototype.makeExolve = function(specs) {
-  let xlvFrame = document.getElementById('xet-xlv-frame')
-  xlvFrame.innerHTML = ''
+  let xlvFrame = document.getElementById('xet-xlv-frame');
+  xlvFrame.innerHTML = '';
   if (this.puz) {
     this.puz.destroy();
   }
   this.puz = null;
   try {
-    let ptemp = new Exolve(specs, 'xet-xlv-frame', this.setPuzzle.bind(this), false, this.TOP_CLEARANCE, 0, false)
+    const ptemp = new Exolve(specs, 'xet-xlv-frame', this.setPuzzle.bind(this),
+                           false /** provideStateUrl */,
+                           this.TOP_CLEARANCE /** visTop */,
+                           0 /** maxDim */,
+                           false /** notTemp */);
+    if (!this.puz) {
+      /** There was an error in setPuzzle() */
+      if (ptemp) {
+        ptemp.destroy();
+      }
+    }
   } catch (err) {
-    this.puz = null
-    console.log('Could not parse Exolve specs:')
-    console.log(specs)
-    console.log('Error thrown was:')
-    console.log(err)
+    this.puz = null;
+    console.log('Could not parse Exolve specs:');
+    console.log(specs);
+    console.log('Error thrown was:');
+    console.log(err);
   }
 
   if (!this.puz) {
@@ -6537,24 +6149,27 @@ Exet.prototype.makeExolve = function(specs) {
   this.checkLocalStorage();
 
   this.handleTabClick(this.currTab);
-  exetState.lastId = this.puz.id
+  exetState.lastId = this.puz.id;
   exetRevManager.saveLocal(exetRevManager.SPECIAL_KEY, JSON.stringify(exetState));
 }
 
 Exet.prototype.updatePuzzle = function(revType=0) {
   if (revType <= exetRevManager.REV_GRIDFILL_CHANGE &&
       revType != exetRevManager.REV_AUTOFILL_GRIDFILL_CHANGE) {
-    this.resetAutofill('Aborted')
+    /**
+     * Alert the user that their ongoing autofill run had to be aborted, even
+     * though they might not be expecting that. Hopefully a rare scenario.
+     */
+    this.autofill.reset('Aborted');
   }
-  const row = this.puz.currRow
-  const col = this.puz.currCol
-  const dir = this.puz.currDir
-  const scratch = this.puz.scratchPad.value
-  this.savedIndsSelect = this.indsSelect ? this.indsSelect.value : ''
-  this.saveCursor()
+  const row = this.puz.currRow;
+  const col = this.puz.currCol;
+  const dir = this.puz.currDir;
+  const scratch = this.puz.scratchPad.value;
+  this.savedIndsSelect = this.indsSelect ? this.indsSelect.value : '';
+  this.saveCursor();
   const editingOtherSections = (exetModals.modal &&
                exetModals.modal.id == 'xet-other-sections');
-
   const oldPuz = this.puz;
   let exolve = this.getExolve();
   this.makeExolve(exolve);
@@ -6562,11 +6177,10 @@ Exet.prototype.updatePuzzle = function(revType=0) {
     alert('Update failed in makeExolve()! Best to reload.');
     return;
   }
-
-  this.puz.currDir = dir
-  this.puz.currRow = row
-  this.puz.currCol = col
-  this.puz.scratchPad.value = scratch
+  this.puz.currDir = dir;
+  this.puz.currRow = row;
+  this.puz.currCol = col;
+  this.puz.scratchPad.value = scratch;
   if (editingOtherSections) {
     if (this.postscript) {
       this.postscript.style.display = '';
@@ -6575,11 +6189,11 @@ Exet.prototype.updatePuzzle = function(revType=0) {
     exetModals.showModal(this.otherSecPanel);
     this.otherSecText.focus();
   } else if (this.puz.currCellIsValid()) {
-    this.restoreCursor()
+    this.restoreCursor();
     if (this.puz.grid[row][col].isLight) {
-      this.puz.activateCell(row, col)
+      this.puz.activateCell(row, col);
     } else {
-      this.navDarkness(row, col)
+      this.navDarkness(row, col);
     }
   }
   if (revType > 0) {
@@ -6793,18 +6407,18 @@ Exet.prototype.getHTML = function(solved=true) {
 }
 
 Exet.prototype.IntersectChoices = function(set1, set2) {
-  let result = {}
-  for (let x in set2) {
-    if (set1[x]) result[x] = true
+  const result = {};
+  for (const x in set2) {
+    if (set1[x]) result[x] = true;
   }
-  return result
+  return result;
 }
 
 Exet.prototype.Set2Trims = function(set1, set2) {
-  for (let x in set1) {
-    if (!set2[x]) return true
+  for (const x in set1) {
+    if (!set2[x]) return true;
   }
-  return false
+  return false;
 }
 
 Exet.prototype.addToDontReuse = function(p, dontReuse) {
@@ -6827,18 +6441,19 @@ Exet.prototype.addToDontReuse = function(p, dontReuse) {
 Exet.prototype.refineLightChoices = function(fillState, limit=0) {
   fillState.preflexUsed = {};
   const dontReuse = {};
-  for (let ci in fillState.clues) {
-    let theClue = fillState.clues[ci];
+  for (const ci in fillState.clues) {
+    const theClue = fillState.clues[ci];
     if (theClue.parentClueIndex) {
       continue;
     }
     if (theClue.solution.indexOf('?') >= 0) {
       continue;
     }
-    let choices = exetLexicon.getLexChoices(theClue.solution, 1, dontReuse,
+    const choices = exetLexicon.getLexChoices(theClue.solution, 1, dontReuse,
         this.noProperNouns,
         this.indexMinPop,
-        false, this.preflexByLen, this.unpreflexSet);
+        false, this.preflexByLen, this.unpreflexSet,
+        this.getLightRegexpC(ci));
     if (choices.length > 0) {
       let p = choices[0];
       console.assert(p > 0, p);
@@ -6849,28 +6464,28 @@ Exet.prototype.refineLightChoices = function(fillState, limit=0) {
     }
   }
   let changes = 0;
-  for (let ci in fillState.clues) {
-    let theClue = fillState.clues[ci];
+  for (const ci in fillState.clues) {
+    const theClue = fillState.clues[ci];
     if (theClue.parentClueIndex ||
         !theClue.solution || theClue.solution.indexOf('?') < 0) {
       continue;
     }
-    let cells = this.puz.getAllCells(ci);
-    let toConsider = (limit <= 0) ? theClue.lChoices.length :
+    const cells = this.puz.getAllCells(ci);
+    const toConsider = (limit <= 0) ? theClue.lChoices.length :
         Math.min(limit, theClue.lChoices.length);
-    let choices = theClue.lChoices.slice(0, toConsider);
-    let remChoices = theClue.lChoices.slice(toConsider);
+    const choices = theClue.lChoices.slice(0, toConsider);
+    const remChoices = theClue.lChoices.slice(toConsider);
     theClue.lChoices = [];
-    let cellChoiceSets = [];
-    for (let cell of cells) {
+    const cellChoiceSets = [];
+    for (const cell of cells) {
       cellChoiceSets.push({});
     }
-    for (let lchoice of choices) {
+    for (const lchoice of choices) {
       if (dontReuse[Math.abs(lchoice)]) {
         changes++;
         continue;
       }
-      let key = exetLexicon.lexkey(exetLexicon.getLex(lchoice));
+      const key = exetLexicon.lexkey(exetLexicon.getLex(lchoice));
       if (lchoice < 0) key.reverse();
       let viable = true;
       for (let i = 0; i < key.length; i++) {
@@ -6894,20 +6509,20 @@ Exet.prototype.refineLightChoices = function(fillState, limit=0) {
     }
     let isForced = true;
     for (let i = 0; i < cells.length; i++) {
-      let cell = cells[i];
-      let gridCell = fillState.grid[cell[0]][cell[1]];
+      const cell = cells[i];
+      const gridCell = fillState.grid[cell[0]][cell[1]];
       if (gridCell.solution != '?') {
         continue;
       }
       gridCell.cChoices = this.IntersectChoices(
           gridCell.cChoices, cellChoiceSets[i]);
-      let choices = Object.keys(gridCell.cChoices);
+      const choices = Object.keys(gridCell.cChoices);
       if (choices.length > 1) {
         isForced = false;
       }
     }
     if (isForced) {
-      for (let x of theClue.lChoices) {
+      for (const x of theClue.lChoices) {
         const p = Math.abs(x);
         this.addToDontReuse(p, dontReuse);
         if (this.preflexSet[p]) fillState.preflexUsed[p] = true;
@@ -6922,11 +6537,11 @@ Exet.prototype.refineLightChoices = function(fillState, limit=0) {
   fillState.numPreflexUsed = Object.keys(fillState.preflexUsed).length;
   for (let i = 0; i < fillState.gridHeight; i++) {
     for (let j = 0; j < fillState.gridWidth; j++) {
-      let gridCell = fillState.grid[i][j];
+      const gridCell = fillState.grid[i][j];
       if (!gridCell.isLight || gridCell.solution != '?') {
         continue;
       }
-      let choices = Object.keys(gridCell.cChoices);
+      const choices = Object.keys(gridCell.cChoices);
       if (choices.length == 0) {
         fillState.viable = false;
       }
@@ -6937,30 +6552,30 @@ Exet.prototype.refineLightChoices = function(fillState, limit=0) {
 }
 
 Exet.prototype.findDeadendsByCell = function(fillState) {
-  return this.refineLightChoices(fillState, this.sweepMaxChoices)
+  return this.refineLightChoices(fillState, this.sweepMaxChoices);
 }
 
 Exet.prototype.updateViablots = function() {
-  let fillState = this.fillState
-  let dead = 0
+  const fillState = this.fillState;
+  let dead = 0;
   for (let i = 0; i < fillState.gridHeight; i++) {
     for (let j = 0; j < fillState.gridWidth; j++) {
-      let gridCell = this.puz.grid[i][j]
+      const gridCell = this.puz.grid[i][j];
       if (!gridCell.isLight || gridCell.solution != '?') {
-        continue
+        continue;
       }
-      let fillStateCell = fillState.grid[i][j]
-      let choices = Object.keys(fillStateCell.cChoices)
-      let viablot = gridCell.viablot
-      let opacity = dead > 3 ? 0.1 : (dead == 0 ? 0.6 : 0.3)
+      const fillStateCell = fillState.grid[i][j];
+      const choices = Object.keys(fillStateCell.cChoices);
+      const viablot = gridCell.viablot;
+      const opacity = dead > 3 ? 0.1 : (dead == 0 ? 0.6 : 0.3);
       viablot.style.fill = (fillStateCell.viability >= 5) ?
         'transparent' :
         (fillStateCell.viability == 0 ? `rgba(255,0,255,${opacity})` :
-          `rgba(255,0,0,${opacity})`)
+          `rgba(255,0,0,${opacity})`);
       viablot.setAttributeNS(
           null, 'r', this.puz.circleR * 0.1 * (5 - fillStateCell.viability));
       if (fillStateCell.viability == 0) {
-        dead++
+        dead++;
       }
       if (choices.length == 1) {
         if (!gridCell.forcedLetter) {
@@ -6972,23 +6587,23 @@ Exet.prototype.updateViablots = function() {
             null, 'y', this.puz.cellTopPos(i, this.puz.lightStartY));
           cellText.setAttributeNS(null, 'text-anchor', 'middle');
           cellText.setAttributeNS(null, 'editable', 'simple');
-          let cellClass = 'xlv-cell-text'
-          cellText.style.fill = 'gray'
-          cellText.style.fontSize = this.puz.letterSize + 'px'
-          cellText.setAttributeNS(null, 'class', cellClass)
+          const cellClass = 'xlv-cell-text';
+          cellText.style.fill = 'gray';
+          cellText.style.fontSize = this.puz.letterSize + 'px';
+          cellText.setAttributeNS(null, 'class', cellClass);
           cellText.addEventListener(
               'click', this.puz.cellActivator.bind(this.puz, i, j));
 
           const text = document.createTextNode(choices[0]);
           cellText.appendChild(text);
-          gridCell.cellGroup.appendChild(cellText)
-          gridCell.forcedLetter = text
+          gridCell.cellGroup.appendChild(cellText);
+          gridCell.forcedLetter = text;
         }
-        gridCell.forcedLetter.nodeValue = choices[0]
-        viablot.style.fill = 'transparent'
+        gridCell.forcedLetter.nodeValue = choices[0];
+        viablot.style.fill = 'transparent';
       } else {
         if (gridCell.forcedLetter) {
-          gridCell.forcedLetter.nodeValue = ''
+          gridCell.forcedLetter.nodeValue = '';
         }
       }
     }
@@ -7205,43 +6820,43 @@ Exet.prototype.startDeadendSweep = function(ci='') {
   }
   this.viabilityUpdateTimer = null;
   if (!this.puz || this.puz.numCellsFilled >= this.puz.numCellsToFill) {
-    return
+    return;
   }
-  if (this.autofill.running) {
-    return
+  if (this.autofill && this.autofill.running) {
+    return;
   }
-  this.deadendsGridSweep = true
-  this.sweepIndicator.className = 'xet-sweeping-animated'
+  this.deadendsGridSweep = true;
+  this.sweepIndicator.className = 'xet-sweeping-animated';
   this.viabilityUpdateTimer = setTimeout(() => {
-    this.findAllDeadendFills(ci)
+    this.findAllDeadendFills(ci);
   }, this.sweepMS);
 }
 
-Exet.prototype.getClueToCheckDeadends = function(ci) {
+Exet.prototype.getClueToCheckDeadends = function(ci=null) {
   if (ci) {
-    let theClue = this.puz.clues[ci]
+    let theClue = this.puz.clues[ci];
     if (theClue.parentClueIndex) {
-      ci = theClue.parentClueIndex
-      theClue = this.puz.clues[ci]
+      ci = theClue.parentClueIndex;
+      theClue = this.puz.clues[ci];
     }
     if (!theClue.solution || theClue.solution.indexOf('?') < 0) {
-      return ''
+      return '';
     }
-    return ci
+    return ci;
   }
   // Find most constrained unsolved and still-viable clue
-  let res = ''
-  let resChoices = exetLexicon.lexicon.length
+  let res = '';
+  let resChoices = exetLexicon.lexicon.length;
   for (ci in this.fillState.clues) {
-    let theClue = this.fillState.clues[ci]
-    if (theClue.parentClueIndex) continue
-    if (!theClue.solution || theClue.solution.indexOf('?') < 0) continue
+    let theClue = this.fillState.clues[ci];
+    if (theClue.parentClueIndex) continue;
+    if (!theClue.solution || theClue.solution.indexOf('?') < 0) continue;
     if (theClue.lChoices.length > 0 && theClue.lChoices.length < resChoices) {
-      resChoices = theClue.lChoices.length
-      res = ci
+      resChoices = theClue.lChoices.length;
+      res = ci;
     }
   }
-  return res
+  return res;
 }
 
 Exet.prototype.updateSweepInd = function() {
@@ -7270,31 +6885,31 @@ Exet.prototype.findAllDeadendFills = function(ci) {
       this.deadendClueCheckChanges = 0;
       this.deadendClueCheck = this.getClueToCheckDeadends(ci);
       if (!this.deadendClueCheck) {
-        this.updateSweepInd()
-        return
+        this.updateSweepInd();
+        return;
       }
       this.viabilityUpdateTimer = setTimeout(() => {
-        this.findAllDeadendFills()
+        this.findAllDeadendFills();
       }, this.sweepMS);
     }
   } else {
-    let doMore = this.findDeadendsByClue()
+    const doMore = this.findDeadendsByClue();
     if (this.deadendClueCheckChanges > 0) {
-      this.updateFillChoices()
+      this.updateFillChoices();
     }
     if (!doMore) {
-      this.deadendsGridSweep = true
+      this.deadendsGridSweep = true;
       if (this.deadendClueCheckChanges > 0) {
         // Repeat the grid-sweep
         this.viabilityUpdateTimer = setTimeout(() => {
-          this.findAllDeadendFills()
+          this.findAllDeadendFills();
         }, this.sweepMS);
       } else {
-        this.updateSweepInd()
+        this.updateSweepInd();
       }
     } else {
       this.viabilityUpdateTimer = setTimeout(() => {
-        this.findAllDeadendFills()
+        this.findAllDeadendFills();
       }, this.sweepMS);
     }
   }
@@ -7305,67 +6920,19 @@ Exet.prototype.viability = function(len) {
   return len == 0 ? 0 : (len >= 16 ? 5 : (1 + (Math.log(len) / log2)));
 }
 
-Exet.prototype.initViability = function() {
-  for (let i = 0; i < this.fillState.gridHeight; i++) {
-    for (let j = 0; j < this.fillState.gridWidth; j++) {
-      let gridCell = this.fillState.grid[i][j]
-      if (!gridCell.isLight) {
-        continue
-      }
-      if (gridCell.solution != '?') {
-        gridCell.cChoices = {}
-        gridCell.cChoices[gridCell.solution] = true
-        gridCell.viability = 1.0;
-      } else {
-        gridCell.cChoices = exetLexicon.letterSet;
-        gridCell.viability = 5.0;
-      }
-    }
-  }
-  this.fillState.viable = true
-}
-
+/**
+ * Fills cChoices (only initializes) and lChoices in exet.fillState.
+ */
 Exet.prototype.resetViability = function() {
-  this.resetAutofill('Aborted');
-  this.initViability();
-  let numPreflexUsed = 0;
-  const dontReuse = {};
-  this.preflexInUse = {};
-  for (let ci in this.puz.clues) {
-    let theClue = this.puz.clues[ci];
-    if (!theClue.solution || theClue.solution.indexOf('?') >= 0) {
-      continue;
-    }
-    let choices = exetLexicon.getLexChoices(theClue.solution, 1, dontReuse,
-        this.noProperNouns,
-        this.indexMinPop,
-        false, this.preflexByLen, this.unpreflexSet);
-    this.fillState.clues[ci].lChoices = choices;
-    this.fillState.clues[ci].lRejects = [];
-    if (choices.length > 0) {
-      let p = choices[0];
-      console.assert(p > 0, p);
-      this.addToDontReuse(p, dontReuse);
-      if (this.preflexSet[p]) {
-        this.preflexInUse[p] = true;
-        numPreflexUsed++;
-      }
-    }
+  if (this.autofill) {
+    this.autofill.reset('Aborted');
   }
+  this.fillState.resetViability();
+  this.preflexInUse = this.fillState.preflexUsed;
   if (this.preflexUsed) {
-    this.preflexUsed.innerHTML = (numPreflexUsed > 0) ?
-      ('<b>' + numPreflexUsed + '</b>') : ('' + numPreflexUsed);
-  }
-  for (let ci in this.fillState.clues) {
-    let theClue = this.fillState.clues[ci];
-    if (!theClue.solution || theClue.solution.indexOf('?') < 0) {
-      continue;
-    }
-    theClue.lChoices = exetLexicon.getLexChoices(theClue.solution, 0, dontReuse,
-        this.noProperNouns,
-        this.indexMinPop,
-        this.tryReversals, this.preflexByLen, this.unpreflexSet);
-    theClue.lRejects = [];
+    this.preflexUsed.innerHTML = (this.fillState.numPreflexUsed > 0) ?
+      ('<b>' + this.fillState.numPreflexUsed + '</b>') :
+      ('' + this.fillState.numPreflexUsed);
   }
   this.updateFillChoices();
   this.updateViablots();
@@ -7502,6 +7069,13 @@ Exet.prototype.fillLight = function(idx, ci='', revType=null) {
   }
 }
 
+Exet.prototype.renderMinPop = function() {
+  this.minpopInclSpan.innerText = Number(this.indexMinPop - 1).toLocaleString();
+  if (this.autofill) {
+    this.autofill.reshowSettings();
+  }
+}
+
 Exet.prototype.renderPreflex = function() {
   /* populate with existing preflex */
   let preflexText = '';
@@ -7553,8 +7127,9 @@ Exet.prototype.setPreflex = function(preflex) {
   this.preflexHash = exetRevManager.hashPrefUnpref(preflex);
   this.preflexSet = {};
 
-  while (exetLexicon.lexicon.length > exetLexicon.startLen) {
-    exetLexicon.lexicon.pop();
+  if (exetLexicon.lexicon.length > exetLexicon.startLen) {
+    /** trim back to original size */
+    exetLexicon.lexicon.length = exetLexicon.startLen;
   }
   this.preflexByLen = {};
   for (let ptext of this.preflex) {
@@ -7581,32 +7156,75 @@ Exet.prototype.throttledUpdatePreflex = function() {
     clearTimeout(this.throttledPreflexTimer);
   }
   this.throttledPreflexTimer = setTimeout(() => {
-    this.updatePreflex()
+    this.startUpdatePreflex();
     this.throttledPreflexTimer = null;
   }, this.longInputLagMS);
+}
+
+/**
+ * Clean preflex entries, delete any dupes, then call call
+ * updatePreflexStep()
+ */
+Exet.prototype.startUpdatePreflex = function() {
+  this.updatePreflexState = {
+    preflexes: this.preflexInput.innerText.trim().split('\n'),
+    preflex: [],
+    seen: {},
+    ctr: 0,
+    step: 200,
+    waitMS: 200,
+    timer: null,
+  };
+  this.preflexWait.style.display = '';
+  this.updatePreflexStep();
 }
 
 /**
  * Clean preflex entries, delete any dupes, then call setPreflex()
  * and resetViability(), and update preflex display.
  */
-Exet.prototype.updatePreflex = function() {
-  const preflexes = this.preflexInput.innerText.trim().split('\n');
-  const preflex = [];
-  const seen = {};
-  for (let ptext of preflexes) {
-    ptext = exetLexicon.depunct(ptext);
-    if (!ptext) continue;
-    let hash = exetLexicon.javaHash(ptext.toLowerCase());
-    if (seen[hash]) continue;
-    seen[hash] = true;
-    preflex.push(ptext);
-    if (preflex.length >= this.MAX_PREFLEX) break;
+Exet.prototype.updatePreflexStep = function() {
+  if (!this.updatePreflexState) {
+    return;
   }
-  this.setPreflex(preflex);
+  const state = this.updatePreflexState;
+  const limit = Math.min(state.preflexes.length, state.ctr + state.step);
+
+  while (state.ctr < limit) {
+    const ptext = state.preflexes[state.ctr++].trim();
+    if (!ptext || ptext.startsWith('#')) continue;
+    const hash = exetLexicon.javaHash(ptext.toLowerCase());
+    if (state.seen[hash]) continue;
+    state.seen[hash] = true;
+    state.preflex.push(ptext);
+    if (state.preflex.length >= this.MAX_PREFLEX) {
+      state.ctr = state.preflexes.length;
+      break;
+    }
+  }
+  if (state.ctr >= state.preflexes.length) {
+    this.finishUpdatePreflex();
+  } else {
+    state.timer = setTimeout(() => {
+      this.updatePreflexStep();
+    }, state.waitMS);
+  }
+}
+
+Exet.prototype.dismissPreflexWait = function() {
+  this.preflexWait.style.display = 'none';
+}
+
+/**
+ * Call setPreflex() and resetViability(), update preflex display,
+ * save state.
+ */
+Exet.prototype.finishUpdatePreflex = function() {
+  this.setPreflex(this.updatePreflexState.preflex);
   this.resetViability();
   this.renderPreflex();
-
+  this.dismissPreflexWait();
+  this.updatePreflexState = null;
   exetRevManager.throttledSaveRev(exetRevManager.REV_PREFLEX_CHANGE);
 }
 
@@ -7640,7 +7258,9 @@ Exet.prototype.renderUnpreflex = function() {
 Exet.prototype.setUnpreflex = function(unpreflex) {
   const cleanedUnpreflex = [];
   const unpreflexSet = {};
-  for (let w of unpreflex) {
+  for (const uw of unpreflex) {
+    const w = uw.trim();
+    if (!w || w.startsWith('#')) continue;
     const wClean = exetLexicon.depunct(w);
     if (!wClean) continue;
 
@@ -7687,16 +7307,24 @@ Exet.prototype.enumMatchSorter = function(p, k1, k2) {
          this.numEnumPunctMatches(p, entry1);
 }
 
+Exet.prototype.choiceDisplayHTML = function(choice) {
+  const absC = Math.abs(choice);
+  const cls = this.preflexSet[absC] ? ' class="xet-preflex-entry"' : '';
+  const rev = (choice < 0) ? '&lArr; ' : '';
+  return `
+    <tr><td${cls}>${rev}${exetLexicon.getLex(choice)}</td></tr>`;
+}
+
 Exet.prototype.updateFillChoices = function() {
   let ci = this.currClueIndex();
   if (!ci) {
-    return
+    return;
   }
-  let gridClue = this.puz.clues[ci]
-  let theClue = this.fillState.clues[ci]
-  console.assert(theClue && theClue.lChoices, ci)
+  const gridClue = this.puz.clues[ci];
+  const theClue = this.fillState.clues[ci];
+  console.assert(theClue && theClue.lChoices, ci);
 
-  let html = ''
+  let html = '';
   if (theClue.lChoices.length == 0) {
     // Maybe the light was filled from outside the lexicon
     if (gridClue.solution.indexOf('?') < 0) {
@@ -7715,57 +7343,54 @@ Exet.prototype.updateFillChoices = function() {
     lRejects.sort(this.enumMatchSorter.bind(this, gridClue.placeholder));
   }
 
-  let numShown = 0
-  for (let choice of lChoices) {
-    html = html + `
-      <tr><td>${choice < 0 ? '&lArr; ' : ''}${exetLexicon.getLex(choice)}</td></tr>`;
-    numShown++
+  let numShown = 0;
+  for (const choice of lChoices) {
+    html += this.choiceDisplayHTML(choice);
+    numShown++;
     if (numShown >= this.shownLightChoices) break;
   }
 
-  let htmlRej = ''
-  let numRejects = 0
-  for (let choice of lRejects) {
-    htmlRej = htmlRej + `
-      <tr><td>${choice < 0 ? '&lArr; ' : ''}${exetLexicon.getLex(choice)}</td></tr>`;
-    numRejects++
+  let htmlRej = '';
+  let numRejects = 0;
+  for (const choice of lRejects) {
+    htmlRej += this.choiceDisplayHTML(choice);
+    numRejects++;
     if (numRejects >= this.shownLightChoices) break;
   }
 
-
-  let htmlHash = exetLexicon.javaHash(html + htmlRej + ci)
+  const htmlHash = exetLexicon.javaHash(html + htmlRej + ci);
   if (this.shownChoicesHash && this.shownChoicesHash == htmlHash) {
-    return
+    return;
   }
-  this.shownChoicesHash = htmlHash
+  this.shownChoicesHash = htmlHash;
   this.lChoices.innerHTML = html;
   this.lRejects.innerHTML = htmlRej;
-  let trs = this.lChoices.getElementsByTagName('tr')
-  let lim = Math.min(lChoices.length, trs.length)
+  let trs = this.lChoices.getElementsByTagName('tr');
+  let lim = Math.min(lChoices.length, trs.length);
   for (let i = 0; i < lim; i++) {
     trs[i].addEventListener(
     'click', this.fillLight.bind(this, lChoices[i], '',
-                                 exetRevManager.REV_GRIDFILL_CHANGE))
+                                 exetRevManager.REV_GRIDFILL_CHANGE));
   }
-  trs = this.lRejects.getElementsByTagName('tr')
-  lim = Math.min(lRejects.length, trs.length)
+  trs = this.lRejects.getElementsByTagName('tr');
+  lim = Math.min(lRejects.length, trs.length);
   for (let i = 0; i < lim; i++) {
     trs[i].addEventListener(
     'click', this.fillLight.bind(this, lRejects[i], '',
-                                 exetRevManager.REV_GRIDFILL_CHANGE))
+                                 exetRevManager.REV_GRIDFILL_CHANGE));
   }
 }
 
 Exet.prototype.warnVersion = function(ver) {
-  let about = document.getElementById("xet-about")
-  about.style.color = "red"
-  about.title = 'Please reload to update to ' + ver
-  let warnMsg = document.getElementById("xet-outdated-message")
+  const about = document.getElementById("xet-about");
+  about.style.color = "red";
+  about.title = 'Please reload to update to ' + ver;
+  const warnMsg = document.getElementById("xet-outdated-message");
   warnMsg.innerHTML = 'Please <a href=' +
-    '"javascript:window.location.reload(true)">reload</a> to update to ' + ver
-  warnMsg.style.display = ''
-  let warnIcon = document.getElementById("xet-outdated")
-  warnIcon.style.display = ''
+    '"javascript:window.location.reload(true)">reload</a> to update to ' + ver;
+  warnMsg.style.display = '';
+  const warnIcon = document.getElementById("xet-outdated");
+  warnIcon.style.display = '';
 }
 
 Exet.prototype.checkVersion = function() {
@@ -7858,6 +7483,9 @@ Exet.prototype.checkBackup = function() {
   return isRecent;
 }
 
+/**
+ * Returns the status from checkLocalStorage()
+ */
 Exet.prototype.checkStorage = function() {
   const warnings = [];
   const backupOK = this.checkBackup();
@@ -7875,6 +7503,7 @@ Exet.prototype.checkStorage = function() {
     this.storageHeading.style.color = 'inherit';
     this.storageHeading.title = 'Manage local storage, back up crosswords to file.';
   }
+  return lsOK;
 }
 
 Exet.prototype.periodicChecks = function() {
@@ -7915,6 +7544,8 @@ function exetFromHistory(exetRev) {
   exet.noProperNouns = exetRev.noProperNouns || false;
   exet.asymOK = exetRev.asymOK || false;
   exet.tryReversals = exetRev.tryReversals || false;
+  exet.lightRegexps = exetRev.lightRegexps || {};
+  exet.compileLightRegexps();
   exet.makeExolve(exetRev.exolve);
   if (!exet.puz) {
     alert('Could not load puzzle from history, reverting to a new blank puzzle');
@@ -7942,14 +7573,14 @@ function exetBlank(w, h, layers3d=1, id='', automagic=false,
                    chequered=true, topUnches=false, leftUnches=false,
                    requireEnums=true) {
   if (!w || !h || w <= 0 || h <= 0 || w > 100 || h > 100) {
-    alert('Width and height must be specified in the range, 1-100')
-    return
+    alert('Width and height must be specified in the range, 1-100');
+    return;
   }
   if (!id) {
-    id = `puz-${Math.random().toString(36).substring(2, 8)}`
+    id = `xet-${Math.random().toString(36).substring(2, 8)}`;
   }
 
-  let gridRow = ['', '']
+  let gridRow = ['', ''];
   for (let j = 0; j < w; j++) {
     if (chequered) {
       if (!topUnches && !leftUnches) {
@@ -7973,19 +7604,19 @@ function exetBlank(w, h, layers3d=1, id='', automagic=false,
 
   let grid = '';
   let thirdDSpec = '';
-  let acrossLine = 'exolve-across:'
-  let downLine = 'exolve-down:'
+  let acrossLine = 'exolve-across:';
+  let downLine = 'exolve-down:';
   if (layers3d == 1) {
     for (let i = 0; i < h; i++) {
-      grid = grid + '\n  ' + gridRow[i % 2]
+      grid = grid + '\n  ' + gridRow[i % 2];
     }
   } else {
     if (layers3d <= 0 || h % layers3d != 0) {
       alert("#layers in 3-D crosswords must be a positive divisor of height");
       return;
     }
-    acrossLine = 'exolve-3d-across:'
-    downLine = 'exolve-3d-away:'
+    acrossLine = 'exolve-3d-across:';
+    downLine = 'exolve-3d-away:';
     thirdDSpec = `\n    exolve-3d-down:\n    exolve-3d: ${layers3d}`;
     let darkRow = '';
     for (let j = 0; j < w; j++) darkRow += '. ';
@@ -8027,6 +7658,8 @@ function exetBlank(w, h, layers3d=1, id='', automagic=false,
   exet.asymOK = false;
   exet.requireEnums = requireEnums;
   exet.tryReversals = layers3d > 1 ? true : false;
+  exet.lightRegexps = {};
+  exet.compileLightRegexps();
   exet.makeExolve(specs);
   if (!exet.puz) {
     alert('Failed to create a blank crossword, unfortunately! Perhaps the ' +
@@ -8089,6 +7722,8 @@ function exetLoadFile() {
     exet.noProperNouns = false;
     exet.asymOK = false;
     exet.tryReversals = false;
+    exet.lightRegexps = {};
+    exet.compileLightRegexps();
     exet.makeExolve(specs);
     if (!exet.puz) {
       alert('Could not load Exolve puzzle from file, reverting to a new blank puzzle');
@@ -8107,6 +7742,8 @@ function exetLoadFile() {
         exet.noProperNouns = lastRev.noProperNouns || false;
         exet.asymOK = lastRev.asymOK || false;
         exet.tryReversals = lastRev.tryReversals || false;
+        exet.lightRegexps = lastRev.lightRegexps || {};
+        exet.compileLightRegexps();
       }
     } else {
       if (exet.puz.layers3d > 1) {
