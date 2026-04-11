@@ -1412,6 +1412,7 @@ Exet.prototype.makeExetTab = function() {
                   value="no-proper-nouns" type="checkbox">
               </input>
             </span>
+            &nbsp;
             <span>
               <b title="If checked, this allows trying reversals of unfilled ` +
                   `lights, when finding fill suggestions">Try reversals:</b>
@@ -1419,6 +1420,7 @@ Exet.prototype.makeExetTab = function() {
                   value="try-reversals" type="checkbox">
               </input>
             </span>
+            &nbsp;
             <span>
               <b title="If checked, this excludes word choices that have ` +
                   `the same stemmed forms as any other entries (e.g., if ` +
