@@ -873,9 +873,10 @@ Exet.prototype.makeExetTab = function() {
 
           <hr>
           <div title="Try to autofill the remaining grid"
-            class="xet-dropdown-item" id="xet-autofill">Autofill:
-            <div id="xet-autofill-active"><span id="xet-autofill-active-msg"></span>
-                &#9654;</div>
+            class="xet-dropdown-item" id="xet-autofill">Autofill
+            <div id="xet-autofill-active">
+              <span id="xet-autofill-active-msg"></span>
+            </div>
             <div class="xet-dropdown-submenu xet-autofill-panel">
               <div>
                 <button id="xet-autofill-startstop"

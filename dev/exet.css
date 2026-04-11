@@ -452,8 +452,10 @@ body {
   left: 100%;
 }
 .xet-autofill-panel {
-  top: 0;
   bottom: auto;
+  left: auto;
+  right: 100%;
+  top: 0;
 }
 #xet-autofill-active {
   display: none;
