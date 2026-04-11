@@ -288,7 +288,7 @@ Exet.prototype.setPuzzle = function(puz) {
     puz.columnarLayout = false;
   }
   puz.gridcluesContainer.className = 'xlv-grid-and-clues-flex';
-  puz.cluesContainer.className = 'xlv-clues';  /** remove xlv-clues-flex */
+  puz.cluesContainer.className = 'xlv-clues';
   let gridFillChanges = false;
   for (let i = 0; i < puz.gridHeight; i++) {
     for (let j = 0; j < puz.gridWidth; j++) {
@@ -499,7 +499,6 @@ Exet.prototype.setPuzzle = function(puz) {
   this.hideExolveElement('print');
   this.hideExolveElement('webifi');
   this.hideExolveElement('notes');
-  // this.hideExolveElement('jotter');
   this.hideExolveElement('report-bug');
   this.hideExolveElement('exolve-link');
   this.hideExolveElement('postscript');
@@ -4152,8 +4151,6 @@ Exet.prototype.resizeRHS = function() {
 }
 
 Exet.prototype.reposition = function() {
-  // TODO
-  console.log('reposition() called');
   if (this.puz.squareDim < 31 &&
       (this.puz.getViewportDim() - this.puz.viewportDim > 25)) {
     /**
