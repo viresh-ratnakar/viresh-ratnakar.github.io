@@ -3174,7 +3174,7 @@ Exet.prototype.populateFrame = function() {
               placeholder="Press <Esc> to reset from grid">
             </input>
             <span id="${section.id}-warn-long" class="xlv-red" style="display:none"
-              title="Fodder too long, trimmed: add an exclamation mark at the end to go ahead anyway (can be SLOW and will lock your browser for a while!)">!!</span>
+              title="Fodder too long, trimmed: add an exclamation mark at the end to go ahead anyway (can be SLOW and may lock your browser for a while!)">!!</span>
             `;
           frameHTML = frameHTML + `
             <div ${titleHover}class="xet-bold">${section.title || ''}</div>
