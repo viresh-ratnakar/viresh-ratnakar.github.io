@@ -4,8 +4,6 @@ MIT License
 Copyright (c) 2022 Viresh Ratnakar
 
 See the full Exet license notice in exet.js.
-
-Current version: v1.04.2, April 11, 2026
 */
 
 /**

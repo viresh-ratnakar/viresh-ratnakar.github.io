@@ -24,7 +24,7 @@ SOFTWARE.
 The latest code and documentation for Exet can be found at:
 https://github.com/viresh-ratnakar/exet
 
-Current version: v1.04.2, April 11, 2026
+Current version: v1.05.1, May 22, 2026
 */
 
 function ExetModals() {
@@ -2640,6 +2640,21 @@ Exet.prototype.pushCharadeCandidate = function(elements) {
   }
 }
 
+Exet.prototype.useLongFodder = function(name, section) {
+  if (!name || !section || !section.paramInput) {
+    return;
+  }
+  const paramElt = section.paramInput;
+  paramElt.value += '!';
+  if (name == 'xet-charades') {
+    this.updateCharades(section.param);
+  } else if (section.id == 'xet-containments') {
+    this.updateContainments(section.param);
+  } else if (name == 'xet-companag') {
+    this.updateCA();
+  }
+}
+
 Exet.prototype.maybeTrimLongFodder = function(fodderArr, name) {
   const paramElt = document.getElementById(name + '-param');
   const warningElt = document.getElementById(name + '-warn-long');
@@ -3140,26 +3155,26 @@ Exet.prototype.populateCompanag = function() {
 Exet.prototype.populateFrame = function() {
   let frameHTML = '';
   frameHTML = frameHTML + '<div class="xet-tab">';
-  for (let id in this.tabs) {
-    let tab = this.tabs[id];
+  for (const id in this.tabs) {
+    const tab = this.tabs[id];
     frameHTML = frameHTML +
         `<button id="xet-${id}">${tab.display}</button>`;
   }
-  frameHTML = frameHTML + '</div>';
+  frameHTML += '</div>';
 
-  for (let id in this.tabs) {
-    let tab = this.tabs[id];
-    frameHTML = frameHTML + `<div class="xet-tab-content" id="xet-${id}-frame">`
+  for (const id in this.tabs) {
+    const tab = this.tabs[id];
+    frameHTML += `<div class="xet-tab-content" id="xet-${id}-frame">`;
     if (tab.sections.length > 0) {
       console.assert(tab.sections.length <= 2);
       const sectionClass = tab.sections.length > 1 ? 'xet-half-section' : 'xet-section';
       frameHTML += `<div id="xet-${id}-sections"><table class="xet-sections"><tr>`;
       for (let i = 0; i < tab.sections.length; i++) {
-        let section = tab.sections[i];
-        frameHTML = frameHTML + '<td class="xet-td">';
+        const section = tab.sections[i];
+        frameHTML += '<td class="xet-td">';
         const titleHover = section.hover ? `title="${section.hover} "` : '';
         if (section.url) {
-          frameHTML = frameHTML + `
+          frameHTML += `
             <div ${titleHover}class="xet-bold">${section.title || ''}</div>
             <a href="" target="_blank" id="xet-${id}-url-${i}"
                 class="xet-blue xet-small"></a><br>
@@ -3173,51 +3188,51 @@ Exet.prototype.populateFrame = function() {
               title="Press <Esc> to reset from grid"
               placeholder="Press <Esc> to reset from grid">
             </input>
-            <span id="${section.id}-warn-long" class="xlv-red" style="display:none"
-              title="Fodder too long, trimmed: add an exclamation mark at the end to go ahead anyway (can be SLOW and may lock your browser for a while!)">!!</span>
+            <button id="${section.id}-warn-long" class="xlv-small-button" style="display:none"
+              title="Fodder too long, trimmed: Click to (or manually) add an exclamation mark at the end to go ahead anyway (can be SLOW and may lock your browser for a while!)"><span class="xlv-red">!</span></button>
             `;
-          frameHTML = frameHTML + `
+          frameHTML += `
             <div ${titleHover}class="xet-bold">${section.title || ''}</div>
             ${paramHtml}
             <div id="${section.id}">
               <div id="${section.id}-box"
                 class="xet-in-tab-scrollable ${sectionClass}">
               </div>
-            </div>`
+            </div>`;
         }
-        frameHTML = frameHTML + '</td>';
+        frameHTML += '</td>';
       }
-      frameHTML = frameHTML + `
+      frameHTML += `
         </tr>
         </table>
         </div>`;
     } else {
-      frameHTML = frameHTML + `
-        <div id="xet-${id}-content"></div>`
+      frameHTML += `
+        <div id="xet-${id}-content"></div>`;
     }
-    frameHTML = frameHTML + '</div>'
+    frameHTML += '</div>';
   }
-  this.frame.innerHTML = frameHTML
+  this.frame.innerHTML = frameHTML;
 
-  this.charades = document.getElementById('xet-charades-box')
+  this.charades = document.getElementById('xet-charades-box');
   this.edits = document.getElementById('xet-edits-box');
-  this.sounds = document.getElementById('xet-sounds-box')
-  this.containments = document.getElementById('xet-containments-box')
+  this.sounds = document.getElementById('xet-sounds-box');
+  this.containments = document.getElementById('xet-containments-box');
 
-  this.populateCompanag()
+  this.populateCompanag();
 
-  for (let id in this.tabs) {
-    let tab = this.tabs[id]
-    tab.button = document.getElementById(`xet-${id}`)
-    tab.button.title = tab.hover
+  for (const id in this.tabs) {
+    const tab = this.tabs[id];
+    tab.button = document.getElementById(`xet-${id}`);
+    tab.button.title = tab.hover;
     const handler = this.handleTabClick.bind(this, id);
     tab.button.addEventListener('click', handler);
-    tab.frame = document.getElementById(`xet-${id}-frame`)
+    tab.frame = document.getElementById(`xet-${id}-frame`);
     if (tab.sections.length > 0) {
       for (let i = 0; i < tab.sections.length; i++) {
-        let section = tab.sections[i]
+        const section = tab.sections[i];
         if (!section.url) {
-          section.paramInput = document.getElementById(`${section.id}-param`)
+          section.paramInput = document.getElementById(`${section.id}-param`);
           if (section.paramInput) {
             section.paramInput.addEventListener('input', handler);
             section.paramInput.addEventListener('keyup', e => {
@@ -3226,14 +3241,20 @@ Exet.prototype.populateFrame = function() {
               }
             });
           }
-          section.content = document.getElementById(`${section.id}-box`)
+          section.paramWarnLong = document.getElementById(`${section.id}-warn-long`);
+          if (section.paramWarnLong) {
+            section.paramWarnLong.addEventListener('click', e => {
+              exet.useLongFodder(section.id, section);
+            });
+          }
+          section.content = document.getElementById(`${section.id}-box`);
           continue;
         }
-        section.content = document.getElementById(`xet-${id}-content-${i}`)
-        section.urldisp = document.getElementById(`xet-${id}-url-${i}`)
+        section.content = document.getElementById(`xet-${id}-content-${i}`);
+        section.urldisp = document.getElementById(`xet-${id}-url-${i}`);
       }
     } else {
-      tab.content = document.getElementById(`xet-${id}-content`)
+      tab.content = document.getElementById(`xet-${id}-content`);
     }
   }
 
@@ -3587,14 +3608,14 @@ Exet.prototype.draftClue = function(ci) {
 }
 
 Exet.prototype.handleTabClick = function(id) {
-  let tab = this.tabs[id]
+  const tab = this.tabs[id];
   if (!tab) {
-    return
+    return;
   }
-  this.currTab = id
-  for (let x in this.tabs) {
-    let xtab = this.tabs[x]
-    xtab.frame.style.display = "none"
+  this.currTab = id;
+  for (const x in this.tabs) {
+    const xtab = this.tabs[x];
+    xtab.frame.style.display = "none";
     xtab.button.className = xtab.button.className.replace(" active", "");
   }
 
@@ -3672,7 +3693,7 @@ Exet.prototype.navDarkness = function(row, col, ev=null) {
     return;
   }
   if (ev) ev.stopPropagation();
-  this.puz.deactivateCurrCell();
+  this.puz.deactivator();
   this.puz.currRow = row;
   this.puz.currCol = col;
 
@@ -5076,7 +5097,7 @@ Exet.prototype.handleGridInput = function(revType=null) {
   let needsUpdate = false
   for (let row = 0; row < this.puz.gridHeight; row++) {
     for (let col = 0; col < this.puz.gridWidth; col++) {
-      let gridCell = this.puz.grid[row][col]
+      let gridCell = this.puz.grid[row][col];
       if (!gridCell.isLight) {
         continue;
       }
@@ -6834,7 +6855,7 @@ Exet.prototype.fillLight = function(idx, ci='', revType=null) {
       let cell = cells[solIndex++];
       let gridCell = this.puz.grid[cell[0]][cell[1]];
       if (gridCell.currLetter != c || gridCell.solution != c) {
-        gridCell.currLetter = c;
+        this.puz.setCellLetter(gridCell, c);
         changed = true;
       }
     }
