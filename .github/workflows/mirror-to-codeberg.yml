@@ -1,0 +1,36 @@
+name: Mirror to Codeberg
+
+on:
+  push:
+    branches:
+      - master          # fires on every push to master
+  workflow_dispatch:    # also allows manual trigger from the Actions tab
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Check out the full history (not just the latest commit)
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history; depth=1 would break git push --mirror
+
+      # 2. Load your private key into the runner's SSH agent
+      - name: Set up SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.CODEBERG_SSH_KEY }}
+
+      # 3. Trust Codeberg's host key (prevents interactive prompt / MITM risk)
+      - name: Add Codeberg to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H codeberg.org >> ~/.ssh/known_hosts
+
+      # 4. Push master → main on Codeberg
+      - name: Push to Codeberg
+        run: |
+          git remote add codeberg git@codeberg.org:viresh-ratnakar/pages.git
+          git push codeberg refs/heads/master:refs/heads/main --force
