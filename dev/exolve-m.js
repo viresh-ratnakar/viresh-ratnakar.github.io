@@ -84,7 +84,7 @@ function Exolve(puzzleSpec,
                 visTop=0,
                 maxDim=0,
                 notTemp=true) {
-  this.VERSION = 'Exolve v1.70.1, March 31, 2026';
+  this.VERSION = 'Exolve v1.71, June 15, 2026';
   this.id = '';
 
   this.puzzleText = puzzleSpec;
@@ -412,9 +412,9 @@ function Exolve(puzzleSpec,
     'submit': 'Submit',
     'submit.hover': 'Submit the solution!',
     'setter-by': 'By',
-    'curr-clue-prev': '&#9668;',
+    'curr-clue-prev': '&lt;',
     'curr-clue-prev.hover': 'Previous clue.',
-    'curr-clue-next': '&#9658;',
+    'curr-clue-next': '&gt;',
     'curr-clue-next.hover': 'Next clue.',
     'squares-filled': 'Squares filled',
     'across-label': 'Across',
@@ -443,7 +443,7 @@ function Exolve(puzzleSpec,
              Clear the contents of the current cell.</li>
          <li><b>Space bar:</b>
              Toggle block in the current cell if it's diagramless. Otherwise, clear cell and advance forward.</li>
-         <li><b>Enter (from notes):</b> Return to the grid (same as Ctrl-/ or Cmd-/).</li>
+         <li><b>Enter (from notes, but not Shift-Enter):</b> Return to the grid (same as Ctrl-/ or Cmd-/).</li>
          <li><b>|/_:</b>
              When diagramless-bars option is on, toggle bar-after/under in the current cell if it's diagramless.</li>
          <li><b>Double-click or Shift+Letter:</b>
@@ -467,7 +467,7 @@ function Exolve(puzzleSpec,
     'crossword-id': 'Crossword ID',
     'notes': 'Notes',
     'notes.hover': 'Show/hide notes panel.',
-    'notes-help': '<li>Ctrl/Cmd-/ or Enter to go from notes to grid.</li>' +
+    'notes-help': '<li>Ctrl/Cmd-/ or Enter (but not Shift-Enter) to go from notes to grid.</li>' +
         '<li>Place * at the start of a clue\'s note to mark a fave.</li>' +
         '<li>Hover on a clue\'s note to see the clue as a tooltip.</li>',
     'jotter': 'Jotter',
@@ -537,6 +537,8 @@ function Exolve(puzzleSpec,
     'print.hover': 'Show/hide panel for printing or creating a PDF or saving grid image to SVG file.',
     'print-heading': 'Print or create a PDF:',
     'print-size': 'Page size:',
+    'print-portrait': 'Portrait',
+    'print-landscape': 'Landscape',
     'print-only-grid': 'Only grid',
     'print-only-clues': 'Only clues',
     'print-all': 'Grid and clues',
@@ -588,7 +590,7 @@ function Exolve(puzzleSpec,
     'show-notes-entries': 'Show entered solutions:',
     'show-notes-times': 'Show clue-solving times:',
     'concise-clue.hover': 'Some clue text has been trimmed here for brevity. You can see the full clue by clicking on it.',
-    'preamble-link': '&Darr;Preamble',
+    'preamble-link': '&Darr;Intro',
     'phone-kb-help': `
       Exolve's on-screen keyboard can used for entering letters
       into the grid. The "${ExolveKB.CLOSE_KEY}" button can be used
@@ -913,6 +915,10 @@ Exolve.prototype.init = function() {
                       <option value="6in 9in">Book: 6in x 9in</option>
                       <option value="legal">Legal: 8.5in x 14in</option>
                       <option value="ledger">Ledger: 11in x 17in</option>
+                    </select>
+                    <select name="${this.prefix}-print-orientation" id="${this.prefix}-print-orientation">
+                      <option value="portrait">${this.textLabels['print-portrait']}</option>
+                      <option value="landscape">${this.textLabels['print-landscape']}</option>
                     </select>
                   </div>
                   <div title="${this.textLabels['print-margin.hover']}">
@@ -4036,11 +4042,11 @@ Exolve.prototype.parseClueLabel = function(clueLine, consumeTrailing=true, isChi
     // Look for ,/&/and/'/'
     // For &, /, and "and": only treat them as child indicators if followed by a
     // number.
-    commaParts = clueLine.match(/^\s*(?:,|(?:and|&|\/)\s*[1-9])/);
+    commaParts = clueLine.match(/^\s*(?:,|(?:and|&|&amp;|&#038;|\/)\s*[1-9])/i);
     if (commaParts && commaParts.length == 1) {
       parse.hasChildren = true;
       // Store the separator char in linkSep
-      parse.linkSep = commaParts[0].trim();
+      parse.linkSep = commaParts[0].toLowerCase().trim();
       let skipLen = commaParts[0].length;
       if (parse.linkSep.startsWith('and') ||
           parse.linkSep.startsWith('/') ||
@@ -7565,10 +7571,11 @@ Exolve.prototype.handleKeyDown = function(e) {
   } else if (isCtrl && e.key == 'B') {
     this.muzzleEvent(e);
     this.printNow('crossword');
-  } else if ((isCtrl && e.key == '/') || (key == 13) ) {
+  } else if ((isCtrl && e.key == '/') || (key == 13 && !e.shiftKey)) {
     /** Enter key (13) from Notes panel is intercepted (but not from grid input) */
     if (this.notesPanel.contains(e.target) &&
         this.currCellIsValid()) {
+      /** Shift-Enter can be used in Notes to add a new line. */
       this.muzzleEvent(e);
       this.fromNotesToGrid();
     } else if (key != 13 && this.focusOnNotes()) {
@@ -10162,6 +10169,7 @@ Exolve.prototype.makeQRsInExplanations = function() {
 Exolve.prototype.getPrintSettings = function() {
   const pageSizeElt = document.getElementById(this.prefix + '-page-size');
   const pageMarginsElt = document.getElementById(this.prefix + '-page-margins');
+  const orientationElt = document.getElementById(this.prefix + '-print-orientation');
 
   const margins = [0, 0, 0, 0];
   const marginStrs = pageMarginsElt.value.trim().split(/\s+/);
@@ -10177,7 +10185,7 @@ Exolve.prototype.getPrintSettings = function() {
 
   const page = (pageSizeElt ? pageSizeElt.value : 'letter') || 'letter';
 
-  const widthIn = ((page == 'letter' || page == 'legal') ? 8.5 :
+  let widthIn = ((page == 'letter' || page == 'legal') ? 8.5 :
                   ((page == '6in 9in') ? 6.0 :
                   ((page == 'A4') ? 210.0/25.4 :
                   ((page == 'A3') ? 297.0/25.4 :
@@ -10185,7 +10193,7 @@ Exolve.prototype.getPrintSettings = function() {
                   ((page == 'B5') ? 176.0/25.4 :
                   ((page == 'B4') ? 250.0/25.4 :
                   ((page == 'ledger') ? 11.0 : 8.5))))))));
-  const heightIn = ((page == 'letter') ? 11.0 :
+  let heightIn = ((page == 'letter') ? 11.0 :
                    ((page == '6in 9in') ? 9.0 :
                    ((page == 'A4') ? 297.0/25.4 :
                    ((page == 'A3') ? 420.0/25.4 :
@@ -10194,6 +10202,14 @@ Exolve.prototype.getPrintSettings = function() {
                    ((page == 'B4') ? 353.0/25.4 :
                    ((page == 'legal') ? 14.0 :
                    ((page == 'ledger') ? 17.0 : 11.0)))))))));
+  let orientation = 'portrait';
+  if (orientationElt && orientationElt.value == 'landscape') {
+    orientation = 'landscape';
+    const temp = widthIn;
+    widthIn = heightIn;
+    heightIn = widthIn;
+  }
+  const isLandscape = (orientation == 'landscape');
   const font = this.parseFontSize(
       (this.printFontInput ? this.printFontInput.value : '18px') || '18px');
 
@@ -10216,14 +10232,17 @@ Exolve.prototype.getPrintSettings = function() {
    */
   let threeColumns = false;
   if (this.numCellsToFill == this.numCellsFilled) {
-    if (this.printCompleted3Cols && (scope == 'all')) {
+    if ((this.printCompleted3Cols || isLandscape) &&
+        (scope == 'all')) {
       threeColumns = true;
     }
   } else {
-    if (!this.printIncomplete2Cols && (scope == 'all')) {
+    if (!this.printIncomplete2Cols && !isLandscape &&
+        (scope == 'all')) {
       threeColumns = true;
     }
   }
+  const gridColumns = threeColumns ? (isLandscape ? 1 : 2) : 1;
   return {
     scope: scope,
     onlyClues: (scope == 'only-clues'),
@@ -10237,6 +10256,8 @@ Exolve.prototype.getPrintSettings = function() {
     margins: margins,
     pageWidthIn: widthIn,
     pageHeightIn: heightIn,
+    orientation: orientation,
+    gridColumns: gridColumns,
     gridScale: pGridScale.value,
     title: pTitle.checked,
     setter: pSetter.checked,
@@ -10477,6 +10498,11 @@ Exolve.prototype.preprint = function(settings) {
       zoom: ${zoomPerc}%;
       margin: 0;
     }
+    @media print {
+      @page {
+        size: ${settings.orientation};
+      }
+    }
     #${this.prefix}-frame {
       width: ${this.PRINT_WIDTH_PIXELS}px;
     }
@@ -10550,13 +10576,16 @@ Exolve.prototype.preprintToFit = function(settings) {
   /**
    * We set dpi to a value that assumes that printing will scale
    * PRINT_WIDTH_PIXELS pixels to wIn inches.
-   *
-   * Adjust height limit by 72 as that seems to be needed.
    */
   const wIn =
     settings.pageWidthIn - (settings.margins[0] + settings.margins[2]);
   const dpi = this.PRINT_WIDTH_PIXELS / wIn;
-  const hPx = -72 + Math.floor(dpi * (
+  /**
+   * Adjust height limit by 16. This number used to be needed to be bigger
+   * (72), and 0 works too now, somehow, but let's play safe.
+   */
+  const hPxAdjust = (settings.orientation == 'landscape' ? -256 : -16);
+  const hPx = hPxAdjust + Math.floor(dpi * (
         settings.pageHeightIn - (settings.margins[1] + settings.margins[3]))) -
         (settings.qr ? this.qrTable.getBoundingClientRect().height : 0);
 
@@ -10661,7 +10690,10 @@ Exolve.prototype.printTwoColumns = function(settings) {
     text-align: left;
     height: ${'' + scaledH + 'px'};
   }
-  #${this.prefix}-frame .xlv-wide-box {
+  #${this.prefix}-grid-parent,
+  #${this.prefix}-grid-parent-centerer,
+  #${this.prefix}-frame .xlv-wide-box,
+  #${this.prefix}-frame .xlv-grid-panel {
     width: ${COLUMN_WIDTH}px;
   }
   #${this.prefix}-frame .xlv-clues,
@@ -10826,7 +10858,7 @@ Exolve.prototype.printThreeColumns = function(settings) {
 
   const svgWidth = this.boxW + (2 * this.offsetLeft)
   const svgHeight = this.boxH + (2 * this.offsetTop)
-  const goodGridDim = COLUMN_SEP + 2 * COLUMN_WIDTH;
+  const goodGridDim = ((settings.gridColumns - 1) * COLUMN_SEP) + (settings.gridColumns * COLUMN_WIDTH);
   const scale = settings.gridScale ? settings.gridScale :
       Math.min(1.75, goodGridDim / svgWidth);
   const scaledH = svgHeight * scale;
@@ -10841,8 +10873,11 @@ Exolve.prototype.printThreeColumns = function(settings) {
     transform: scale(${scale});
     transform-origin: top left;
   }
-  #${this.prefix}-frame .xlv-wide-box {
-    width: ${COLUMN_SEP + (2 * COLUMN_WIDTH)}px;
+  #${this.prefix}-grid-parent,
+  #${this.prefix}-grid-parent-centerer,
+  #${this.prefix}-frame .xlv-wide-box,
+  #${this.prefix}-frame .xlv-grid-panel {
+    width: ${goodGridDim}px;
   }
   #${this.prefix}-frame .xlv-clues,
   #${this.prefix}-frame .xlv-clues-flex {
@@ -10869,7 +10904,7 @@ Exolve.prototype.printThreeColumns = function(settings) {
     grid-row-start: 1;
     grid-row-end: 2;
     grid-column-start: 1;
-    grid-column-end: 3;
+    grid-column-end: ${settings.gridColumns + 1};
     padding: 0;
   }
   #${this.prefix}-clues {
@@ -10885,7 +10920,7 @@ Exolve.prototype.printThreeColumns = function(settings) {
     grid-column-end: 2;
   }
   #${this.prefix}-printed-clues-2 {
-    grid-row-start: 2;
+    grid-row-start: ${settings.gridColumns};
     grid-row-end: 3;
     grid-column-start: 2;
     grid-column-end: 3;
@@ -10957,14 +10992,14 @@ Exolve.prototype.printThreeColumns = function(settings) {
   let best1end = 0;
   let best2end = 0;
   let bestGap = 1000;
-  for (let i = 0; i < clues.length; i++) {
-    const h1 = clues[i].h;
+  for (let i = -1; i < clues.length; i++) {
+    const h1 = (i < 0) ? 0 : clues[i].h;
     for (let j = i + 1; j < clues.length; j++) {
-      const h2 = clues[j].h - clues[i].h;
-      const gap12 = Math.abs(h2 - h1);
+      const h2 = clues[j].h - h1;
+      const gap12 = Math.abs(h2 - h1 - (settings.gridColumns == 1 ? gridPanelH : 0));
       const h3 = h - clues[j].h;
       const gap13 = Math.abs(h1 + gridPanelH - h3);
-      const gap23 = Math.abs(h2 + gridPanelH - h3);
+      const gap23 = Math.abs(h2 + (settings.gridColumns == 1 ? 0 : gridPanelH) - h3);
       const gap = gap12 + gap23 + gap13;
       if (gap < bestGap) {
         bestGap = gap;

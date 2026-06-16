@@ -4,8 +4,6 @@ MIT License
 Copyright (c) 2019 Viresh Ratnakar
 
 See the full license notice in exolve-m.js.
-
-Version: Exolve v1.69, February 25, 2026
 */
 
 @media (max-width: 500px) {
@@ -206,7 +204,7 @@ Version: Exolve v1.69, February 25, 2026
 }
 .xlv-setter {
   text-align: center;
-  padding: 4px 0 8px 0;
+  padding: 0 0 12px 0;
 }
 .xlv-preamble-link {
   display: none;
@@ -417,6 +415,10 @@ Version: Exolve v1.69, February 25, 2026
   text-shadow: none;
   touch-action: manipulation;
   width: inherit;
+}
+.xlv-curr-clue .xlv-small-button,
+.xlv-clues-table .xlv-small-button {
+  border-radius: 50%;
 }
 .xlv-small-button:hover {
   cursor: pointer;
