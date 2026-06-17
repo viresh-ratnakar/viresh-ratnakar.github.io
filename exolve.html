@@ -587,7 +587,7 @@ function Exolve(puzzleSpec,
     'print-size': 'Page size:',
     'print-portrait': 'Portrait',
     'print-landscape': 'Landscape',
-    'print-cols': 'Cols:',
+    'print-cols': 'Columns:',
     'print-cols-hover': 'Number of columns. [Auto] picks reasonable values based upon the state of the puzzle and the page orientation. For three columns, you can decide whether the grid should span 1 or 2 of them.',
     'print-cols-auto': 'Auto',
     'print-cols-2': '2 (grid in 1)',
@@ -972,7 +972,8 @@ Exolve.prototype.init = function() {
                       <option value="portrait">${this.textLabels['print-portrait']}</option>
                       <option value="landscape">${this.textLabels['print-landscape']}</option>
                     </select>
-                    <span title="${this.textLabels['print-cols-hover']}">
+                  </div>
+                  <div title="${this.textLabels['print-cols-hover']}">
                     ${this.textLabels['print-cols']}
                     <select name="${this.prefix}-print-cols" id="${this.prefix}-print-cols">
                       <option value="auto">${this.textLabels['print-cols-auto']}</option>
@@ -980,7 +981,6 @@ Exolve.prototype.init = function() {
                       <option value="3-1">${this.textLabels['print-cols-3-1']}</option>
                       <option value="3-2">${this.textLabels['print-cols-3-2']}</option>
                     </select>
-                    </span>
                   </div>
                   <div title="${this.textLabels['print-margin.hover']}">
                     ${this.textLabels['print-margin']}
