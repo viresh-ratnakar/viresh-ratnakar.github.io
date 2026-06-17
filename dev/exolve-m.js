@@ -84,7 +84,7 @@ function Exolve(puzzleSpec,
                 visTop=0,
                 maxDim=0,
                 notTemp=true) {
-  this.VERSION = 'Exolve v1.71, June 15, 2026';
+  this.VERSION = 'Exolve v1.71, June 17, 2026';
   this.id = '';
 
   this.puzzleText = puzzleSpec;
@@ -539,6 +539,12 @@ function Exolve(puzzleSpec,
     'print-size': 'Page size:',
     'print-portrait': 'Portrait',
     'print-landscape': 'Landscape',
+    'print-cols': 'Cols:',
+    'print-cols-hover': 'Number of columns. [Auto] picks reasonable values based upon the state of the puzzle and the page orientation. For three columns, you can decide whether the grid should span 1 or 2 of them.',
+    'print-cols-auto': 'Auto',
+    'print-cols-2': '2 (grid in 1)',
+    'print-cols-3-1': '3 (grid in 1)',
+    'print-cols-3-2': '3 (grid in 2)',
     'print-only-grid': 'Only grid',
     'print-only-clues': 'Only clues',
     'print-all': 'Grid and clues',
@@ -663,8 +669,6 @@ function Exolve(puzzleSpec,
   this.ignoreUnclued = false;
   this.ignoreEnumMismatch = false;
   this.showCellLevelButtons = false;
-  this.printCompleted3Cols = false;
-  this.printIncomplete2Cols = false;
   this.noNinaButton = false;
   this.useWebifi = false;
   this.hltOverwrittenMillis = 5000;
@@ -920,6 +924,15 @@ Exolve.prototype.init = function() {
                       <option value="portrait">${this.textLabels['print-portrait']}</option>
                       <option value="landscape">${this.textLabels['print-landscape']}</option>
                     </select>
+                    <span title="${this.textLabels['print-cols-hover']}">
+                    ${this.textLabels['print-cols']}
+                    <select name="${this.prefix}-print-cols" id="${this.prefix}-print-cols">
+                      <option value="auto">${this.textLabels['print-cols-auto']}</option>
+                      <option value="2-1">${this.textLabels['print-cols-2']}</option>
+                      <option value="3-1">${this.textLabels['print-cols-3-1']}</option>
+                      <option value="3-2">${this.textLabels['print-cols-3-2']}</option>
+                    </select>
+                    </span>
                   </div>
                   <div title="${this.textLabels['print-margin.hover']}">
                     ${this.textLabels['print-margin']}
@@ -2465,12 +2478,11 @@ Exolve.prototype.parseOption = function(s) {
       /* Deprecated, we always try to position clues to the right now. */
       continue;
     }
-    if (spart == "print-incomplete-2cols") {
-      this.printIncomplete2Cols = true;
-      continue;
-    }
-    if (spart == "print-completed-3cols") {
-      this.printCompleted3Cols = true;
+    if (spart == "print-incomplete-2cols" ||
+        spart == "print-completed-3cols") {
+      /* Deprecated, now we let the user pick printing columnization (apart
+       * from the default "auto" mode).
+       */
       continue;
     }
     if (spart == "rebus-cells") {
@@ -10170,6 +10182,7 @@ Exolve.prototype.getPrintSettings = function() {
   const pageSizeElt = document.getElementById(this.prefix + '-page-size');
   const pageMarginsElt = document.getElementById(this.prefix + '-page-margins');
   const orientationElt = document.getElementById(this.prefix + '-print-orientation');
+  const columnsElt = document.getElementById(this.prefix + '-print-cols');
 
   const margins = [0, 0, 0, 0];
   const marginStrs = pageMarginsElt.value.trim().split(/\s+/);
@@ -10207,7 +10220,7 @@ Exolve.prototype.getPrintSettings = function() {
     orientation = 'landscape';
     const temp = widthIn;
     widthIn = heightIn;
-    heightIn = widthIn;
+    heightIn = temp;
   }
   const isLandscape = (orientation == 'landscape');
   const font = this.parseFontSize(
@@ -10232,23 +10245,41 @@ Exolve.prototype.getPrintSettings = function() {
    */
   let threeColumns = false;
   if (this.numCellsToFill == this.numCellsFilled) {
-    if ((this.printCompleted3Cols || isLandscape) &&
-        (scope == 'all')) {
+    if (isLandscape && (scope == 'all')) {
       threeColumns = true;
     }
   } else {
-    if (!this.printIncomplete2Cols && !isLandscape &&
-        (scope == 'all')) {
+    if (!isLandscape && (scope == 'all')) {
       threeColumns = true;
     }
   }
-  const gridColumns = threeColumns ? (isLandscape ? 1 : 2) : 1;
+  let gridColumns = threeColumns ? (isLandscape ? 1 : 2) : 1;
+  /**
+   * Override threeColumns/gridColumns, possibly, if columnsOption
+   * is set (but don't do it if onlyClues/onlyGrid is selected).
+   */
+  if (scope != 'all' && columnsElt) {
+    columnsElt.value = 'auto';
+  }
+  const columnsOption = columnsElt ? columnsElt.value : 'auto';
+  if (columnsOption == '2-1') {
+    threeColumns = false;
+    gridColumns = 1;
+  } else if (columnsOption == '3-1') {
+    threeColumns = true;
+    gridColumns = 1;
+  } else if (columnsOption == '3-2') {
+    threeColumns = true;
+    gridColumns = 2;
+  }
   return {
     scope: scope,
     onlyClues: (scope == 'only-clues'),
     onlyGrid: (scope == 'only-grid'),
     allInScope: (scope == 'all'),
+    orientation: orientation,
     threeColumns: threeColumns,
+    gridColumns: gridColumns,
     page: page,
     font: font,
     autofont: font.str.startsWith('auto'),
@@ -10256,8 +10287,6 @@ Exolve.prototype.getPrintSettings = function() {
     margins: margins,
     pageWidthIn: widthIn,
     pageHeightIn: heightIn,
-    orientation: orientation,
-    gridColumns: gridColumns,
     gridScale: pGridScale.value,
     title: pTitle.checked,
     setter: pSetter.checked,
@@ -10581,11 +10610,13 @@ Exolve.prototype.preprintToFit = function(settings) {
     settings.pageWidthIn - (settings.margins[0] + settings.margins[2]);
   const dpi = this.PRINT_WIDTH_PIXELS / wIn;
   /**
-   * Adjust height limit by 16. This number used to be needed to be bigger
-   * (72), and 0 works too now, somehow, but let's play safe.
+   * hPx used to needed to be adjusted down (-70 was the delta) because printed
+   * line-height tends be bigger than displayed line-height. But now we
+   * explicitly set line-height for clues/preamble/explanations to 1.2 (which is
+   * close to the value for the "normal" setting), and this adjustment is no
+   * longer needed.
    */
-  const hPxAdjust = (settings.orientation == 'landscape' ? -256 : -16);
-  const hPx = hPxAdjust + Math.floor(dpi * (
+  const hPx = Math.floor(dpi * (
         settings.pageHeightIn - (settings.margins[1] + settings.margins[3]))) -
         (settings.qr ? this.qrTable.getBoundingClientRect().height : 0);
 
@@ -10699,6 +10730,12 @@ Exolve.prototype.printTwoColumns = function(settings) {
   #${this.prefix}-frame .xlv-clues,
   #${this.prefix}-frame .xlv-clues-flex {
     display: block;
+  }
+  #${this.prefix}-frame .xlv-preamble,
+  #${this.prefix}-frame .xlv-title-setter,
+  #${this.prefix}-frame .xlv-explanations,
+  #${this.prefix}-frame .xlv-clues {
+    line-height: 1.2 !important;
   }
   `;
   this.frame.appendChild(customStyles);
@@ -10882,6 +10919,12 @@ Exolve.prototype.printThreeColumns = function(settings) {
   #${this.prefix}-frame .xlv-clues,
   #${this.prefix}-frame .xlv-clues-flex {
     display: block;
+  }
+  #${this.prefix}-frame .xlv-preamble,
+  #${this.prefix}-frame .xlv-title-setter,
+  #${this.prefix}-frame .xlv-explanations,
+  #${this.prefix}-frame .xlv-clues {
+    line-height: 1.2 !important;
   }
   `;
   this.frame.appendChild(customStyles);
