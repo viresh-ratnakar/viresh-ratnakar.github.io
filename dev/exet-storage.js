@@ -4,8 +4,6 @@ MIT License
 Copyright (c) 2022 Viresh Ratnakar
 
 See the full Exet license notice in exet.js.
-
-Current version: v1.03, December 26, 2025
 */
 
 /**
@@ -73,10 +71,11 @@ function ExetRevManager() {
    */
   this.SPECIAL_KEY_PREFIX = '42-exet-42';
   this.SPECIAL_KEY = this.SPECIAL_KEY_PREFIX;
-  if ('en' != exetLexicon.language || 'Latin' != exetLexicon.script ||
-      1 != exetLexicon.maxCharCodes) {
+  const maxCharCodes = exetConfig.maxCharCodes ?? 1;
+  if ('en' != exetConfig.language || 'Latin' != exetConfig.script ||
+      maxCharCodes != 1) {
     this.SPECIAL_KEY += `-${exetLexicon.language}-${exetLexicon.script}` +
-                        `-${exetLexicon.maxCharCodes}`;
+                        `-${maxCharCodes}`;
   }
 
   /* Id for previews */
@@ -642,6 +641,8 @@ ExetRevManager.prototype.saveRev = function(revType, details="") {
         lastRev.noStemDupes == exet.noStemDupes &&
         lastRev.tryReversals == exet.tryReversals &&
         lastRev.minpop == exet.minpop &&
+        lastRev.hasOwnProperty('minscore') && lastRev.minscore == exet.minscore &&
+        lastRev.hasOwnProperty('lexId') && lastRev.lexId == exetLexicon.id &&
         lastRev.hasOwnProperty('requireEnums') && lastRev.requireEnums == exet.requireEnums &&
         lastRev.hasOwnProperty('lightRegexps') && JSON.stringify(lastRev.lightRegexps) == JSON.stringify(exet.lightRegexps) &&
         lastRev.asymOK == exet.asymOK) {
@@ -664,6 +665,8 @@ ExetRevManager.prototype.saveRev = function(revType, details="") {
   exetRev.asymOK = exet.asymOK;
   exetRev.tryReversals = exet.tryReversals;
   exetRev.minpop = exet.minpop;
+  exetRev.minscore = exet.minscore;
+  exetRev.lexId = exetLexicon.id;
   exetRev.requireEnums = exet.requireEnums;
   exetRev.lightRegexps = exet.lightRegexps;
   stored.revs.push(exetRev);

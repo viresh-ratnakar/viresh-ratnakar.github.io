@@ -4,14 +4,11 @@ MIT License
 Copyright (c) 2022 Viresh Ratnakar
 
 See the full Exet license notice in exet.js.
-
-Current version: v1.03, December 26, 2025
 */
 
 /**
- * This function should be called only after lufz-en-lexicon.js has been
- * loaded. If that script is loaded using "defer" then exetLexiconInit()
- * should be called once the DOMContentLoaded event fires.
+ * This function should be called only after the lexicon has been loaded into
+ * the exetLexicon object.
  *
  * It expects an exetLexicon object that contains:
  *   id: a version identifier.
@@ -29,29 +26,51 @@ Current version: v1.03, December 26, 2025
  *     index in the same group, and following this cycle should eventually
  *     lead back to x.
  *   stemsId: Should match id.
+ * TODO: scores, set medianScore
  * It supplements this objects with various utility functions and a few data
  * structures.
  */
 function exetLexiconInit() {
-  if (!exetLexicon) {
-    throw 'The exetLexicon object must be initialized before this script ' +
-          'can be used. This can be done by loading the script file ' +
-          'lufz-en-lexicon.js (or other language specific files).';
+  const xetLoading = document.getElementById('xet-loading');
+  if (typeof exetLexicon == "undefined" || !exetLexicon) {
+    const error = `Failed to load the lexicon ${exetLexiconNewName ?? "named in the script tag"}`;
+    if (xetLoading) {
+      xetLoading.innerHTML = `<div class="xet-red"><h3>${error} :-(</h3></div>`;
+    }
+    throw error;
   }
-
+  if (exetLexicon.language != exetConfig.language ||
+      exetLexicon.script != exetConfig.script) {
+    const error = `
+      The exetLexicon object has different language/script
+      (${exetLexicon.language}/${exetLexicon.script}) than the config
+      (${exetConfig.language}/${exetConfig.script})`;
+    if (xetLoading) {
+      xetLoading.innerHTML = `<div class="xet-red"><h3>${error} :-(</h3></div>`;
+    }
+    throw error;
+  }
   if (exetLexicon.language == 'en') {
     if (!exetLexicon.hasOwnProperty('stems')) {
-      throw 'English lexicon, but missing stems info. Please update using ' +
+      const error = 'English lexicon, but missing stems info. Please update using ' +
             'the instructions in ' +
             'https://github.com/viresh-ratnakar/lufz/blob/master/README.md';
+      if (xetLoading) {
+        xetLoading.innerHTML = `<div class="xet-red"><h3>${error} :-(</h3></div>`;
+      }
+      throw error;
     }
   }
   if (exetLexicon.hasOwnProperty('stems') &&
       (exetLexicon.stemsId != exetLexicon.id)) {
-    throw 'English lexicon has stemsId ' + exetLexicon.stemsId + ', but ' +
+    const error = 'English lexicon has stemsId ' + exetLexicon.stemsId + ', but ' +
           'it should be ' + exetLexicon.id + '. Please update using ' +
           'the instructions in ' +
           'https://github.com/viresh-ratnakar/lufz/blob/master/README.md';
+    if (xetLoading) {
+      xetLoading.innerHTML = `<div class="xet-red"><h3>${error} :-(</h3></div>`;
+    }
+    throw error;
   }
 
   exetLexicon.startLen = exetLexicon.lexicon.length;
@@ -74,9 +93,54 @@ function exetLexiconInit() {
     exetLexicon.letterIndex[c] = i;
     exetLexicon.zeroHist[i] = 0;
   }
+  const configMaxCharCodes = exetConfig.maxCharCodes ?? 1;
+  if (exetLexicon.maxCharCodes != configMaxCharCodes) {
+    const error = `
+      The exetLexicon object has different maxCharCodes
+      (${exetLexicon.maxCharCodes}) than the config (${configMaxCharCodes})`;
+    if (xetLoading) {
+      xetLoading.innerHTML = `<div class="xet-red"><h3>${error} :-(</h3></div>`;
+    }
+    throw error;
+  }
   for (let c of exetLexicon.letters) {
     exetLexicon.letterSet[c] = true;
     exetLexicon.letterFreq[c] = 0;
+  }
+
+  /** No more errors possible */
+  if (xetLoading) {
+    xetLoading.remove();
+  }
+
+  /**
+   * If this lexicon has scores, note its range in scoresSummary.
+   */
+  exetLexicon.scoresSummary = null;
+  if (exetLexicon.hasOwnProperty('scores')) {
+    exetLexicon.scoresSummary = {
+      max: exetLexicon.scores[1],
+      min: exetLexicon.scores[exetLexicon.startLen - 1]
+    };
+    /**
+     * Returns the largest index x (from [1..startLen-1] such that
+     * scores[x] >= score. Returns 0 if no such index.
+     */
+    exetLexicon.scoreToIndex = function(score) {
+      let left = 1;
+      let right = exetLexicon.startLen - 1;
+      let largestIndex = 0;
+      while (left <= right) {
+        let mid = Math.floor((left + right) / 2);
+        if (exetLexicon.scores[mid] >= score) {
+          largestIndex = mid;
+          left = mid + 1;
+        } else {
+          right = mid - 1;
+        }
+      }
+      return largestIndex;
+    };
   }
 
   /**
@@ -218,7 +282,11 @@ function exetLexiconInit() {
     return toLower ? out.toLowerCase() : out;
   }
 
+  /**
+   * Returns a sorted array.
+   */
   exetLexicon.stemGroup = function(idx) {
+    idx = Number(idx);
     console.assert(idx >= 0 && idx < this.lexicon.length);
     let group = [idx];
     if (!this.hasOwnProperty('stems') || (idx >= this.startLen)) {
@@ -357,8 +425,7 @@ function exetLexiconInit() {
   /**
    * partialSol can contain letters, question-marks, spaces, hyphens.
    * limit=0 for all matches, else return at most limit matches.
-   * dontReuse should be an object with dontReuse[idx] set to true for (+ve)
-   *     lexicon indices that have already been used.
+   * dontReuse should be a set of (+ve) lexicon indices that have already been used.
    * noProperNouns: disallow proper nouns
    * indexLimit: only consider lexicon indices less than this. 0 for no constraints.
    * tryRev: try reversals.
@@ -369,7 +436,7 @@ function exetLexiconInit() {
   exetLexicon.getLexChoices = function(
       partialSol,
       limit=0,
-      dontReuse={},
+      dontReuse=null,
       noProperNouns=false,
       indexLimit=0,
       tryRev=false,
@@ -379,7 +446,7 @@ function exetLexiconInit() {
     if (indexLimit <= 0) {
       indexLimit = this.startLen;
     }
-    let choices = [];
+    const choices = [];
     const key = this.lexkey(partialSol);
     const keylen = key.length;
     if (!keylen) return choices;
@@ -388,7 +455,7 @@ function exetLexiconInit() {
     const seen = {};
     if (preflexByLen[keylen]) {
       for (idx of preflexByLen[keylen]) {
-        if (dontReuse[idx]) continue;
+        if (dontReuse && dontReuse.has(idx)) continue;
         const phrase = this.lexicon[idx];
         if (regexp && !regexp.test(phrase)) {
           continue;
@@ -405,7 +472,7 @@ function exetLexiconInit() {
       }
     }
     const loops = tryRev ? 2 : 1;
-    for (let i = 0; (i < loops) && (limit <= 0 || choices.length < limit); i++) {
+    for (let i = 0; (i < loops) && (limit == 0 || choices.length < limit); i++) {
       const loopKey = (i == 0) ? key : rkey;
       let gkey = loopKey.join('');
       while (!this.index[gkey]) {
@@ -416,7 +483,7 @@ function exetLexiconInit() {
       const indices = this.index[gkey];
       for (let idx of indices) {
         if (idx >= indexLimit) break;
-        if (dontReuse[idx]) continue;
+        if (dontReuse && dontReuse.has(idx)) continue;
         if (unpreflexSet[idx]) continue;
         const phrase = this.lexicon[idx];
         if (noProperNouns && this.isProperNoun(phrase)) {

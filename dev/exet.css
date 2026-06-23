@@ -4,8 +4,6 @@
  * Copyright (c) 2020 Viresh Ratnakar
  *
  * See the full license notice in exet.js.
- *
- * Current version: v1.03, December 26, 2025
  */
 
 body {
@@ -33,6 +31,35 @@ body {
 .xet-frame hr {
   margin-left: 0;
   margin-right: 0;
+}
+.xet-ui-freezer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent black */
+  z-index: 9999; /* High z-index to stay on top of everything */
+  
+  /* Flexbox to center the message box */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
+  /* Smooth transition for showing/hiding */
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+.xet-ui-freezer-msg {
+  background-color: #ffffff;
+  padding: 24px 48px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  color: #red;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 16px;
+  font-weight: 500;
 }
 .xet-tab {
   height: 50px;
@@ -92,6 +119,9 @@ body {
 .xet-panel-right {
   flex-grow: 1;
   min-width: 300px;
+}
+.xet-pdiv {
+  padding: 4px;
 }
 .xet-half-section,
 .xet-section {
@@ -771,7 +801,7 @@ body {
   color: red;
   font-weight: bold;
 }
-#xet-minpop {
+#xet-minlex {
   text-align: right;
 }
 #xet-save-warnings {

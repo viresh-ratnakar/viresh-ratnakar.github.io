@@ -9,22 +9,29 @@ MIT License
 Copyright (c) 2020 Viresh Ratnakar
 
 See the full license notice in exet.js.
-
-Current version: v0.97, September 16, 2025
 -->
 <link rel="stylesheet" type="text/css" href="exolve-m.css?v1.63"/>
-<link rel="stylesheet" type="text/css" href="exet.css?v0.97"/>
+<link rel="stylesheet" type="text/css" href="exet.css?v1.06"/>
 
 <script>
 /**
  * Language-specific config parameters.
  */
 exetConfig = {
+  language: "en",
+  script: "Latin",
   defaultDimension: 15,
   defaultPopularity: 80,
+  lexicons: {
+    "Lufz": [ "lufz-en-lexicon.js"],
+    "Nediger List": [
+      "nediger-list-part-1.js",
+      "nediger-list-part-2.js",
+      "nediger-list-stems.js"
+    ]
+  },
   researchTools: [
     /** The first entry should not be name: "separator" */
-    {url: "https://thefreedictionary.com/", name: "The Free Dictionary"},
     {url: "https://en.wiktionary.org/wiki/", name: "Wiktionary", suffix: "#English"},
     {url: "https://www.merriam-webster.com/dictionary/",
      name: "Merriam-Webster"},
@@ -42,6 +49,7 @@ exetConfig = {
      needsClueWords: true,
      name: "Clue phrases as indicators in published cryptic crosswords (cryptics.georgeho.org)"},
     {name: "separator"},
+    {url: "https://thefreedictionary.com/", newTab: true, name: "The Free Dictionary"},
     {url: "https://chambers.co.uk/search/?title=21st&query=",
      newTab: true,
      name: "Chambers"},
@@ -149,17 +157,17 @@ exetConfig = {
 };
 </script>
 
-<script src="exolve-m.js?v1.63"></script>
-<script src="exolve-from-puz.js?v1.63"></script>
-<script src="exolve-from-ipuz.js?v1.63"></script>
-<script src="exolve-to-puz.js?v1.63"></script>
-<script src="exolve-to-ipuz.js?v1.63"></script>
-<script defer src="lufz-en-lexicon.js?v0.97"></script>
-<script src="exet-analysis.js?v0.97"></script>
-<script src="exet-autofill.js?v0.97"></script>
-<script src="exet-storage.js?v0.97"></script>
-<script src="exet.js?v0.97"></script>
-<script src="exet-lexicon.js?v0.97"></script>
+<script src="exolve-m.js?v1.65"></script>
+<script src="exolve-from-puz.js?v1.65"></script>
+<script src="exolve-from-ipuz.js?v1.65"></script>
+<script src="exolve-to-puz.js?v1.65"></script>
+<script src="exolve-to-ipuz.js?v1.65"></script>
+<script src="exolve-exost.js?v1.65"></script>
+<script src="exet-analysis.js?v1.06"></script>
+<script src="exet-storage.js?v1.06"></script>
+<script src="exet.js?v1.06"></script>
+<script src="exet-autofill.js?v1.06"></script>
+<script src="exet-lexicon.js?v1.06"></script>
 
 <title>Exet: Create a crossword</title>
 

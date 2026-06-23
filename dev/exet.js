@@ -24,14 +24,39 @@ SOFTWARE.
 The latest code and documentation for Exet can be found at:
 https://github.com/viresh-ratnakar/exet
 
-Current version: v1.03, December 26, 2025
+Current version: v1.05.1, May 22, 2026
 */
 
 function ExetModals() {
   this.modal = null;
   document.addEventListener('click', this.handleClick.bind(this));
   document.addEventListener('keydown', this.handleClick.bind(this));
+
+  /**
+   * UI freezer disables the entire UI (used for disruptive changes such as
+   * switching lexicons).
+   */
+  this.uiFreezer = document.createElement('div');
+  this.uiFreezer.style.display = 'none';
+  this.uiFreezer.id = 'xet-ui-freezer';
+  this.uiFreezer.className = 'xet-ui-freezer';
+  this.uiFreezer.innerHTML = `
+    <div id="xet-ui-freezer-msg" class="xet-ui-freezer-msg">
+    </div>
+  `;
+  document.body.insertAdjacentElement('afterbegin', this.uiFreezer);
+  this.uiFreezerMsg = document.getElementById('xet-ui-freezer-msg');
 };
+
+ExetModals.prototype.freezeUI = function(msg) {
+  this.uiFreezerMsg.innerHTML = msg;
+  this.uiFreezer.style.display = '';
+}
+
+ExetModals.prototype.unfreezeUI = function() {
+  this.uiFreezerMsg.innerHTML = '';
+  this.uiFreezer.style.display = 'none';
+}
 
 ExetModals.prototype.handleClick = function(e) {
   if (!this.modal) {
@@ -65,7 +90,7 @@ ExetModals.prototype.hide = function() {
 }
 
 function Exet() {
-  this.version = 'v1.03, December 26, 2025';
+  this.version = 'v1.04.2, April 11, 2026';
   this.puz = null;
   this.prefix = '';
   this.suffix = '';
@@ -73,7 +98,7 @@ function Exet() {
   this.preflex = [];
   this.preflexSet = {};
   this.preflexHash = null;
-  this.preflexInUse = {};
+  this.preflexUsed = new Set;
   this.unpreflex = [];
   this.unpreflexSet = {};
   this.unpreflexHash = null;
@@ -84,8 +109,9 @@ function Exet() {
   this.tryReversals = false;
   this.lightRegexps = {};
   this.lightRegexpsC = {};
-  this.DEFAULT_MINPOP = exetConfig.defaultPopularity;
-  this.setMinPop(this.DEFAULT_MINPOP)
+  this.minpop = 0;
+  this.minscore = 0;
+  this.setMinPop(exetConfig.defaultPopularity);  /** Also sets exet.minscore if exetLexicon has scores. */
   this.DRAFT = '[DRAFT]';
   this.CLUE_NOT_SET = 'Set clue and clear draft marker...';
   this.MENU_SEPARATOR = '<option disabled>' +
@@ -109,6 +135,10 @@ function Exet() {
    * Max lengths of preferred/disallowed word lists.
    */
   this.MAX_PREFLEX = 50000;
+  /**
+   * Max fodder length for anagramming/charades/containments listing.
+   */
+  this.MAX_FODDER_LENGTH = 13;
 
   // Start in the Exet tab
   this.currTab = "exet"
@@ -185,10 +215,17 @@ function Exet() {
      <i>Edit &gt; Reverse current light</i>. You can let autofill suggest
      reversals using the "Try reversals: [ ]" option on the main Exet tab.
      Reversed lights are often seen in 3-D crosswords.`,
+    `For some wordplay suggestions (anagrams, charades, containments), if the
+     fodder is too long (longer than ${this.MAX_FODDER_LENGTH}), then we trim
+     it down and indicate this trimming by showing it in red and showing
+     exclamation marks next to it. You can generate the wordplay for the
+     full untrimmed fodder by appending an exclamation mark at the end (this
+     will be SLOW and may lock up your browser for a short while).`,
   ];
   this.tipIdx = -1;
   this.TIP_ENUM_MISMATCH = 0;
-  this.TIP_ANALYSIS = 3;
+  this.TIP_ANALYSIS = 4;
+  this.TIP_LONG_FODDER = 12;
   this.lastTipShownTime = 0;
 };
 
@@ -216,33 +253,84 @@ Exet.prototype.setMinPop = function(m) {
   this.minpop = m;
   this.indexMinPop = Math.max(
       1, Math.floor(exetLexicon.startLen * (100 - m) / 100));
+  if (exetLexicon.scoresSummary) {
+    this.minscore = exetLexicon.scores[this.indexMinPop - 1];
+  }
+}
+
+Exet.prototype.setMinScore = function(s) {
+  if (s < exetLexicon.scoresSummary.min) {
+    s = exetLexicon.scoresSummary.min;
+  }
+  if (s > exetLexicon.scoresSummary.max) {
+    s = exetLexicon.scoresSummary.max;
+  }
+  this.minscore = s;
+  this.indexMinPop = 1 + exetLexicon.scoreToIndex(s);
+  this.minpop = 100 * (1 - (this.indexMinPop / exetLexicon.startLen));
+}
+
+Exet.prototype.handleMinLexChange = function(evt) {
+  const lex = this.minlexInput.value.trim();
+  if (lex == '' || isNaN(lex)) {
+    /** Restore old value */
+    this.renderMinLex();
+    return;
+  }
+  if (exetLexicon.scoresSummary) {
+    this.setMinScore(Number(lex));
+  } else {
+    this.setMinPop(Number(lex));
+  }
+  this.renderMinLex();
+  this.resetViability();
+  exetRevManager.throttledSaveRev(exetRevManager.REV_FILL_OPTIONS_CHANGE);
+}
+
+Exet.prototype.renderMinLex = function() {
+  if (exetLexicon.scoresSummary) {
+    this.minlexInput.value = this.minscore;
+    this.minlexName.innerHTML = 'score';
+    const min = exetLexicon.scoresSummary.min.toFixed(2);
+    const max = exetLexicon.scoresSummary.max.toFixed(2);
+    this.minlexSuffix.innerHTML = `[${min}-${max}]`;
+  } else {
+    this.minlexInput.value = this.minpop;
+    this.minlexName.innerHTML = 'popularity';
+    this.minlexSuffix.innerHTML = '%ile';
+  }
+  this.numlexInUseSpan.innerText = Number(this.indexMinPop - 1).toLocaleString();
+  this.numlexSpan.innerText = Number(exetLexicon.startLen - 1).toLocaleString();
+  if (this.autofill) {
+    this.autofill.reshowSettings();
+  }
 }
 
 Exet.prototype.startNav = function(dir='A', row=0, col=0) {
   if (!this.puz) return;
   if (row < 0 || row >= this.puz.gridHeight ||
       col < 0 || col >= this.puz.gridWidth) {
-    row = 0
-    col = 0
+    row = 0;
+    col = 0;
   }
   if (dir != 'A' && dir != 'D' && dir != 'Z') {
-    dir = 'A'
-    let gridCell = this.puz.grid[row][col]
+    dir = 'A';
+    const gridCell = this.puz.grid[row][col];
     if (gridCell.isLight && !gridCell.acrossClueLabel) {
       if (gridCell.downClueLabel) {
-        dir = 'D'
+        dir = 'D';
       } else if (gridCell.z3dClueLabel) {
-        dir = 'Z'
+        dir = 'Z';
       }
     }
   }
-  this.puz.currRow = row
-  this.puz.currCol = col
-  this.puz.currDir = dir
+  this.puz.currRow = row;
+  this.puz.currCol = col;
+  this.puz.currDir = dir;
   if (this.puz.grid[row][col].isLight) {
-    this.puz.activateCell(row, col)
+    this.puz.activateCell(row, col);
   } else {
-    this.navDarkness(row, col)
+    this.navDarkness(row, col);
   }
 }
 
@@ -250,6 +338,35 @@ Exet.prototype.hideExolveElement = function(suffix) {
   const elt = document.getElementById(this.puz.prefix + '-' + suffix);
   if (elt) {
     elt.style.display = 'none';
+  }
+}
+
+Exet.prototype.markClueEnds = function() {
+  for (let r = 0; r < this.puz.gridHeight; r++) {
+    for (let c = 0; c < this.puz.gridWidth; c++) {
+      const gridCell = this.puz.grid[r][c];
+      if (!gridCell.isLight) {
+        continue;
+      }
+      if (gridCell.startsAcrossClue) {
+        const last =
+            gridCell.startsAcrossClue[gridCell.startsAcrossClue.length - 1];
+        const lastCell = this.puz.grid[last[0]][last[1]];
+        lastCell.endsAcrossClue = gridCell.startsClueLabel;
+      }
+      if (gridCell.startsDownClue) {
+        const last =
+            gridCell.startsDownClue[gridCell.startsDownClue.length - 1];
+        const lastCell = this.puz.grid[last[0]][last[1]];
+        lastCell.endsDownClue = gridCell.startsClueLabel;
+      }
+      if (gridCell.startsZ3dClue) {
+        const last =
+            gridCell.startsZ3dClue[gridCell.startsZ3dClue.length - 1];
+        const lastCell = this.puz.grid[last[0]][last[1]];
+        lastCell.endsZ3dClue = gridCell.startsClueLabel;
+      }
+    }
   }
 }
 
@@ -607,12 +724,15 @@ Exet.prototype.setPuzzle = function(puz) {
     }
   }
 
-  // Display lexicon info
+  // Display word list info
   const status = document.getElementById(`${this.puz.prefix}-status`);
   status.insertAdjacentHTML(
-      'beforeend',
-      `<span> Lexicon: ${exetLexicon.id} ${exetLexicon.language}
-          ${exetLexicon.script}${exetLexicon.maxCharCodes > 1 ? ' [' + exetLexicon.maxCharCodes + ']' : ''}.</span>`);
+      'afterbegin',
+      `<div style="padding-bottom:2px">
+         <b>Word list</b> (${exetLexicon.language}/${exetLexicon.script}):
+         ${this.maybeLexiconOptions()} <span id="xet-lexicon-id">${exetLexicon.id}</span>
+       </div>`);
+  this.lexiconId = document.getElementById('xet-lexicon-id');
   // Make the puzzle ID visible. But in a div, saving vspace.
   const idPara = document.getElementById(this.puz.prefix + '-id');
   if (idPara) {
@@ -630,8 +750,8 @@ Exet.prototype.setPuzzle = function(puz) {
        '<div class="xet-sweeping" id="xet-sweeping"></div></div>');
   this.sweepIndicator = document.getElementById('xet-sweeping');
 
+  this.markClueEnds();  /** Needed for some autofill options */
   this.fillState = new ExetFillState(this.puz);
-  this.fillState.markClueEnds();  /** Needed for some options */
   this.resetViability();
 
   this.autofill = new ExetAutofill();
@@ -872,181 +992,7 @@ Exet.prototype.makeExetTab = function() {
           </div>
 
           <hr>
-          <div title="Try to autofill the remaining grid"
-            class="xet-dropdown-item" id="xet-autofill">Autofill
-            <div id="xet-autofill-active">
-              <span id="xet-autofill-active-msg"></span>
-            </div>
-            <div class="xet-dropdown-submenu xet-autofill-panel">
-              <div>
-                <button id="xet-autofill-startstop"
-                    class="xlv-button">Start</button>
-                <button id="xet-autofill-accept" style="float:right"
-                  title="Accept autofill suggestions"
-                  class="xlv-button">Accept</button>
-                <button id="xet-autofill-clear" style="float:right"
-                  title="Stop the autofill and clear all its suggestions"
-                  class="xlv-button">Clear</button>
-              </div>
-              <hr>
-              <div title="Increasing this may make the algorithm slower but may improve its success rate"
-                  style="padding:4px">
-                Beam search width:
-                <input id="xet-autofill-max-beam"
-                    name="xet-autofill-max-beam"
-                    value="64" type="text" size="4" maxlength="4"
-                    style="padding:0;margin:0">
-                </input>
-              </div>
-              <div style="padding:4px">
-                Try to find a pangram:
-                <input id="xet-autofill-boost-pangram"
-                    name="xet-autofill-boost-pangram" value="pangram"
-                    type="checkbox">
-                </input>
-                &nbsp;
-                <span title="Keep looping until the desired pangram is found (or until failure)">
-                  <span class="xet-small">Loop until pangram?</span>
-                  <input id="xet-autofill-pangram-loop"
-                      name="xet-autofill-pangram-loop" value="pangram-loop"
-                      type="checkbox">
-                  </input>
-                </span>
-              </div>
-              <div style="padding:4px">
-                <details id="xet-autofill-pangram-details">
-                  <summary>Try to constrain the pangram to these cells:</summary>
-                  <table>
-                    <tr>
-                      <td>
-                        <input id="xet-autofill-pangram-all"
-                            name="xet-autofill-pangram-all"
-                            value="pangram-all" type="checkbox">
-                        </input>
-                        All
-                      </td>
-                      <td>&nbsp;</td>
-                      <td>
-                        <input id="xet-autofill-pangram-checked"
-                            name="xet-autofill-pangram-checked"
-                            value="pangram-checked" type="checkbox">
-                        </input>
-                        Checked
-                      </td>
-                      <td>&nbsp;</td>
-                      <td>
-                        <input id="xet-autofill-pangram-unchecked"
-                            name="xet-autofill-pangram-unchecked"
-                            value="pangram-unchecked" type="checkbox">
-                        </input>
-                        Unchecked
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <input id="xet-autofill-pangram-circled"
-                            name="xet-autofill-pangram-circled"
-                            value="pangram-circled" type="checkbox">
-                        </input>
-                        Circled
-                      </td>
-                      <td>&nbsp;</td>
-                      <td>
-                        <input id="xet-autofill-pangram-firsts"
-                            name="xet-autofill-pangram-firsts"
-                            value="pangram-firsts" type="checkbox">
-                        </input>
-                        Starts
-                      </td>
-                      <td>&nbsp;</td>
-                      <td>
-                        <input id="xet-autofill-pangram-lasts"
-                            name="xet-autofill-pangram-lasts"
-                            value="pangram-lasts" type="checkbox">
-                        </input>
-                        Ends
-                      </td>
-                    </tr>
-                  </table>
-                </details>
-              </div>
-              <hr>
-              <div style="padding:4px" title="You can edit the list of ` +
-                  `preferred fills by clicking on the 'Set preferred ` +
-                  `fills' button">
-                Preferred fills used: <span
-                  id="xet-autofill-preflex-used">0</span> of <span
-                  id="xet-autofill-preflex-total"
-                  >${this.preflex.length}</span>
-              </div>
-              <div title="You can edit the list of undesired fills, ` +
-                `restrict fills by a popularity cutoff, and allow/` +
-                `disallow proper nouns by clicking on the 'Set fill ` +
-                `exclusions' button">
-                <div style="padding:4px">
-                  Min popularity: <span
-                      id="xet-autofill-minpop">${this.minpop}</span> %ile
-                  (<span id="xet-autofill-index-minpop">${Number(
-                        this.indexMinPop - 1).toLocaleString()}` +
-                  `</span> entries)
-                </div>
-                <div style="padding:4px" title="You can edit the list ` +
-                    `of undesired fills by clicking on the 'Set fill ` +
-                    `exclusions' button. You can restrict fills by a ` +
-                    `popularity cutoff, and allow/disallow proper ` +
-                    `nouns, stem-dupes, and reversals from the Exet tab.">
-                  Proper nouns: <span
-                    id="xet-autofill-proper-nouns">${this.noProperNouns ?
-                          "disallowed" : "allowed"}</span>&nbsp;
-                  <div style="padding:4px"></div>
-                  Stem dupes: <span
-                    id="xet-autofill-stem-dupes">${this.noStemDupes ?
-                          "disallowed" : "allowed"}</span>&nbsp;
-                  <div style="padding:4px"></div>
-                  Undesired fills: <span
-                      id="xet-autofill-unpreflex-total">${this.unpreflex.length}</span>
-                  <div style="padding:4px"></div>
-                  Trying reversals: <span
-                    id="xet-autofill-try-reversals">${this.tryReversals ?
-                          "allowed" : "disallowed"}</span>
-                  (<span id="xet-autofill-reversals">0</span> reversed)
-                </div>
-              </div>
-              <div style="padding:4px">
-                Letters used: <span id="xet-autofill-letters">0</span>
-                <span id="xet-autofill-pangram-cletters">(0 in pangram cells)</span>
-                of ${exetLexicon.letters.length}
-              </div>
-              <hr>
-              <div style="padding:4px">
-                Step: <span id="xet-autofill-step"></span>
-              </div>
-              <div style="padding:4px">
-                Score: <span id="xet-autofill-score">0.00</span>
-                <span style="font-size:12px">
-                (<span id="xet-autofill-score-v">0.00</span> viab + 
-                <span id="xet-autofill-score-p">0.00</span> popu + 
-                <span id="xet-autofill-score-f">0.00</span> full)
-                </span>
-              </div>
-              <div style="padding:4px">
-                Time taken: <span id="xet-autofill-time">--</span> ms
-                (<span id="xet-autofill-speed">--</span> ms/step)
-              </div>
-              <div style="padding:4px">
-                Beam size: <span id="xet-autofill-curr-beam"></span>
-                 &nbsp;
-              </div>
-              <div style="padding:4px">
-                Last status: <span id="xet-autofill-status"></span>
-              </div>
-              <hr>
-              <div style="padding:4px" class="xet-blue" id="xet-is-pangram"
-                  style="display:none">
-                Pangram!
-              </div>
-            </div>
-          </div>
+          ${ExetAutofill.getUI()}
 
           <div title="Accept all current autofilled entries"
               class="xet-dropdown-item" onclick="exet.acceptAll()">
@@ -1394,14 +1340,17 @@ Exet.prototype.makeExetTab = function() {
           <div title="Limit fill suggestions to words/phrases above this ` +
               `percentile threshold of popularity. Set this to 100 to use ` +
               `only the preferred fills list.">
-            <b>Minimum popularity score:</b>
-            <input id="xet-minpop" name="xet-minpop" class="xlv-answer"
-              size="4" maxlength="4" type="text"></input> %ile
+            <b>Minimum <span id="xet-minlex-name"></span>:</b>
+            <input id="xet-minlex" name="xet-minlex" class="xlv-answer"
+              size="4" maxlength="4" type="text"></input>
+            <span id="xet-minlex-suffix"></span>
             <span class="xet-fill-settings-summary"
                 title="Note that the number of lexicon entries indicated here could include some already counted in preferred fills, if there is overlap.">
-              (<span id="xet-minpop-incl">${Number(
+              (<span id="xet-numlex-in-use">${Number(
                   this.indexMinPop - 1).toLocaleString()}</span> of
-              ${Number(exetLexicon.startLen - 1).toLocaleString()} words/phrases)
+              <span id="xet-numlex">${Number(
+                  exetLexicon.startLen - 1).toLocaleString()}</span>
+              words/phrases)
             </span>
           </div>
           <div class="xet-controls-row">
@@ -1532,21 +1481,14 @@ Exet.prototype.makeExetTab = function() {
   }
 
   this.fillSettings = document.getElementById("xet-fill-settings");
-  this.minpopInclSpan = document.getElementById("xet-minpop-incl");
-  this.minpopInput = document.getElementById("xet-minpop");
-  this.minpopInput.value = this.minpop;
-  this.renderMinPop();
-  this.minpopInput.addEventListener('change', e => {
-    if (isNaN(this.minpopInput.value) ||
-        this.minpopInput.value < 0 || this.minpopInput.value > 100) {
-      this.minpopInput.value = this.minpop;
-      return;
-    }
-    this.setMinPop(this.minpopInput.value);
-    this.renderMinPop();
-    this.resetViability();
-    exetRevManager.throttledSaveRev(exetRevManager.REV_FILL_OPTIONS_CHANGE);
-  });
+  this.numlexInUseSpan = document.getElementById("xet-numlex-in-use");
+  this.numlexSpan = document.getElementById("xet-numlex");
+  this.minlexInput = document.getElementById("xet-minlex");
+  this.minlexName = document.getElementById("xet-minlex-name");
+  this.minlexSuffix = document.getElementById("xet-minlex-suffix");
+  this.renderMinLex();
+  this.minlexInput.addEventListener('change', this.handleMinLexChange.bind(this));
+
   this.noProperNounsInput = document.getElementById("xet-no-proper-nouns");
   this.noProperNounsInput.checked = this.noProperNouns;
   this.noProperNounsInput.addEventListener('change', e => {
@@ -1582,7 +1524,7 @@ Exet.prototype.makeExetTab = function() {
   this.lightRegexpIcon.style.display = 'none';
   this.lightRegexpIcon.addEventListener('click', this.showLightRegexpPanel.bind(this));
 
-  this.preflexUsed = document.getElementById("xet-preflex-used");
+  this.preflexUsedDisp = document.getElementById("xet-preflex-used");
   this.preflexSize = document.getElementById("xet-preflex-size");
   this.preflexEditor = document.getElementById("xet-preflex-editor");
   this.preflexInput = document.getElementById("xet-preflex-input");
@@ -2774,6 +2716,36 @@ Exet.prototype.pushCharadeCandidate = function(elements) {
   }
 }
 
+Exet.prototype.useLongFodder = function(name, section) {
+  if (!name || !section || !section.paramInput) {
+    return;
+  }
+  const paramElt = section.paramInput;
+  paramElt.value += '!';
+  if (name == 'xet-charades') {
+    this.updateCharades(section.param);
+  } else if (section.id == 'xet-containments') {
+    this.updateContainments(section.param);
+  } else if (name == 'xet-companag') {
+    this.updateCA();
+  }
+}
+
+Exet.prototype.maybeTrimLongFodder = function(fodderArr, name) {
+  const paramElt = document.getElementById(name + '-param');
+  const warningElt = document.getElementById(name + '-warn-long');
+  if (fodderArr.length > this.MAX_FODDER_LENGTH &&
+      !paramElt.value.trim().endsWith('!')) {
+    fodderArr.length = this.MAX_FODDER_LENGTH;
+    paramElt.classList.add('xlv-red');
+    warningElt.style.display = '';
+    this.showTip(this.TIP_LONG_FODDER);
+  } else {
+    paramElt.classList.remove('xlv-red');
+    warningElt.style.display = 'none';
+  }
+}
+
 Exet.prototype.updateCharades = function(fodder) {
   if (this.throttledCharadeTimer) {
     clearTimeout(this.throttledCharadeTimer);
@@ -2785,6 +2757,7 @@ Exet.prototype.updateCharades = function(fodder) {
   this.charadeSplitIndex = 0;
   this.charadeDeletionsAdded = false;
   this.charadeFodder = exetLexicon.lettersOf(fodder);
+  this.maybeTrimLongFodder(this.charadeFodder, 'xet-charades');
   this.charadeMax = Math.min(this.charadeFodder.length, 4);
   this.updateCharadesPartial();
 }
@@ -3108,6 +3081,7 @@ Exet.prototype.updateSounds = function(fodder) {
 
 Exet.prototype.updateCA = function() {
   const fodderLetters = exetLexicon.lettersOf(this.caFodder.value);
+  this.maybeTrimLongFodder(fodderLetters, 'xet-companag');
   const fodderHist = exetLexicon.letterHist(fodderLetters);
   const anagramLetters = exetLexicon.lettersOf(this.caAnagram.value);
   const anagramHist = exetLexicon.letterHist(anagramLetters);
@@ -3147,6 +3121,7 @@ Exet.prototype.updateCA = function() {
 
 Exet.prototype.updateContainments = function(fodder) {
   const fodderLetters = exetLexicon.lettersOf(fodder);
+  this.maybeTrimLongFodder(fodderLetters, 'xet-containments');
   const splits = this.getAllSplits(fodderLetters, 3);
   /* Sort the splits to bring more even balance up top */
   splits.sort((a, b) =>
@@ -3256,26 +3231,26 @@ Exet.prototype.populateCompanag = function() {
 Exet.prototype.populateFrame = function() {
   let frameHTML = '';
   frameHTML = frameHTML + '<div class="xet-tab">';
-  for (let id in this.tabs) {
-    let tab = this.tabs[id];
+  for (const id in this.tabs) {
+    const tab = this.tabs[id];
     frameHTML = frameHTML +
         `<button id="xet-${id}">${tab.display}</button>`;
   }
-  frameHTML = frameHTML + '</div>';
+  frameHTML += '</div>';
 
-  for (let id in this.tabs) {
-    let tab = this.tabs[id];
-    frameHTML = frameHTML + `<div class="xet-tab-content" id="xet-${id}-frame">`
+  for (const id in this.tabs) {
+    const tab = this.tabs[id];
+    frameHTML += `<div class="xet-tab-content" id="xet-${id}-frame">`;
     if (tab.sections.length > 0) {
       console.assert(tab.sections.length <= 2);
       const sectionClass = tab.sections.length > 1 ? 'xet-half-section' : 'xet-section';
       frameHTML += `<div id="xet-${id}-sections"><table class="xet-sections"><tr>`;
       for (let i = 0; i < tab.sections.length; i++) {
-        let section = tab.sections[i];
-        frameHTML = frameHTML + '<td class="xet-td">';
+        const section = tab.sections[i];
+        frameHTML += '<td class="xet-td">';
         const titleHover = section.hover ? `title="${section.hover} "` : '';
         if (section.url) {
-          frameHTML = frameHTML + `
+          frameHTML += `
             <div ${titleHover}class="xet-bold">${section.title || ''}</div>
             <a href="" target="_blank" id="xet-${id}-url-${i}"
                 class="xet-blue xet-small"></a><br>
@@ -3289,49 +3264,51 @@ Exet.prototype.populateFrame = function() {
               title="Press <Esc> to reset from grid"
               placeholder="Press <Esc> to reset from grid">
             </input>
+            <button id="${section.id}-warn-long" class="xlv-small-button" style="display:none"
+              title="Fodder too long, trimmed: Click to (or manually) add an exclamation mark at the end to go ahead anyway (can be SLOW and may lock your browser for a while!)"><span class="xlv-red">!</span></button>
             `;
-          frameHTML = frameHTML + `
+          frameHTML += `
             <div ${titleHover}class="xet-bold">${section.title || ''}</div>
             ${paramHtml}
             <div id="${section.id}">
               <div id="${section.id}-box"
                 class="xet-in-tab-scrollable ${sectionClass}">
               </div>
-            </div>`
+            </div>`;
         }
-        frameHTML = frameHTML + '</td>';
+        frameHTML += '</td>';
       }
-      frameHTML = frameHTML + `
+      frameHTML += `
         </tr>
         </table>
         </div>`;
     } else {
-      frameHTML = frameHTML + `
-        <div id="xet-${id}-content"></div>`
+      frameHTML += `
+        <div id="xet-${id}-content"></div>`;
     }
-    frameHTML = frameHTML + '</div>'
+    frameHTML += '</div>';
   }
-  this.frame.innerHTML = frameHTML
+  this.frame.innerHTML = frameHTML;
 
-  this.charades = document.getElementById('xet-charades-box')
+  this.charades = document.getElementById('xet-charades-box');
   this.edits = document.getElementById('xet-edits-box');
-  this.sounds = document.getElementById('xet-sounds-box')
-  this.containments = document.getElementById('xet-containments-box')
+  this.sounds = document.getElementById('xet-sounds-box');
+  this.containments = document.getElementById('xet-containments-box');
 
-  this.populateCompanag()
+  this.populateCompanag();
 
-  for (let id in this.tabs) {
-    let tab = this.tabs[id]
-    tab.button = document.getElementById(`xet-${id}`)
-    tab.button.title = tab.hover
+  for (const id in this.tabs) {
+    const tab = this.tabs[id];
+    tab.button = document.getElementById(`xet-${id}`);
+    tab.button.title = tab.hover;
     const handler = this.handleTabClick.bind(this, id);
     tab.button.addEventListener('click', handler);
-    tab.frame = document.getElementById(`xet-${id}-frame`)
+    tab.frame = document.getElementById(`xet-${id}-frame`);
     if (tab.sections.length > 0) {
       for (let i = 0; i < tab.sections.length; i++) {
-        let section = tab.sections[i]
+        const section = tab.sections[i];
         if (!section.url) {
-          section.paramInput = document.getElementById(`${section.id}-param`)
+          section.paramInput = document.getElementById(`${section.id}-param`);
           if (section.paramInput) {
             section.paramInput.addEventListener('input', handler);
             section.paramInput.addEventListener('keyup', e => {
@@ -3340,14 +3317,20 @@ Exet.prototype.populateFrame = function() {
               }
             });
           }
-          section.content = document.getElementById(`${section.id}-box`)
+          section.paramWarnLong = document.getElementById(`${section.id}-warn-long`);
+          if (section.paramWarnLong) {
+            section.paramWarnLong.addEventListener('click', e => {
+              exet.useLongFodder(section.id, section);
+            });
+          }
+          section.content = document.getElementById(`${section.id}-box`);
           continue;
         }
-        section.content = document.getElementById(`xet-${id}-content-${i}`)
-        section.urldisp = document.getElementById(`xet-${id}-url-${i}`)
+        section.content = document.getElementById(`xet-${id}-content-${i}`);
+        section.urldisp = document.getElementById(`xet-${id}-url-${i}`);
       }
     } else {
-      tab.content = document.getElementById(`xet-${id}-content`)
+      tab.content = document.getElementById(`xet-${id}-content`);
     }
   }
 
@@ -3701,14 +3684,14 @@ Exet.prototype.draftClue = function(ci) {
 }
 
 Exet.prototype.handleTabClick = function(id) {
-  let tab = this.tabs[id]
+  const tab = this.tabs[id];
   if (!tab) {
-    return
+    return;
   }
-  this.currTab = id
-  for (let x in this.tabs) {
-    let xtab = this.tabs[x]
-    xtab.frame.style.display = "none"
+  this.currTab = id;
+  for (const x in this.tabs) {
+    const xtab = this.tabs[x];
+    xtab.frame.style.display = "none";
     xtab.button.className = xtab.button.className.replace(" active", "");
   }
 
@@ -3786,7 +3769,7 @@ Exet.prototype.navDarkness = function(row, col, ev=null) {
     return;
   }
   if (ev) ev.stopPropagation();
-  this.puz.deactivateCurrCell();
+  this.puz.deactivator();
   this.puz.currRow = row;
   this.puz.currCol = col;
 
@@ -3890,11 +3873,11 @@ Exet.prototype.replaceHandlers = function() {
       exet.markNinasAsPrefilled();
       exet.clearCurrSaved.apply(exet.puz, arguments);
       exet.unmarkNinasAsPrefilled();
-      const theClue = exet.currClue()
+      const theClue = exet.currClue();
       theClue.clue = exet.draftClue(exet.currClueIndex());
-      theClue.solution = ''
+      theClue.solution = '';
       exet.puz.setClueSolution(exet.currClueIndex());
-      theClue.anno = ''
+      theClue.anno = '';
       exet.updatePuzzle(exetRevManager.REV_GRIDFILL_CHANGE);
     };
   })();
@@ -4132,7 +4115,7 @@ Exet.prototype.resizeRHS = function() {
       width: ${frameW}px;
     }
   `;
-  if (windowW < 1400) {
+  if (frameW < 860) {
     style += `
       .xet-analysis {
         right: 0;
@@ -4160,7 +4143,6 @@ Exet.prototype.reposition = function() {
      * create a new puz.grid and we would have to take care of re-adding
      * viablots and forcedLetters * to the reborn gridCell.cellGroup fields.
      */
-    console.log('updatePuzzle() called just to resize from ' + this.puz.viewportDim + ' to ' + this.puz.getViewportDim());
     this.updatePuzzle();  /** revType = default 0 won't actually save */
     return;
   }
@@ -5191,7 +5173,7 @@ Exet.prototype.handleGridInput = function(revType=null) {
   let needsUpdate = false
   for (let row = 0; row < this.puz.gridHeight; row++) {
     for (let col = 0; col < this.puz.gridWidth; col++) {
-      let gridCell = this.puz.grid[row][col]
+      let gridCell = this.puz.grid[row][col];
       if (!gridCell.isLight) {
         continue;
       }
@@ -5287,108 +5269,16 @@ Exet.prototype.updateColourNinaLights = function(nOrCList, fullNewLabels) {
  * Returns the number of clues in the updated puzzle.
  */
 Exet.prototype.killInvalidatedClues = function() {
-  const tempId = this.puz.id + '-temp';
-  // New puzzle, but no clues/ninas/colours (these may contain invalid entries).
-  const specs = this.getExolve(
-      tempId, true /*skipClues*/, false /* solved */,
-      false /* showColoursNinas */);
-  const xetTemp = document.getElementById("xet-temp");
-  xetTemp.innerHTML = '';
-  const newPuz = new Exolve(specs, "xet-temp", null, false, 0, 0, false);
-  // First build a map of cell-lists to new-clue-index
-  const cellsToIndex = {};
-  for (let ci in newPuz.clues) {
-    const ckey = JSON.stringify(newPuz.clues[ci].cells);
-    cellsToIndex[ckey] = ci;
-  }
+  const fillState = new ExetFillState(this.puz);
+  const maps = fillState.killInvalidatedClues();
+  const cellsToIndex = maps[0];
+  const fullNewLabels = maps[1];
+  const getsRelocated = maps[2];
 
-  // Keys are clue indices from the old grid:
-  const getsRelocated = {};
-  const fullNewLabels = {};
-
-  // Keys are clue indices from the new grid:
-  const isRelocated = {};
-  const isReversed = {};
-
-  for (let ci in this.puz.clues) {
-    let ckey = JSON.stringify(this.puz.clues[ci].cells);
-    let reversed = false;
-    if (!cellsToIndex[ckey]) {
-      const rcells = this.puz.clues[ci].cells.slice().reverse();
-      ckey = JSON.stringify(rcells);
-      reversed = true;
-    }
-    if (!cellsToIndex[ckey]) {
-      continue;
-    }
-    const newCi = cellsToIndex[ckey];
-    getsRelocated[ci] = newCi;
-    fullNewLabels[ci] = newPuz.clueLabelDisp(newPuz.clues[newCi]);
-    isRelocated[newCi] = Object.assign({}, this.puz.clues[ci]);
-    isReversed[newCi] = reversed;
-  }
-  // Preserve linked clues, if possible
-  for (let ci in this.puz.clues) {
-    const oldClue = this.puz.clues[ci];
-    if (!oldClue.childrenClueIndices ||
-        !oldClue.childrenClueIndices.length) {
-      continue;
-    }
-    const oldList = this.puz.getLinkedClues(ci);
-    console.assert(oldList.length > 1 && oldList[0] == ci, oldList);
-    let allMatch = true;
-    for (let cci of oldList) {
-      if (!getsRelocated[cci]) {
-        allMatch = false;
-        break;
-      }
-    }
-    if (!allMatch) {
-      for (let cci of oldList) {
-        if (!getsRelocated[cci]) {
-          continue;
-        }
-        const newCi = getsRelocated[cci];
-        delete getsRelocated[cci];
-        delete fullNewLabels[cci];
-        delete isRelocated[newCi];
-        delete isReversed[newCi];
-      }
-    }
-  }
-  for (let ci in this.puz.clues) {
-    if (!getsRelocated[ci] && !this.isDraftClue(this.puz.clues[ci].clue)) {
-      console.log('Non-draft clue ' + ci + ' got deleted: ' +
-                  this.puz.clues[ci].clue);
-    }
-  }
   this.updateColourNinaLights(this.puz.colourfuls, fullNewLabels);;
   this.updateColourNinaLights(this.puz.ninas, fullNewLabels);;
 
-  this.puz.clues = {};
-  for (let newCi in isRelocated) {
-    this.puz.clues[newCi] = this.puz.newClue(newCi);
-    const theClue = this.puz.clues[newCi];
-    const oldClue = isRelocated[newCi];
-    theClue.displayLabel = this.remapDisplayLabel(
-        oldClue.displayLabel, oldClue.dir, fullNewLabels);
-    theClue.clue = oldClue.clue;
-    theClue.anno = oldClue.anno;
-    theClue.placeholder = oldClue.placeholder;
-    theClue.reversed = oldClue.reversed;
-    if (isReversed[newCi]) {
-      theClue.reversed = !theClue.reversed;
-      theClue.solution = '';  // will be recomputed by updatePuzzle().
-    }
-    if (oldClue.parentClueIndex) {
-      console.assert(getsRelocated[oldClue.parentClueIndex], oldClue);
-      theClue.parentClueIndex = getsRelocated[oldClue.parentClueIndex];
-      // Update "See XX"
-      theClue.clue = this.remapDisplayLabel(
-          oldClue.clue, oldClue.dir, fullNewLabels);
-    }
-  }
-
+  this.puz.clues = fillState.clues;
   const newLightRegexps = {};
   for (const oldCi in getsRelocated) {
     if (!this.lightRegexps.hasOwnProperty(oldCi)) {
@@ -5398,9 +5288,6 @@ Exet.prototype.killInvalidatedClues = function() {
   }
   this.lightRegexps = newLightRegexps;
   this.compileLightRegexps();
-
-  xetTemp.innerHTML = '';
-  newPuz.destroy();
   return Object.keys(cellsToIndex).length;
 }
 
@@ -5421,8 +5308,8 @@ Exet.prototype.unlinkClue = function(ci) {
   theClue.childrenClueIndices = [];
   theClue.displayLabel = theClue.label;
   this.maybeAdjustEnum(ci);
-  theClue.solution = ''
-  theClue.anno = ''
+  theClue.solution = '';
+  theClue.anno = '';
 }
 
 Exet.prototype.unlinkCurrClue = function() {
@@ -6125,10 +6012,10 @@ Exet.prototype.makeExolve = function(specs) {
   this.puz = null;
   try {
     const ptemp = new Exolve(specs, 'xet-xlv-frame', this.setPuzzle.bind(this),
-                           false /** provideStateUrl */,
-                           this.TOP_CLEARANCE /** visTop */,
-                           0 /** maxDim */,
-                           false /** notTemp */);
+                             false /** provideStateUrl */,
+                             this.TOP_CLEARANCE /** visTop */,
+                             0 /** maxDim */,
+                             false /** notTemp */);
     if (!this.puz) {
       /** There was an error in setPuzzle() */
       if (ptemp) {
@@ -6378,7 +6265,7 @@ Exet.prototype.getExolve = function(id='', skipClues=false, solved=true,
   }
 
   let reversals = '';
-  for (let k in this.puz.usedReversals) {
+  for (const k in this.puz.usedReversals) {
     if (reversals) reversals += ' ';
     reversals += this.puz.usedReversals[k];
   }
@@ -6425,10 +6312,10 @@ Exet.prototype.addToDontReuse = function(p, dontReuse) {
   if (this.noStemDupes) {
     const stemGroup = exetLexicon.stemGroup(p);
     for (const sp of stemGroup) {
-      dontReuse[sp] = true;
+      dontReuse.add(sp);
     }
   } else {
-    dontReuse[p] = true;
+    dontReuse.add(p);
   }
 }
 
@@ -6439,8 +6326,8 @@ Exet.prototype.addToDontReuse = function(p, dontReuse) {
  * loop going over all lights.
  */
 Exet.prototype.refineLightChoices = function(fillState, limit=0) {
-  fillState.preflexUsed = {};
-  const dontReuse = {};
+  fillState.preflexUsed = new Set;
+  fillState.dontReuse = new Set;
   for (const ci in fillState.clues) {
     const theClue = fillState.clues[ci];
     if (theClue.parentClueIndex) {
@@ -6449,7 +6336,7 @@ Exet.prototype.refineLightChoices = function(fillState, limit=0) {
     if (theClue.solution.indexOf('?') >= 0) {
       continue;
     }
-    const choices = exetLexicon.getLexChoices(theClue.solution, 1, dontReuse,
+    const choices = exetLexicon.getLexChoices(theClue.solution, 1, fillState.dontReuse,
         this.noProperNouns,
         this.indexMinPop,
         false, this.preflexByLen, this.unpreflexSet,
@@ -6457,9 +6344,9 @@ Exet.prototype.refineLightChoices = function(fillState, limit=0) {
     if (choices.length > 0) {
       let p = choices[0];
       console.assert(p > 0, p);
-      this.addToDontReuse(p, dontReuse);
+      this.addToDontReuse(p, fillState.dontReuse);
       if (this.preflexSet[p]) {
-        fillState.preflexUsed[p] = true;
+        fillState.preflexUsed.add(p);
       }
     }
   }
@@ -6481,7 +6368,7 @@ Exet.prototype.refineLightChoices = function(fillState, limit=0) {
       cellChoiceSets.push({});
     }
     for (const lchoice of choices) {
-      if (dontReuse[Math.abs(lchoice)]) {
+      if (fillState.dontReuse.has(Math.abs(lchoice))) {
         changes++;
         continue;
       }
@@ -6524,8 +6411,8 @@ Exet.prototype.refineLightChoices = function(fillState, limit=0) {
     if (isForced) {
       for (const x of theClue.lChoices) {
         const p = Math.abs(x);
-        this.addToDontReuse(p, dontReuse);
-        if (this.preflexSet[p]) fillState.preflexUsed[p] = true;
+        this.addToDontReuse(p, fillState.dontReuse);
+        if (this.preflexSet[p]) fillState.preflexUsed.add(p);
       }
     }
     if (!isForced && remChoices.length > 0) {
@@ -6534,7 +6421,6 @@ Exet.prototype.refineLightChoices = function(fillState, limit=0) {
       this.noteNonViableChoices(theClue, remChoices);
     }
   }
-  fillState.numPreflexUsed = Object.keys(fillState.preflexUsed).length;
   for (let i = 0; i < fillState.gridHeight; i++) {
     for (let j = 0; j < fillState.gridWidth; j++) {
       const gridCell = fillState.grid[i][j];
@@ -6871,16 +6757,16 @@ Exet.prototype.findAllDeadendFills = function(ci) {
   }
   this.viabilityUpdateTimer = null;
   if (this.deadendsGridSweep) {
-    let changes = this.findDeadendsByCell(this.fillState)
-    this.updateViablots()
+    let changes = this.findDeadendsByCell(this.fillState);
+    this.updateViablots();
     if (changes > 0) {
-      this.updateFillChoices()
+      this.updateFillChoices();
       this.viabilityUpdateTimer = setTimeout(() => {
-        this.findAllDeadendFills(ci)
+        this.findAllDeadendFills(ci);
       }, this.sweepMS);
     } else {
       // Start the clue-sweep
-      this.deadendsGridSweep = false
+      this.deadendsGridSweep = false;
       this.deadendClueLightCheck = 0;
       this.deadendClueCheckChanges = 0;
       this.deadendClueCheck = this.getClueToCheckDeadends(ci);
@@ -6928,11 +6814,11 @@ Exet.prototype.resetViability = function() {
     this.autofill.reset('Aborted');
   }
   this.fillState.resetViability();
-  this.preflexInUse = this.fillState.preflexUsed;
-  if (this.preflexUsed) {
-    this.preflexUsed.innerHTML = (this.fillState.numPreflexUsed > 0) ?
-      ('<b>' + this.fillState.numPreflexUsed + '</b>') :
-      ('' + this.fillState.numPreflexUsed);
+  this.preflexUsed = this.fillState.preflexUsed;
+  if (this.preflexUsedDisp) {
+    this.preflexUsedDisp.innerHTML = (this.fillState.preflexUsed.size > 0) ?
+      ('<b>' + this.fillState.preflexUsed.size + '</b>') :
+      ('' + this.fillState.preflexUsed.size);
   }
   this.updateFillChoices();
   this.updateViablots();
@@ -7045,7 +6931,7 @@ Exet.prototype.fillLight = function(idx, ci='', revType=null) {
       let cell = cells[solIndex++];
       let gridCell = this.puz.grid[cell[0]][cell[1]];
       if (gridCell.currLetter != c || gridCell.solution != c) {
-        gridCell.currLetter = c;
+        this.puz.setCellLetter(gridCell, c);
         changed = true;
       }
     }
@@ -7069,13 +6955,6 @@ Exet.prototype.fillLight = function(idx, ci='', revType=null) {
   }
 }
 
-Exet.prototype.renderMinPop = function() {
-  this.minpopInclSpan.innerText = Number(this.indexMinPop - 1).toLocaleString();
-  if (this.autofill) {
-    this.autofill.reshowSettings();
-  }
-}
-
 Exet.prototype.renderPreflex = function() {
   /* populate with existing preflex */
   let preflexText = '';
@@ -7092,15 +6971,15 @@ Exet.prototype.renderPreflex = function() {
     this.autofill.preflexTotalSpan.innerText = this.preflex.length;
   }
 
-  /** Apply bolding for preflexInUse */
+  /** Apply bolding for preflexUsed */
   const pidOf = {};
   for (let pid in this.preflexSet) {
-    pidOf[this.preflexSet[pid]] = pid;
+    pidOf[this.preflexSet[pid]] = parseInt(pid);
   }
   let preflexHtml = '';
   let preflexTextLen = 0;
   for (let ptext of this.preflex) {
-    if (this.preflexInUse[pidOf[ptext]]) {
+    if (this.preflexUsed.has(pidOf[ptext])) {
       preflexHtml += '<b>' + ptext + '</b>\n';
     } else {
       preflexHtml += ptext + '\n';
@@ -7134,7 +7013,7 @@ Exet.prototype.setPreflex = function(preflex) {
   this.preflexByLen = {};
   for (let ptext of this.preflex) {
     let len = exetLexicon.lexkey(ptext).length;
-    let inLexicon = exetLexicon.getLexChoices(ptext, 1, {},
+    let inLexicon = exetLexicon.getLexChoices(ptext, 1, null,
         false, // no proper nouns
         0,  // no index limit
         false, this.preflexByLen, this.unpreflexSet);
@@ -7180,8 +7059,9 @@ Exet.prototype.startUpdatePreflex = function() {
 }
 
 /**
- * Clean preflex entries, delete any dupes, then call setPreflex()
- * and resetViability(), and update preflex display.
+ * Clean a batch of preflex entries, removing any dupes, accumulating in
+ * this.updatePreflexState.state.preflex[], and schedule the next batch or
+ * call finishUpdatePreflex() when done.
  */
 Exet.prototype.updatePreflexStep = function() {
   if (!this.updatePreflexState) {
@@ -7265,7 +7145,7 @@ Exet.prototype.setUnpreflex = function(unpreflex) {
     if (!wClean) continue;
 
     cleanedUnpreflex.push(w);
-    const inLexicon = exetLexicon.getLexChoices(wClean, 1, {},
+    const inLexicon = exetLexicon.getLexChoices(wClean, 1, null,
         false,  // no proper nouns
         0,  // no index limit
         false, this.preflexByLen);
@@ -7310,9 +7190,19 @@ Exet.prototype.enumMatchSorter = function(p, k1, k2) {
 Exet.prototype.choiceDisplayHTML = function(choice) {
   const absC = Math.abs(choice);
   const cls = this.preflexSet[absC] ? ' class="xet-preflex-entry"' : '';
+  let hover = ' title="';
+  if (absC >= exetLexicon.startLen) {
+    hover += 'From preferred fills, not present in word list"';
+  } else {
+    hover += 'Rank in word list: ' + absC + ' of ' + (exetLexicon.startLen - 1);
+    if (exetLexicon.scoresSummary) {
+      hover += ', score: ' + exetLexicon.scores[absC];
+    }
+    hover += '"';
+  }
   const rev = (choice < 0) ? '&lArr; ' : '';
   return `
-    <tr><td${cls}>${rev}${exetLexicon.getLex(choice)}</td></tr>`;
+    <tr><td${cls}${hover}>${rev}${exetLexicon.getLex(choice)}</td></tr>`;
 }
 
 Exet.prototype.updateFillChoices = function() {
@@ -7536,11 +7426,48 @@ Exet.prototype.finishSetup = function() {
   });
 }
 
+Exet.prototype.maybeLexiconOptions = function() {
+  if (!exetConfig.hasOwnProperty('lexicons') ||
+      Object.keys(exetConfig.lexicons).length <= 1) {
+    return '';
+  }
+  let html = `
+    <select id="xet-lexicon-select" onchange="exet.changeLexicon()">`;
+  for (const l in exetConfig.lexicons) {
+    html += `
+      <option value="${l}"${(l == exetState.lexicon) ? ' selected' : ''}>${l}</option>`;
+  }
+  html += '\n</select>';
+  return html;
+}
+
+Exet.prototype.changeLexicon = function() {
+  const lopts = document.getElementById("xet-lexicon-select");
+  if (lopts.value == exetState.lexicon) {
+    return;
+  }
+  if (this.viabilityUpdateTimer) {
+    clearTimeout(this.viabilityUpdateTimer);
+  }
+  this.autofill.reset('Aborted');
+  exetModals.freezeUI(
+      'Changing the lexicon from ' +
+      exetState.lexicon + ' to ' + lopts.value + ', please wait...');
+  exetLoadLexicon(lopts.value);
+}
+
 function exetFromHistory(exetRev) {
   exet.prefix = exetRev.prefix;
   exet.suffix = exetRev.suffix;
   exetRevManager.retrievePrefUnpref(exetRev);
-  exet.setMinPop(exetRev.minpop || 0);
+  if (exetLexicon.scoresSummary &&
+      exetRev.hasOwnProperty('lexId') &&
+      exetRev.hasOwnProperty('minscore') &&
+      exetLexicon.id == exetRev.lexId) {
+    exet.setMinScore(exetRev.minscore);
+  } else {
+    exet.setMinPop(exetRev.minpop || 0);
+  }
   exet.noProperNouns = exetRev.noProperNouns || false;
   exet.asymOK = exetRev.asymOK || false;
   exet.tryReversals = exetRev.tryReversals || false;
@@ -7653,7 +7580,7 @@ function exetBlank(w, h, layers3d=1, id='', automagic=false,
   exet.suffix = '';
   exet.setPreflex([]);
   exet.setUnpreflex([]);
-  exet.setMinPop(exet.DEFAULT_MINPOP);
+  exet.setMinPop(exetConfig.defaultPopularity);
   exet.noProperNouns = false;
   exet.asymOK = false;
   exet.requireEnums = requireEnums;
@@ -7738,12 +7665,21 @@ function exetLoadFile() {
       if (stored.revs.length > 0) {
         const lastRev = stored.revs[stored.revs.length - 1];
         exetRevManager.retrievePrefUnpref(lastRev);
-        exet.setMinPop(lastRev.minpop || 0);
+        if (exetLexicon.scoresSummary &&
+            lastRev.hasOwnProperty('lexId') &&
+            lastRev.hasOwnProperty('minscore') &&
+            exetLexicon.id == lastRev.lexId) {
+          exet.setMinScore(lastRev.minscore);
+        } else {
+          exet.setMinPop(lastRev.minpop || 0);
+        }
         exet.noProperNouns = lastRev.noProperNouns || false;
         exet.asymOK = lastRev.asymOK || false;
         exet.tryReversals = lastRev.tryReversals || false;
         exet.lightRegexps = lastRev.lightRegexps || {};
         exet.compileLightRegexps();
+        exet.resetViability();
+        exet.renderPreflex();
       }
     } else {
       if (exet.puz.layers3d > 1) {
@@ -7762,33 +7698,18 @@ let exetRevManager;
 let exetModals;
 let exetState;
 let exet;
+let exetLexiconSaved;
+let exetLexiconNewName;
 
-document.addEventListener('DOMContentLoaded', () => {
-  const xetLoading = document.getElementById('xet-loading');
-  if (!exetLexicon) {
-    xetLoading.innerHTML = '<div class="xet-red"><h3>Failed to load the lexicon :-(</h3></div>';
-    throw "No lexicon has been loaded!"
-  }
-  xetLoading.remove();
-
-  exetLexiconInit();
-
-  exetRevManager = new ExetRevManager();
-  exetModals = new ExetModals();
-  if (!window.localStorage) {
-    throw "localStorage is not available!"
-  }
-
-  exet = new Exet();
-
+function exetLoadState() {
   exetState = window.localStorage.getItem(exetRevManager.SPECIAL_KEY);
   if (exetState) {
-    exetState = JSON.parse(exetState)
+    exetState = JSON.parse(exetState);
   } else {
     exetState = {};
   }
   if (!exetState.hasOwnProperty('exolveUrl')) {
-    exetState.exolveUrl = 'https://viresh-ratnakar.github.io/'
+    exetState.exolveUrl = 'https://viresh-ratnakar.github.io/';
   }
   if (!exetState.hasOwnProperty('spellcheck')) {
     exetState.spellcheck = false;
@@ -7796,6 +7717,116 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!exetState.hasOwnProperty('lastBackup')) {
     exetState.lastBackup = Date.now();
   }
+}
+
+function exetLoadLexicon(lexiconName=null) {
+  const lexiconNames = Object.keys(exetConfig.lexicons);
+  if (!lexiconNames || lexiconNames.length == 0) {
+    throw "exetConfig has no lexicon names!";
+  }
+  if (!lexiconName) {
+    lexiconName = exetState.lexicon ?? '';
+    if (!exetConfig.lexicons.hasOwnProperty(lexiconName)) {
+      lexiconName = lexiconNames[0];
+    }
+  }
+  const lexiconFiles = exetConfig.lexicons[lexiconName];
+  if (!lexiconFiles || lexiconFiles.length == 0) {
+    throw "exetConfig[" + lexiconName + "] has no lexicon file names!";
+  }
+  console.log('Loading lexicon: ' + lexiconName);
+  exetLexiconSaved = (typeof exetLexicon == "object" && exetLexicon) ?
+    exetLexicon : null;
+  exetLexicon = {};
+  exetLexiconNewName = lexiconName;
+
+  // Create a Promise for each script injection
+  const loadPromises = lexiconFiles.map(fileUrl => {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = fileUrl;
+      script.onload = () => {
+        console.log(`Successfully loaded lexicon script component ${fileUrl}`);
+        script.remove();
+        resolve(fileUrl);
+      };
+      script.onerror = () => {
+        console.log(`Error loading lexicon script component ${fileUrl}`);
+        script.remove();
+        reject(new Error(`Failed to load: ${fileUrl}`));
+      };
+      document.head.appendChild(script);
+    });
+  });
+  // Wait for ALL scripts in the array to finish loading and executing
+  Promise.all(loadPromises)
+    .then(() => {
+      // All lexicon parts have loaded and cleaned up their DOM nodes
+      exetLoadedLexicon();
+    })
+    .catch(error => {
+      exetFailedToLoadLexicon();
+    });
+}
+
+function exetLoadedLexicon() {
+  try {
+    exetLexiconInit();
+  } catch (err) {
+    console.log(err);
+    exetFailedToLoadLexicon();
+    return;
+  }
+  exetLexiconSaved = null;
+  exetState.lexicon = exetLexiconNewName;
+  exetLexiconNewName = null;
+  exetModals.unfreezeUI();
+  if (exet) {
+    exet.setMinPop(exet.minpop);  /** Map to the new lexicon */
+    exet.setPreflex(exet.preflex);
+    exet.setUnpreflex(exet.unpreflex);
+    exet.resetViability();
+    exet.renderMinLex();
+    exet.lexiconId.innerHTML = exetLexicon.id;
+    exetRevManager.throttledSaveRev(exetRevManager.REV_OPTIONS_CHANGE);
+  } else {
+    exetInit();
+  }
+  exetRevManager.saveLocal(exetRevManager.SPECIAL_KEY, JSON.stringify(exetState));
+}
+
+function exetFailedToLoadLexicon() {
+  if (!exetLexiconNewName) {
+    /** Already called */
+    return;
+  }
+  console.log('Failed to load lexicon, reverting, if possible');
+  exetLexicon = exetLexiconSaved;
+  if (exet) {
+    alert('Failed to switch lexicon to ' + exetLexiconNewName +
+          ', reverting back to ' + exetState.lexicon);
+    const lopts = document.getElementById("xet-lexicon-select");
+    if (lopts) {
+      lopts.value = exetState.lexicon;
+    }
+  } else {
+    /** Trigger failure message for this first attempt to load the lexicon */
+    exetLexiconInit();
+  }
+  /** We may have killed the backgroud viability sweep, resume it. */
+  exet.resetViability();
+  exetModals.unfreezeUI();
+  exetLexiconSaved = null;
+  exetLexiconNewName = null;
+}
+
+/**
+ * Should be called only after exetLexicon has loaded and exetLexiconInit()
+ * has been called.
+ */
+function exetInit() {
+  exet = new Exet();
+
   if (exetState.lastId) {
     let saved = window.localStorage.getItem(exetState.lastId);
     if (saved) {
@@ -7815,4 +7846,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
   exet.finishSetup()
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  exetRevManager = new ExetRevManager();
+  exetModals = new ExetModals();
+  if (!window.localStorage) {
+    throw "localStorage is not available!"
+  }
+  exetLoadState();
+
+  if (exetConfig.lexicons) {
+    /** Config-specified-files way of loading exetLexicon */
+    exetLoadLexicon();
+    return;
+  }
+  /** Script-tag-based way of loading exetLexicon */
+  exetLexiconInit();
+  exetInit();
 });
