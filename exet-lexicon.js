@@ -38,8 +38,9 @@ function exetLexiconInit() {
     }
     throw error;
   }
-  if (exetLexicon.language != exetConfig.language ||
-      exetLexicon.script != exetConfig.script) {
+  if (typeof exetConfig !== 'undefined' &&
+      (exetLexicon.language != exetConfig.language ||
+       exetLexicon.script != exetConfig.script)) {
     const error = `
       The exetLexicon object has different language/script
       (${exetLexicon.language}/${exetLexicon.script}) than the config
@@ -92,15 +93,17 @@ function exetLexiconInit() {
     exetLexicon.letterIndex[c] = i;
     exetLexicon.zeroHist[i] = 0;
   }
-  const configMaxCharCodes = exetConfig.maxCharCodes ?? 1;
-  if (exetLexicon.maxCharCodes != configMaxCharCodes) {
-    const error = `
-      The exetLexicon object has different maxCharCodes
-      (${exetLexicon.maxCharCodes}) than the config (${configMaxCharCodes})`;
-    if (xetLoading) {
-      xetLoading.innerHTML = `<div class="xet-red"><h3>${error} :-(</h3></div>`;
+  if (typeof exetConfig !== 'undefined') {
+    const configMaxCharCodes = exetConfig.maxCharCodes ?? 1;
+    if (exetLexicon.maxCharCodes != configMaxCharCodes) {
+      const error = `
+        The exetLexicon object has different maxCharCodes
+        (${exetLexicon.maxCharCodes}) than the config (${configMaxCharCodes})`;
+      if (xetLoading) {
+        xetLoading.innerHTML = `<div class="xet-red"><h3>${error} :-(</h3></div>`;
+      }
+      throw error;
     }
-    throw error;
   }
   for (let c of exetLexicon.letters) {
     exetLexicon.letterSet[c] = true;
