@@ -7,9 +7,8 @@ See the full Exet license notice in exet.js.
 */
 
 /**
- * This function should be called only after lufz-en-lexicon.js has been
- * loaded. If that script is loaded using "defer" then exetLexiconInit()
- * should be called once the DOMContentLoaded event fires.
+ * This function should be called only after the lexicon has been loaded into
+ * the exetLexicon object.
  *
  * It expects an exetLexicon object that contains:
  *   id: a version identifier.
@@ -31,25 +30,46 @@ See the full Exet license notice in exet.js.
  * structures.
  */
 function exetLexiconInit() {
-  if (!exetLexicon) {
-    throw 'The exetLexicon object must be initialized before this script ' +
-          'can be used. This can be done by loading the script file ' +
-          'lufz-en-lexicon.js (or other language specific files).';
+  const xetLoading = document.getElementById('xet-loading');
+  if (typeof exetLexicon == "undefined" || !exetLexicon) {
+    const error = `Failed to load the lexicon ${exetLexiconNewName ?? "named in the script tag"}`;
+    if (xetLoading) {
+      xetLoading.innerHTML = `<div class="xet-red"><h3>${error} :-(</h3></div>`;
+    }
+    throw error;
   }
-
+  if (exetLexicon.language != exetConfig.language ||
+      exetLexicon.script != exetConfig.script) {
+    const error = `
+      The exetLexicon object has different language/script
+      (${exetLexicon.language}/${exetLexicon.script}) than the config
+      (${exetConfig.language}/${exetConfig.script})`;
+    if (xetLoading) {
+      xetLoading.innerHTML = `<div class="xet-red"><h3>${error} :-(</h3></div>`;
+    }
+    throw error;
+  }
   if (exetLexicon.language == 'en') {
     if (!exetLexicon.hasOwnProperty('stems')) {
-      throw 'English lexicon, but missing stems info. Please update using ' +
+      const error = 'English lexicon, but missing stems info. Please update using ' +
             'the instructions in ' +
             'https://github.com/viresh-ratnakar/lufz/blob/master/README.md';
+      if (xetLoading) {
+        xetLoading.innerHTML = `<div class="xet-red"><h3>${error} :-(</h3></div>`;
+      }
+      throw error;
     }
   }
   if (exetLexicon.hasOwnProperty('stems') &&
       (exetLexicon.stemsId != exetLexicon.id)) {
-    throw 'English lexicon has stemsId ' + exetLexicon.stemsId + ', but ' +
+    const error = 'English lexicon has stemsId ' + exetLexicon.stemsId + ', but ' +
           'it should be ' + exetLexicon.id + '. Please update using ' +
           'the instructions in ' +
           'https://github.com/viresh-ratnakar/lufz/blob/master/README.md';
+    if (xetLoading) {
+      xetLoading.innerHTML = `<div class="xet-red"><h3>${error} :-(</h3></div>`;
+    }
+    throw error;
   }
 
   exetLexicon.startLen = exetLexicon.lexicon.length;
@@ -72,9 +92,54 @@ function exetLexiconInit() {
     exetLexicon.letterIndex[c] = i;
     exetLexicon.zeroHist[i] = 0;
   }
+  const configMaxCharCodes = exetConfig.maxCharCodes ?? 1;
+  if (exetLexicon.maxCharCodes != configMaxCharCodes) {
+    const error = `
+      The exetLexicon object has different maxCharCodes
+      (${exetLexicon.maxCharCodes}) than the config (${configMaxCharCodes})`;
+    if (xetLoading) {
+      xetLoading.innerHTML = `<div class="xet-red"><h3>${error} :-(</h3></div>`;
+    }
+    throw error;
+  }
   for (let c of exetLexicon.letters) {
     exetLexicon.letterSet[c] = true;
     exetLexicon.letterFreq[c] = 0;
+  }
+
+  /** No more errors possible */
+  if (xetLoading) {
+    xetLoading.remove();
+  }
+
+  /**
+   * If this lexicon has scores, note its range in scoresSummary.
+   */
+  exetLexicon.scoresSummary = null;
+  if (exetLexicon.hasOwnProperty('scores')) {
+    exetLexicon.scoresSummary = {
+      max: exetLexicon.scores[1],
+      min: exetLexicon.scores[exetLexicon.startLen - 1]
+    };
+    /**
+     * Returns the largest index x (from [1..startLen-1] such that
+     * scores[x] >= score. Returns 0 if no such index.
+     */
+    exetLexicon.scoreToIndex = function(score) {
+      let left = 1;
+      let right = exetLexicon.startLen - 1;
+      let largestIndex = 0;
+      while (left <= right) {
+        let mid = Math.floor((left + right) / 2);
+        if (exetLexicon.scores[mid] >= score) {
+          largestIndex = mid;
+          left = mid + 1;
+        } else {
+          right = mid - 1;
+        }
+      }
+      return largestIndex;
+    };
   }
 
   /**
@@ -349,7 +414,11 @@ function exetLexiconInit() {
       return false;
     }
     const first = parts[0];
-    return first.toUpperCase() == first && parts[1] != '-';
+    /**
+     * The last condition is the "I phrase" exception.
+     */
+    return first.toUpperCase() == first && parts[1] != '-' &&
+      !(s.startsWith('I ') && (parts.length > 2) && (parts[2].toUpperCase() != parts[2]));
   }
 
   exetLexicon.getLex = function(idx) {

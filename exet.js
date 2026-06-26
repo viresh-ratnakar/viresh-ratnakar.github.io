@@ -31,7 +31,32 @@ function ExetModals() {
   this.modal = null;
   document.addEventListener('click', this.handleClick.bind(this));
   document.addEventListener('keydown', this.handleClick.bind(this));
+
+  /**
+   * UI freezer disables the entire UI (used for disruptive changes such as
+   * switching lexicons).
+   */
+  this.uiFreezer = document.createElement('div');
+  this.uiFreezer.style.display = 'none';
+  this.uiFreezer.id = 'xet-ui-freezer';
+  this.uiFreezer.className = 'xet-ui-freezer';
+  this.uiFreezer.innerHTML = `
+    <div id="xet-ui-freezer-msg" class="xet-ui-freezer-msg">
+    </div>
+  `;
+  document.body.insertAdjacentElement('afterbegin', this.uiFreezer);
+  this.uiFreezerMsg = document.getElementById('xet-ui-freezer-msg');
 };
+
+ExetModals.prototype.freezeUI = function(msg) {
+  this.uiFreezerMsg.innerHTML = msg;
+  this.uiFreezer.style.display = '';
+}
+
+ExetModals.prototype.unfreezeUI = function() {
+  this.uiFreezerMsg.innerHTML = '';
+  this.uiFreezer.style.display = 'none';
+}
 
 ExetModals.prototype.handleClick = function(e) {
   if (!this.modal) {
@@ -84,8 +109,9 @@ function Exet() {
   this.tryReversals = false;
   this.lightRegexps = {};
   this.lightRegexpsC = {};
-  this.DEFAULT_MINPOP = exetConfig.defaultPopularity;
-  this.setMinPop(this.DEFAULT_MINPOP)
+  this.minpop = 0;
+  this.minscore = 0;
+  this.setMinPop(exetConfig.defaultPopularity);  /** Also sets exet.minscore if exetLexicon has scores. */
   this.DRAFT = '[DRAFT]';
   this.CLUE_NOT_SET = 'Set clue and clear draft marker...';
   this.MENU_SEPARATOR = '<option disabled>' +
@@ -227,6 +253,57 @@ Exet.prototype.setMinPop = function(m) {
   this.minpop = m;
   this.indexMinPop = Math.max(
       1, Math.floor(exetLexicon.startLen * (100 - m) / 100));
+  if (exetLexicon.scoresSummary) {
+    this.minscore = exetLexicon.scores[this.indexMinPop - 1];
+  }
+}
+
+Exet.prototype.setMinScore = function(s) {
+  if (s < exetLexicon.scoresSummary.min) {
+    s = exetLexicon.scoresSummary.min;
+  }
+  if (s > exetLexicon.scoresSummary.max) {
+    s = exetLexicon.scoresSummary.max;
+  }
+  this.minscore = s;
+  this.indexMinPop = 1 + exetLexicon.scoreToIndex(s);
+  this.minpop = 100 * (1 - (this.indexMinPop / exetLexicon.startLen));
+}
+
+Exet.prototype.handleMinLexChange = function(evt) {
+  const lex = this.minlexInput.value.trim();
+  if (lex == '' || isNaN(lex)) {
+    /** Restore old value */
+    this.renderMinLex();
+    return;
+  }
+  if (exetLexicon.scoresSummary) {
+    this.setMinScore(Number(lex));
+  } else {
+    this.setMinPop(Number(lex));
+  }
+  this.renderMinLex();
+  this.resetViability();
+  exetRevManager.throttledSaveRev(exetRevManager.REV_FILL_OPTIONS_CHANGE);
+}
+
+Exet.prototype.renderMinLex = function() {
+  if (exetLexicon.scoresSummary) {
+    this.minlexInput.value = this.minscore;
+    this.minlexName.innerHTML = 'score';
+    const min = exetLexicon.scoresSummary.min.toFixed(2);
+    const max = exetLexicon.scoresSummary.max.toFixed(2);
+    this.minlexSuffix.innerHTML = `[${min}-${max}]`;
+  } else {
+    this.minlexInput.value = this.minpop;
+    this.minlexName.innerHTML = 'popularity';
+    this.minlexSuffix.innerHTML = '%ile';
+  }
+  this.numlexInUseSpan.innerText = Number(this.indexMinPop - 1).toLocaleString();
+  this.numlexSpan.innerText = Number(exetLexicon.startLen - 1).toLocaleString();
+  if (this.autofill) {
+    this.autofill.reshowSettings();
+  }
 }
 
 Exet.prototype.startNav = function(dir='A', row=0, col=0) {
@@ -345,8 +422,9 @@ Exet.prototype.setPuzzle = function(puz) {
       if (gridCell.solution != '?' &&
           !exetLexicon.letterSet[gridCell.solution]) {
         alert('Entry ' + gridCell.solution + ' in grid[' + i + '][' + j +
-              '] is not present in the lexicon');
-        return;
+              '] is not present in the lexicon. Marking the cell as unfilled.');
+        gridCell.solution = '?';
+        gridFillChanges = true;
       }
     }
   }
@@ -647,12 +725,15 @@ Exet.prototype.setPuzzle = function(puz) {
     }
   }
 
-  // Display lexicon info
+  // Display word list info
   const status = document.getElementById(`${this.puz.prefix}-status`);
   status.insertAdjacentHTML(
-      'beforeend',
-      `<span> Lexicon: ${exetLexicon.id} ${exetLexicon.language}
-          ${exetLexicon.script}${exetLexicon.maxCharCodes > 1 ? ' [' + exetLexicon.maxCharCodes + ']' : ''}.</span>`);
+      'afterbegin',
+      `<div style="padding-bottom:2px">
+         <b>Word list</b> (${exetLexicon.language}/${exetLexicon.script}):
+         ${this.maybeLexiconOptions()} <span id="xet-lexicon-id">${exetLexicon.id}</span>
+       </div>`);
+  this.lexiconId = document.getElementById('xet-lexicon-id');
   // Make the puzzle ID visible. But in a div, saving vspace.
   const idPara = document.getElementById(this.puz.prefix + '-id');
   if (idPara) {
@@ -682,6 +763,26 @@ Exet.prototype.setPuzzle = function(puz) {
 
 Exet.prototype.makeExetTab = function() {
   let exetTab = this.tabs["exet"]
+  const properNounOptions = (exetLexicon.script != 'Latin') ? '' : `
+            <span>
+              <b title="If checked, this excludes proper nouns from ` +
+                `fill suggestions">No proper nouns:</b>
+              <input id="xet-no-proper-nouns" name="xet-no-proper-nouns"
+                  value="no-proper-nouns" type="checkbox">
+              </input>
+            </span>
+            &nbsp;`;
+  const stemmingOptions = (exetLexicon.language != 'en') ? '' : `
+            <span>
+              <b title="If checked, this excludes word choices that have ` +
+                  `the same stemmed forms as any other entries (e.g., if ` +
+                  `SWIM is picked, then SWIMS will not be considered)">` +
+                  `No stem-dupes:</b>
+              <input id="xet-no-stem-dupes" name="xet-no-stem-dupes"
+                  value="no-stem-dupes" type="checkbox">
+              </input>
+            </span>
+            &nbsp;`;
   exetTab.content.innerHTML = `
 <div class="xet-controls-col">
   <div class="xet-menu">
@@ -1260,40 +1361,28 @@ Exet.prototype.makeExetTab = function() {
           <div title="Limit fill suggestions to words/phrases above this ` +
               `percentile threshold of popularity. Set this to 100 to use ` +
               `only the preferred fills list.">
-            <b>Minimum popularity score:</b>
-            <input id="xet-minpop" name="xet-minpop" class="xlv-answer"
-              size="4" maxlength="4" type="text"></input> %ile
+            <b>Minimum <span id="xet-minlex-name"></span>:</b>
+            <input id="xet-minlex" name="xet-minlex" class="xlv-answer"
+              size="4" maxlength="4" type="text"></input>
+            <span id="xet-minlex-suffix"></span>
             <span class="xet-fill-settings-summary"
                 title="Note that the number of lexicon entries indicated here could include some already counted in preferred fills, if there is overlap.">
-              (<span id="xet-minpop-incl">${Number(
+              (<span id="xet-numlex-in-use">${Number(
                   this.indexMinPop - 1).toLocaleString()}</span> of
-              ${Number(exetLexicon.startLen - 1).toLocaleString()} words/phrases)
+              <span id="xet-numlex">${Number(
+                  exetLexicon.startLen - 1).toLocaleString()}</span>
+              words/phrases)
             </span>
           </div>
           <div class="xet-controls-row">
-            <span>
-              <b title="If checked, this excludes proper nouns from ` +
-                `fill suggestions">No proper nouns:</b>
-              <input id="xet-no-proper-nouns" name="xet-no-proper-nouns"
-                  value="no-proper-nouns" type="checkbox">
-              </input>
-            </span>
-            &nbsp;
+            ${properNounOptions}
+            ${stemmingOptions}
             <span>
               <b title="If checked, this allows trying reversals of unfilled ` +
-                  `lights, when finding fill suggestions">Try reversals:</b>
+                  `lights, when finding fill suggestions. Caveat: reversed ` +
+                  `lights are non-standard (generally only seen in 3-d crosswords)!">Try reversals:</b>
               <input id="xet-try-reversals" name="xet-try-reversals"
                   value="try-reversals" type="checkbox">
-              </input>
-            </span>
-            &nbsp;
-            <span>
-              <b title="If checked, this excludes word choices that have ` +
-                  `the same stemmed forms as any other entries (e.g., if ` +
-                  `SWIM is picked, then SWIMS will not be considered)">` +
-                  `No stem-dupes:</b>
-              <input id="xet-no-stem-dupes" name="xet-no-stem-dupes"
-                  value="no-stem-dupes" type="checkbox">
               </input>
             </span>
           </div>
@@ -1398,43 +1487,36 @@ Exet.prototype.makeExetTab = function() {
   }
 
   this.fillSettings = document.getElementById("xet-fill-settings");
-  this.minpopInclSpan = document.getElementById("xet-minpop-incl");
-  this.minpopInput = document.getElementById("xet-minpop");
-  this.minpopInput.value = this.minpop;
-  this.renderMinPop();
-  this.minpopInput.addEventListener('change', e => {
-    if (isNaN(this.minpopInput.value) ||
-        this.minpopInput.value < 0 || this.minpopInput.value > 100) {
-      this.minpopInput.value = this.minpop;
-      return;
-    }
-    this.setMinPop(this.minpopInput.value);
-    this.renderMinPop();
-    this.resetViability();
-    exetRevManager.throttledSaveRev(exetRevManager.REV_FILL_OPTIONS_CHANGE);
-  });
-  this.noProperNounsInput = document.getElementById("xet-no-proper-nouns");
-  this.noProperNounsInput.checked = this.noProperNouns;
-  this.noProperNounsInput.addEventListener('change', e => {
-    this.noProperNouns = this.noProperNounsInput.checked;
-    this.resetViability();
-    exetRevManager.throttledSaveRev(exetRevManager.REV_FILL_OPTIONS_CHANGE);
-  });
-  this.noStemDupesInput = document.getElementById("xet-no-stem-dupes");
-  this.noStemDupesInput.checked = this.noStemDupes;
-  if (exetLexicon.hasOwnProperty('stems')) {
-    this.noStemDupesInput.addEventListener('change', e => {
-      this.noStemDupes = this.noStemDupesInput.checked;
+  this.numlexInUseSpan = document.getElementById("xet-numlex-in-use");
+  this.numlexSpan = document.getElementById("xet-numlex");
+  this.minlexInput = document.getElementById("xet-minlex");
+  this.minlexName = document.getElementById("xet-minlex-name");
+  this.minlexSuffix = document.getElementById("xet-minlex-suffix");
+  this.renderMinLex();
+  this.minlexInput.addEventListener('change', this.handleMinLexChange.bind(this));
+
+  if (properNounOptions) {
+    this.noProperNounsInput = document.getElementById("xet-no-proper-nouns");
+    this.noProperNounsInput.checked = this.noProperNouns;
+    this.noProperNounsInput.addEventListener('change', e => {
+      this.noProperNouns = this.noProperNounsInput.checked;
       this.resetViability();
       exetRevManager.throttledSaveRev(exetRevManager.REV_FILL_OPTIONS_CHANGE);
     });
-  } else {
-    this.noStemDupesInput.disabled = true;
-    this.noStemDupesInput.title = 'We do not yet have stemming data for this language';
   }
-  if (exetLexicon.script != 'Latin') {
-    this.noProperNounsInput.disabled = true;
-    this.noProperNounsInput.title = 'Proper-noun filtering is only available for Latin currently';
+  if (stemmingOptions) {
+    this.noStemDupesInput = document.getElementById("xet-no-stem-dupes");
+    this.noStemDupesInput.checked = this.noStemDupes;
+    if (exetLexicon.hasOwnProperty('stems')) {
+      this.noStemDupesInput.addEventListener('change', e => {
+        this.noStemDupes = this.noStemDupesInput.checked;
+        this.resetViability();
+        exetRevManager.throttledSaveRev(exetRevManager.REV_FILL_OPTIONS_CHANGE);
+      });
+    } else {
+      this.noStemDupesInput.disabled = true;
+      this.noStemDupesInput.title = 'We do not yet have stemming data for this language';
+    }
   }
   this.tryReversalsInput = document.getElementById("xet-try-reversals");
   this.tryReversalsInput.checked = this.tryReversals;
@@ -2133,6 +2215,7 @@ Exet.prototype.updateOtherSections = function() {
     return
   }
   const ALLOWED_SECTIONS = {
+    'exolve-cell-size': true,
     'exolve-credits': true,
     'exolve-email': true,
     'exolve-postscript': true,
@@ -5936,10 +6019,10 @@ Exet.prototype.makeExolve = function(specs) {
   this.puz = null;
   try {
     const ptemp = new Exolve(specs, 'xet-xlv-frame', this.setPuzzle.bind(this),
-                           false /** provideStateUrl */,
-                           this.TOP_CLEARANCE /** visTop */,
-                           0 /** maxDim */,
-                           false /** notTemp */);
+                             false /** provideStateUrl */,
+                             this.TOP_CLEARANCE /** visTop */,
+                             0 /** maxDim */,
+                             false /** notTemp */);
     if (!this.puz) {
       /** There was an error in setPuzzle() */
       if (ptemp) {
@@ -6879,13 +6962,6 @@ Exet.prototype.fillLight = function(idx, ci='', revType=null) {
   }
 }
 
-Exet.prototype.renderMinPop = function() {
-  this.minpopInclSpan.innerText = Number(this.indexMinPop - 1).toLocaleString();
-  if (this.autofill) {
-    this.autofill.reshowSettings();
-  }
-}
-
 Exet.prototype.renderPreflex = function() {
   /* populate with existing preflex */
   let preflexText = '';
@@ -7121,9 +7197,19 @@ Exet.prototype.enumMatchSorter = function(p, k1, k2) {
 Exet.prototype.choiceDisplayHTML = function(choice) {
   const absC = Math.abs(choice);
   const cls = this.preflexSet[absC] ? ' class="xet-preflex-entry"' : '';
+  let hover = ' title="';
+  if (absC >= exetLexicon.startLen) {
+    hover += 'From preferred fills, not present in word list"';
+  } else {
+    hover += 'Rank in word list: ' + absC + ' of ' + (exetLexicon.startLen - 1);
+    if (exetLexicon.scoresSummary) {
+      hover += ', score: ' + exetLexicon.scores[absC];
+    }
+    hover += '"';
+  }
   const rev = (choice < 0) ? '&lArr; ' : '';
   return `
-    <tr><td${cls}>${rev}${exetLexicon.getLex(choice)}</td></tr>`;
+    <tr><td${cls}${hover}>${rev}${exetLexicon.getLex(choice)}</td></tr>`;
 }
 
 Exet.prototype.updateFillChoices = function() {
@@ -7347,11 +7433,48 @@ Exet.prototype.finishSetup = function() {
   });
 }
 
+Exet.prototype.maybeLexiconOptions = function() {
+  if (!exetConfig.hasOwnProperty('lexicons') ||
+      Object.keys(exetConfig.lexicons).length <= 1) {
+    return '';
+  }
+  let html = `
+    <select id="xet-lexicon-select" onchange="exet.changeLexicon()">`;
+  for (const l in exetConfig.lexicons) {
+    html += `
+      <option value="${l}"${(l == exetState.lexicon) ? ' selected' : ''}>${l}</option>`;
+  }
+  html += '\n</select>';
+  return html;
+}
+
+Exet.prototype.changeLexicon = function() {
+  const lopts = document.getElementById("xet-lexicon-select");
+  if (lopts.value == exetState.lexicon) {
+    return;
+  }
+  if (this.viabilityUpdateTimer) {
+    clearTimeout(this.viabilityUpdateTimer);
+  }
+  this.autofill.reset('Aborted');
+  exetModals.freezeUI(
+      'Changing the word list from ' +
+      exetState.lexicon + ' to ' + lopts.value + ', please wait...');
+  exetLoadLexicon(lopts.value);
+}
+
 function exetFromHistory(exetRev) {
   exet.prefix = exetRev.prefix;
   exet.suffix = exetRev.suffix;
   exetRevManager.retrievePrefUnpref(exetRev);
-  exet.setMinPop(exetRev.minpop || 0);
+  if (exetLexicon.scoresSummary &&
+      exetRev.hasOwnProperty('lexId') &&
+      exetRev.hasOwnProperty('minscore') &&
+      exetLexicon.id == exetRev.lexId) {
+    exet.setMinScore(exetRev.minscore);
+  } else {
+    exet.setMinPop(exetRev.minpop || 0);
+  }
   exet.noProperNouns = exetRev.noProperNouns || false;
   exet.asymOK = exetRev.asymOK || false;
   exet.tryReversals = exetRev.tryReversals || false;
@@ -7464,7 +7587,7 @@ function exetBlank(w, h, layers3d=1, id='', automagic=false,
   exet.suffix = '';
   exet.setPreflex([]);
   exet.setUnpreflex([]);
-  exet.setMinPop(exet.DEFAULT_MINPOP);
+  exet.setMinPop(exetConfig.defaultPopularity);
   exet.noProperNouns = false;
   exet.asymOK = false;
   exet.requireEnums = requireEnums;
@@ -7549,7 +7672,14 @@ function exetLoadFile() {
       if (stored.revs.length > 0) {
         const lastRev = stored.revs[stored.revs.length - 1];
         exetRevManager.retrievePrefUnpref(lastRev);
-        exet.setMinPop(lastRev.minpop || 0);
+        if (exetLexicon.scoresSummary &&
+            lastRev.hasOwnProperty('lexId') &&
+            lastRev.hasOwnProperty('minscore') &&
+            exetLexicon.id == lastRev.lexId) {
+          exet.setMinScore(lastRev.minscore);
+        } else {
+          exet.setMinPop(lastRev.minpop || 0);
+        }
         exet.noProperNouns = lastRev.noProperNouns || false;
         exet.asymOK = lastRev.asymOK || false;
         exet.tryReversals = lastRev.tryReversals || false;
@@ -7575,33 +7705,18 @@ let exetRevManager;
 let exetModals;
 let exetState;
 let exet;
+let exetLexiconSaved;
+let exetLexiconNewName;
 
-document.addEventListener('DOMContentLoaded', () => {
-  const xetLoading = document.getElementById('xet-loading');
-  if (!exetLexicon) {
-    xetLoading.innerHTML = '<div class="xet-red"><h3>Failed to load the lexicon :-(</h3></div>';
-    throw "No lexicon has been loaded!"
-  }
-  xetLoading.remove();
-
-  exetLexiconInit();
-
-  exetRevManager = new ExetRevManager();
-  exetModals = new ExetModals();
-  if (!window.localStorage) {
-    throw "localStorage is not available!"
-  }
-
-  exet = new Exet();
-
+function exetLoadState() {
   exetState = window.localStorage.getItem(exetRevManager.SPECIAL_KEY);
   if (exetState) {
-    exetState = JSON.parse(exetState)
+    exetState = JSON.parse(exetState);
   } else {
     exetState = {};
   }
   if (!exetState.hasOwnProperty('exolveUrl')) {
-    exetState.exolveUrl = 'https://viresh-ratnakar.github.io/'
+    exetState.exolveUrl = 'https://viresh-ratnakar.github.io/';
   }
   if (!exetState.hasOwnProperty('spellcheck')) {
     exetState.spellcheck = false;
@@ -7609,6 +7724,116 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!exetState.hasOwnProperty('lastBackup')) {
     exetState.lastBackup = Date.now();
   }
+}
+
+function exetLoadLexicon(lexiconName=null) {
+  const lexiconNames = Object.keys(exetConfig.lexicons);
+  if (!lexiconNames || lexiconNames.length == 0) {
+    throw "exetConfig has no lexicon names!";
+  }
+  if (!lexiconName) {
+    lexiconName = exetState.lexicon ?? '';
+    if (!exetConfig.lexicons.hasOwnProperty(lexiconName)) {
+      lexiconName = lexiconNames[0];
+    }
+  }
+  const lexiconFiles = exetConfig.lexicons[lexiconName];
+  if (!lexiconFiles || lexiconFiles.length == 0) {
+    throw "exetConfig[" + lexiconName + "] has no lexicon file names!";
+  }
+  console.log('Loading lexicon: ' + lexiconName);
+  exetLexiconSaved = (typeof exetLexicon == "object" && exetLexicon) ?
+    exetLexicon : null;
+  exetLexicon = {};
+  exetLexiconNewName = lexiconName;
+
+  // Create a Promise for each script injection
+  const loadPromises = lexiconFiles.map(fileUrl => {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = fileUrl;
+      script.onload = () => {
+        console.log(`Successfully loaded lexicon script component ${fileUrl}`);
+        script.remove();
+        resolve(fileUrl);
+      };
+      script.onerror = () => {
+        console.log(`Error loading lexicon script component ${fileUrl}`);
+        script.remove();
+        reject(new Error(`Failed to load: ${fileUrl}`));
+      };
+      document.head.appendChild(script);
+    });
+  });
+  // Wait for ALL scripts in the array to finish loading and executing
+  Promise.all(loadPromises)
+    .then(() => {
+      // All lexicon parts have loaded and cleaned up their DOM nodes
+      exetLoadedLexicon();
+    })
+    .catch(error => {
+      exetFailedToLoadLexicon();
+    });
+}
+
+function exetLoadedLexicon() {
+  try {
+    exetLexiconInit();
+  } catch (err) {
+    console.log(err);
+    exetFailedToLoadLexicon();
+    return;
+  }
+  exetLexiconSaved = null;
+  exetState.lexicon = exetLexiconNewName;
+  exetLexiconNewName = null;
+  exetModals.unfreezeUI();
+  if (exet) {
+    exet.setMinPop(exet.minpop);  /** Map to the new lexicon */
+    exet.setPreflex(exet.preflex);
+    exet.setUnpreflex(exet.unpreflex);
+    exet.resetViability();
+    exet.renderMinLex();
+    exet.lexiconId.innerHTML = exetLexicon.id;
+    exetRevManager.throttledSaveRev(exetRevManager.REV_OPTIONS_CHANGE);
+  } else {
+    exetInit();
+  }
+  exetRevManager.saveLocal(exetRevManager.SPECIAL_KEY, JSON.stringify(exetState));
+}
+
+function exetFailedToLoadLexicon() {
+  if (!exetLexiconNewName) {
+    /** Already called */
+    return;
+  }
+  console.log('Failed to load lexicon, reverting, if possible');
+  exetLexicon = exetLexiconSaved;
+  if (exet) {
+    alert('Failed to switch lexicon to ' + exetLexiconNewName +
+          ', reverting back to ' + exetState.lexicon);
+    const lopts = document.getElementById("xet-lexicon-select");
+    if (lopts) {
+      lopts.value = exetState.lexicon;
+    }
+  } else {
+    /** Trigger failure message for this first attempt to load the lexicon */
+    exetLexiconInit();
+  }
+  /** We may have killed the backgroud viability sweep, resume it. */
+  exet.resetViability();
+  exetModals.unfreezeUI();
+  exetLexiconSaved = null;
+  exetLexiconNewName = null;
+}
+
+/**
+ * Should be called only after exetLexicon has loaded and exetLexiconInit()
+ * has been called.
+ */
+function exetInit() {
+  exet = new Exet();
+
   if (exetState.lastId) {
     let saved = window.localStorage.getItem(exetState.lastId);
     if (saved) {
@@ -7628,4 +7853,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
   exet.finishSetup()
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  exetRevManager = new ExetRevManager();
+  exetModals = new ExetModals();
+  if (!window.localStorage) {
+    throw "localStorage is not available!"
+  }
+  exetLoadState();
+
+  if (exetConfig.lexicons) {
+    /** Config-specified-files way of loading exetLexicon */
+    exetLoadLexicon();
+    return;
+  }
+  /** Script-tag-based way of loading exetLexicon */
+  exetLexiconInit();
+  exetInit();
 });
