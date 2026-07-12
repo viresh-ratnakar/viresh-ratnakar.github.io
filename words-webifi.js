@@ -28,11 +28,11 @@ function WordsWebifi(webifi) {
   this.description = 'Word patterns, anagrams, word sounds, definitions, synonyms';
 
   this.lex = null;
-  if (!this.initLex()) {
-    this.loadLex('lufz-en-lexicon.js');
-    this.loadLex('lufz-en-lexicon-stems.js');
-    this.loadLex('exet-lexicon.js');
-  }
+  this.lexParts = 3;
+  this.lexPartsLoaded = 0;
+  this.loadLex('lufz-en-lexicon.js');
+  this.loadLex('lufz-en-lexicon-stems.js');
+  this.loadLex('exet-lexicon.js');
   this.MAX_WORD_CHOICES = webifi.GROUP_SIZE * webifi.MAX_LIST_LEN;
 
   this.webifi.registerAvatar(this.name, this.description, {
@@ -70,16 +70,18 @@ function WordsWebifi(webifi) {
 }
 
 WordsWebifi.prototype.initLex = function() {
-  if ((typeof exetLexicon == 'undefined') ||
-      (typeof exetLexicon.stems == 'undefined') ||
-      (typeof exetLexiconInit == 'undefined') ) {
-    console.log('Lexicon not yet fully available');
-    return false;
-  }
-  if (this.lex) {
+  if (this.lexPartsLoaded >= this.lexParts) {
+    console.assert(this.lex);
     console.log('Lexicon already initialized');
     return true;
   }
+  this.lexPartsLoaded++;
+  console.log('Lexicon parts loaded: ' + this.lexPartsLoaded + ' of ' +
+              this.lexParts);
+  if (this.lexPartsLoaded < this.lexParts) {
+    return false;
+  }
+  console.assert(!this.lex);
   console.log('Initializing lexicon');
   exetLexiconInit();
   this.lex = exetLexicon;
