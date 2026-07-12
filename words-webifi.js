@@ -41,6 +41,11 @@ function WordsWebifi(webifi) {
       prefixes: ['define|definition|definitions', 'look up', 'definition|definitions|meaning of',],
       helpkeys: ['word', 'words', 'phrase',],
     },
+    'region': {
+      description: 'Change spellings region.',
+      prefixes: ['region|locale|spelling|spell|spellings',],
+      helpkeys: ['region', 'spell', 'spellings', 'spelling', 'locale'],
+    },
     'synonyms': {
       description: 'Use dictionary dev dot api to look up synonyms of a word or phrase.',
       prefixes: ['synonym|synonyms|syns', 'synonym|synonyms|syns of',],
@@ -194,6 +199,21 @@ WordsWebifi.prototype.handlePattern = function(pattern) {
   this.webifi.output(this.name, 'Here are some matches.', this.webifi.makeGroupedList(matchingWords), false);
 }
 
+WordsWebifi.prototype.handleRegion = function(region) {
+  if (!this.lex) {
+    this.webifi.output(this.name, 'This command is not available as the lexicon file has not been loaded');
+    return;
+  }
+  const regionName = region || 'None';
+  const newRegion = this.lex.preferRegion(region);
+  const newRegionName = newRegion || 'None';
+  if (newRegion != region) {
+    this.webifi.output(this.name, 'Could not change spelling region preference from "' + newRegionName + '" to "' + regionName + '".');
+  } else {
+    this.webifi.output(this.name, 'Spelling region preference set to: ' + newRegionName + '.');
+  }
+}
+
 WordsWebifi.prototype.handleAnagrams = function(fodder) {
   if (!fodder) {
     return;
@@ -258,6 +278,8 @@ WordsWebifi.prototype.handler = function(input, words, commandName,
   const remaining = words.slice(numMatchedWords).join(' ');
   if (commandName == 'pattern') {
     this.handlePattern(remaining);
+  } else if (commandName == 'region') {
+    this.handleRegion(remaining);
   } else if (commandName == 'anagrams') {
     this.handleAnagrams(remaining);
   } else if (commandName == 'homophones') {
