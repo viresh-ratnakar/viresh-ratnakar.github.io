@@ -105,6 +105,7 @@ function Exet() {
   this.noProperNouns = false;
   this.requireEnums = true;
   this.noStemDupes = exetLexicon.hasOwnProperty('stems');
+  this.region = '';
   this.asymOK = false;
   this.tryReversals = false;
   this.lightRegexps = {};
@@ -761,6 +762,25 @@ Exet.prototype.setPuzzle = function(puz) {
   this.reposition();
 }
 
+Exet.prototype.populateSpellingsRegionMenu = function() {
+  this.regionMenu.style.display = 'none';
+  const haveRegions = exetLexicon.hasOwnProperty('regions');
+  if (!haveRegions) return;
+  let regionOptions = '';
+  regionOptions = `
+              <option title="Just use the spellings ranking in the word list as-is"
+                value=''${('' == this.region) ? ' selected' : ''}>No preference</option>
+    `;
+  for (const r in exetLexicon.regions) {
+    const dontUseSize = exetLexicon.regions[r].dontUse.size;
+    regionOptions += `
+      <option title="Prefer spellings from ${r} higher in preference (excludes ${dontUseSize} entries)"
+        value="${r}"${(r == this.region) ? ' selected' : ''}>${r}</option>`
+  }
+  this.regionInput.innerHTML = regionOptions;
+  this.regionMenu.style.display = '';
+}
+
 Exet.prototype.makeExetTab = function() {
   let exetTab = this.tabs["exet"]
   const properNounOptions = (exetLexicon.script != 'Latin') ? '' : `
@@ -1377,6 +1397,13 @@ Exet.prototype.makeExetTab = function() {
           <div class="xet-controls-row">
             ${properNounOptions}
             ${stemmingOptions}
+            <span id="xet-spellings-region-menu">
+              <b title="Choose a spellings region preference">
+                  Spellings:</b>
+              <select id="xet-spellings-region" style="vertical-align:text-top">
+              </select>
+              &nbsp;
+            </span>
             <span>
               <b title="If checked, this allows trying reversals of unfilled ` +
                   `lights, when finding fill suggestions. Caveat: reversed ` +
@@ -1518,6 +1545,17 @@ Exet.prototype.makeExetTab = function() {
       this.noStemDupesInput.title = 'We do not yet have stemming data for this language';
     }
   }
+  this.regionMenu = document.getElementById("xet-spellings-region-menu");
+  this.regionInput = document.getElementById("xet-spellings-region");
+  this.regionInput.addEventListener('change', e => {
+    exetLexicon.preferRegion(this.regionInput.value);
+    if (this.region == exetLexicon.region) return;
+    this.region = exetLexicon.region;
+    this.resetViability();
+    exetRevManager.throttledSaveRev(exetRevManager.REV_FILL_OPTIONS_CHANGE);
+  });
+  this.populateSpellingsRegionMenu();
+
   this.tryReversalsInput = document.getElementById("xet-try-reversals");
   this.tryReversalsInput.checked = this.tryReversals;
   this.tryReversalsInput.addEventListener('change', e => {
@@ -7205,6 +7243,9 @@ Exet.prototype.choiceDisplayHTML = function(choice) {
     if (exetLexicon.scoresSummary) {
       hover += ', score: ' + exetLexicon.scores[absC];
     }
+    if (exetLexicon.stems) {
+      hover += ', stem: ' + exetLexicon.stemFromIndex(absC);
+    }
     hover += '"';
   }
   const rev = (choice < 0) ? '&lArr; ' : '';
@@ -7476,6 +7517,8 @@ function exetFromHistory(exetRev) {
     exet.setMinPop(exetRev.minpop || 0);
   }
   exet.noProperNouns = exetRev.noProperNouns || false;
+  exet.region = exetRev.region || '';
+  exet.region = exetLexicon.preferRegion(exet.region);
   exet.asymOK = exetRev.asymOK || false;
   exet.tryReversals = exetRev.tryReversals || false;
   exet.lightRegexps = exetRev.lightRegexps || {};
@@ -7589,6 +7632,7 @@ function exetBlank(w, h, layers3d=1, id='', automagic=false,
   exet.setUnpreflex([]);
   exet.setMinPop(exetConfig.defaultPopularity);
   exet.noProperNouns = false;
+  exet.region = '';
   exet.asymOK = false;
   exet.requireEnums = requireEnums;
   exet.tryReversals = layers3d > 1 ? true : false;
@@ -7654,6 +7698,7 @@ function exetLoadFile() {
     exet.setUnpreflex([]);
     exet.setMinPop(0);  // Do not presume: there may be filled entries!
     exet.noProperNouns = false;
+    exet.region = '';
     exet.asymOK = false;
     exet.tryReversals = false;
     exet.lightRegexps = {};
@@ -7682,6 +7727,7 @@ function exetLoadFile() {
         }
         exet.noProperNouns = lastRev.noProperNouns || false;
         exet.asymOK = lastRev.asymOK || false;
+        exet.region = lastRev.region || '';
         exet.tryReversals = lastRev.tryReversals || false;
         exet.lightRegexps = lastRev.lightRegexps || {};
         exet.compileLightRegexps();
@@ -7792,6 +7838,8 @@ function exetLoadedLexicon() {
     exet.setMinPop(exet.minpop);  /** Map to the new lexicon */
     exet.setPreflex(exet.preflex);
     exet.setUnpreflex(exet.unpreflex);
+    exet.region = exetLexicon.preferRegion(exet.region);
+    exet.populateSpellingsRegionMenu();
     exet.resetViability();
     exet.renderMinLex();
     exet.lexiconId.innerHTML = exetLexicon.id;

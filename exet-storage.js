@@ -639,6 +639,7 @@ ExetRevManager.prototype.saveRev = function(revType, details="") {
         lastRev.hasOwnProperty('unpreflexHash') && lastRev.unpreflexHash == exet.unpreflexHash &&
         lastRev.noProperNouns == exet.noProperNouns &&
         lastRev.noStemDupes == exet.noStemDupes &&
+        lastRev.hasOwnProperty('region') && lastRev.region == exet.region &&
         lastRev.tryReversals == exet.tryReversals &&
         lastRev.minpop == exet.minpop &&
         lastRev.hasOwnProperty('minscore') && lastRev.minscore == exet.minscore &&
@@ -662,6 +663,7 @@ ExetRevManager.prototype.saveRev = function(revType, details="") {
   exetRev.unpreflexHash = exet.unpreflexHash;
   exetRev.noProperNouns = exet.noProperNouns;
   exetRev.noStemDupes = exet.noStemDupes;
+  exetRev.region = exet.region;
   exetRev.asymOK = exet.asymOK;
   exetRev.tryReversals = exet.tryReversals;
   exetRev.minpop = exet.minpop;
