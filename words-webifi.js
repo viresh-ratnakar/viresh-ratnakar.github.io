@@ -29,7 +29,9 @@ function WordsWebifi(webifi) {
 
   this.lex = null;
   if (!this.initLex()) {
-    this.loadLex();
+    this.loadLex('lufz-en-lexicon.js');
+    this.loadLex('lufz-en-lexicon-stems.js');
+    this.loadLex('exet-lexicon.js');
   }
   this.MAX_WORD_CHOICES = webifi.GROUP_SIZE * webifi.MAX_LIST_LEN;
 
@@ -68,8 +70,10 @@ function WordsWebifi(webifi) {
 }
 
 WordsWebifi.prototype.initLex = function() {
-  if ((typeof exetLexicon == 'undefined') || (typeof exetLexiconInit== 'undefined') ) {
-    console.log('Lexicon not yet available');
+  if ((typeof exetLexicon == 'undefined') ||
+      (typeof exetLexicon.stems == 'undefined') ||
+      (typeof exetLexiconInit == 'undefined') ) {
+    console.log('Lexicon not yet fully available');
     return false;
   }
   if (this.lex) {
@@ -82,17 +86,13 @@ WordsWebifi.prototype.initLex = function() {
   return true;
 }
 
-WordsWebifi.prototype.loadLex = function() {
+WordsWebifi.prototype.loadLex = function(scriptFile) {
   const handler = this.initLex.bind(this);
-  const scriptLufz = document.createElement('script');
-  scriptLufz.src = this.webifi.scriptUrlBase + 'lufz-en-lexicon.js';
-  scriptLufz.onload = handler;
-  scriptLufz.onerror = (ev) => {console.log(ev); console.log('error loading script');}
-  const scriptLex = document.createElement('script');
-  scriptLex.src = this.webifi.scriptUrlBase + 'exet-lexicon.js';
-  scriptLex.onload = handler;
-  document.head.append(scriptLufz);
-  document.head.append(scriptLex);
+  const scriptForLufz = document.createElement('script');
+  scriptForLufz.src = this.webifi.scriptUrlBase + scriptFile;
+  scriptForLufz.onload = handler;
+  scriptForLufz.onerror = (ev) => {console.log(ev); console.log('error loading script: ' + scriptForLufz.src);}
+  document.head.append(scriptForLufz);
 }
 
 WordsWebifi.prototype.syndefHandler = function(input, words, commandName,
