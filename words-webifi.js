@@ -204,6 +204,7 @@ WordsWebifi.prototype.handleRegion = function(region) {
     this.webifi.output(this.name, 'This command is not available as the lexicon file has not been loaded');
     return;
   }
+  region = region.charAt(0).toUpperCase() + region.slice(1).toLowerCase();
   const regionName = region || 'None';
   const newRegion = this.lex.preferRegion(region);
   const newRegionName = newRegion || 'None';
