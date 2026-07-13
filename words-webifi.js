@@ -205,6 +205,9 @@ WordsWebifi.prototype.handleRegion = function(region) {
     return;
   }
   region = region.charAt(0).toUpperCase() + region.slice(1).toLowerCase();
+  if (region == 'Us' || region == 'Usa') {
+    region = 'US';
+  }
   const regionName = region || 'None';
   const newRegion = this.lex.preferRegion(region);
   const newRegionName = newRegion || 'None';
