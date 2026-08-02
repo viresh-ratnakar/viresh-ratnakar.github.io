@@ -633,7 +633,7 @@ Exet.prototype.setPuzzle = function(puz) {
   this.xetCopyright.title = 'Click to edit copyright';
 
   this.title = document.getElementById(`${this.puz.prefix}-title`);
-  this.title.innerHTML = `<span class="xet-action">Edit optional
+  this.title.innerHTML = `<span class="xet-action" id="xet-title-cta">Edit optional
       title:</span><span
       class="xet-editable"
       id="xet-title" contenteditable=true spellcheck=false
@@ -641,9 +641,10 @@ Exet.prototype.setPuzzle = function(puz) {
   this.title.style.display = '';
   this.xetTitle = document.getElementById('xet-title');
   this.xetTitle.title = 'Click to edit title';
+  this.xetTitleCTA = document.getElementById('xet-title-cta');
 
   this.setter = document.getElementById(`${this.puz.prefix}-setter`);
-  this.setter.innerHTML = `<span class="xet-action">Edit optional
+  this.setter.innerHTML = `<span class="xet-action" id="xet-setter-cta">Edit optional
       setter(s):</span><span
       class="xet-editable"
       id="xet-setter" contenteditable=true spellcheck=false
@@ -651,6 +652,7 @@ Exet.prototype.setPuzzle = function(puz) {
   this.setter.style.display = '';
   this.xetSetter = document.getElementById('xet-setter');
   this.xetSetter.title = 'Click to edit setter';
+  this.xetSetterCTA = document.getElementById('xet-setter-cta');
 
   this.preamble = document.getElementById(`${this.puz.prefix}-preamble`);
   this.explanations = document.getElementById(`${this.puz.prefix}-explanations`);
@@ -2229,20 +2231,20 @@ Exet.prototype.updateMetadata = function() {
     clearTimeout(this.throttledMetadataTimer);
   }
   this.throttledMetadataTimer = setTimeout(() => {
-    this.saveCursor()
+    this.saveCursor();
     if (this.xetTitle) {
-      this.stripInputLF(this.xetTitle)
-      this.puz.title = this.xetTitle.innerText
+      this.stripInputLF(this.xetTitle);
+      this.puz.title = this.xetTitle.innerText;
     }
     if (this.xetSetter) {
-      this.stripInputLF(this.xetSetter)
-      this.puz.setter = this.xetSetter.innerText
+      this.stripInputLF(this.xetSetter);
+      this.puz.setter = this.xetSetter.innerText;
     }
     if (this.xetCopyright) {
-      this.stripInputLF(this.xetCopyright)
-      this.puz.copyright = this.xetCopyright.innerText
+      this.stripInputLF(this.xetCopyright);
+      this.puz.copyright = this.xetCopyright.innerText;
     }
-    this.restoreCursor()
+    this.restoreCursor();
     this.throttledMetadataTimer = null;
     exetRevManager.throttledSaveRev(exetRevManager.REV_METADATA_CHANGE);
   }, 2000);
@@ -4191,23 +4193,22 @@ Exet.prototype.reposition = function() {
     this.updatePuzzle();  /** revType = default 0 won't actually save */
     return;
   }
-  this.title.className = 'xlv-title';
-  this.setter.className = 'xlv-setter';
-  this.preamble.className = 'xlv-preamble';
-  this.title.title = '';
-  this.setter.title = '';
-  this.preamble.title = '';
+  const elts = [this.xetTitle, this.xetTitleCTA,
+                this.xetSetter, this.xetSetterCTA, this.preamble];
+  for (const elt of elts) {
+    elt.classList.remove('xet-blur');
+  }
   const clueBox = this.puz.currClue.getBoundingClientRect();
   if (this.puz.currClueIndex && clueBox.top > 0) {
-    const top = clueBox.top - this.TOP_CLEARANCE;
+    const top = clueBox.top;
     const right = clueBox.right;
-    for (let elt of [this.title, this.setter, this.preamble]) {
+    for (const elt of elts) {
       const box = elt.firstElementChild ?
         elt.firstElementChild.getBoundingClientRect() :
         elt.getBoundingClientRect();
-      if (box.bottom >= top && box.left <= right) {
-        elt.className += ' xet-blur';
-        elt.title = 'Click to make visible';
+      if (box.bottom >= top + 8 && box.left + 8 <= right) {
+        /** Substantial overlap, blur this elt. */
+        elt.classList.add('xet-blur');
       }
     }
   }

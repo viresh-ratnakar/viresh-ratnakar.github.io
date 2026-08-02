@@ -229,8 +229,9 @@ body {
 }
 .xet-blur *,
 .xet-blur {
-  color: #f0f0f0 !important;
+  color: #c0c0c0 !important;
   outline-color: lightgray !important;
+  transition: all 3s ease-in-out 0.1s;
 }
 .xet-format {
   position: absolute;
