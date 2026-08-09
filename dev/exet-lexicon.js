@@ -26,7 +26,10 @@ See the full Exet license notice in exet.js.
  *     index in the same group, and following this cycle should eventually
  *     lead back to x.
  *   stemsId: Should match id.
- * TODO: scores, set medianScore
+ *   regions: optional object, keyed by name of region, pointing to
+ *     region-specific object containg a "swaps" key pointing to a
+ *     index-swap-pairs list . Each pair is guaranteed to be in the same
+ *     stem-group.
  * It supplements this objects with various utility functions and a few data
  * structures.
  */
@@ -39,8 +42,9 @@ function exetLexiconInit() {
     }
     throw error;
   }
-  if (exetLexicon.language != exetConfig.language ||
-      exetLexicon.script != exetConfig.script) {
+  if (typeof exetConfig !== 'undefined' &&
+      (exetLexicon.language != exetConfig.language ||
+       exetLexicon.script != exetConfig.script)) {
     const error = `
       The exetLexicon object has different language/script
       (${exetLexicon.language}/${exetLexicon.script}) than the config
@@ -93,15 +97,17 @@ function exetLexiconInit() {
     exetLexicon.letterIndex[c] = i;
     exetLexicon.zeroHist[i] = 0;
   }
-  const configMaxCharCodes = exetConfig.maxCharCodes ?? 1;
-  if (exetLexicon.maxCharCodes != configMaxCharCodes) {
-    const error = `
-      The exetLexicon object has different maxCharCodes
-      (${exetLexicon.maxCharCodes}) than the config (${configMaxCharCodes})`;
-    if (xetLoading) {
-      xetLoading.innerHTML = `<div class="xet-red"><h3>${error} :-(</h3></div>`;
+  if (typeof exetConfig !== 'undefined') {
+    const configMaxCharCodes = exetConfig.maxCharCodes ?? 1;
+    if (exetLexicon.maxCharCodes != configMaxCharCodes) {
+      const error = `
+        The exetLexicon object has different maxCharCodes
+        (${exetLexicon.maxCharCodes}) than the config (${configMaxCharCodes})`;
+      if (xetLoading) {
+        xetLoading.innerHTML = `<div class="xet-red"><h3>${error} :-(</h3></div>`;
+      }
+      throw error;
     }
-    throw error;
   }
   for (let c of exetLexicon.letters) {
     exetLexicon.letterSet[c] = true;
@@ -318,6 +324,10 @@ function exetLexiconInit() {
     const stemGroup = this.stemGroup(lexIndices[0]);
     return this.lexicon[stemGroup[0]];
   }
+  exetLexicon.stemFromIndex = function(idx) {
+    const stemGroup = this.stemGroup(idx);
+    return this.lexicon[stemGroup[0]];
+  }
 
   exetLexicon.letterRarity = function(c) {
     const cu = c.toUpperCase()
@@ -415,7 +425,13 @@ function exetLexiconInit() {
       return false;
     }
     const first = parts[0];
-    return first.toUpperCase() == first && parts[1] != '-';
+    /**
+     * The last conditions are the "I phrase", "I'm phrase", I'll exceptions.
+     */
+    return first.toUpperCase() == first && parts[1] != '-' &&
+      !(s.startsWith('I ') && (parts.length > 2) && (parts[2].toUpperCase() != parts[2])) &&
+      !(s.startsWith("I'm ") && (parts.length > 4) && (parts[4].toUpperCase() != parts[4])) &&
+      !(s.startsWith("I'll ") && (parts.length > 5) && (parts[5].toUpperCase() != parts[5]));
   }
 
   exetLexicon.getLex = function(idx) {
@@ -432,6 +448,8 @@ function exetLexiconInit() {
    * preflexByLen[len] should be an array of preferred lexicon indices of length len.
    * unpreflexSet should be an object where unpreflexSet[idx] is true if lexicon index idx should be avoided.
    * regexp: if not null, then this is a RegExp object to filter out choices that do not pass regexp.test().
+   *
+   * If a spellings region is active then entries from its dontUse set are excluded.
    */
   exetLexicon.getLexChoices = function(
       partialSol,
@@ -446,6 +464,8 @@ function exetLexiconInit() {
     if (indexLimit <= 0) {
       indexLimit = this.startLen;
     }
+    const dontUse = exetLexicon.region ?
+      exetLexicon.regions[exetLexicon.region].dontUse : null;
     const choices = [];
     const key = this.lexkey(partialSol);
     const keylen = key.length;
@@ -456,6 +476,7 @@ function exetLexiconInit() {
     if (preflexByLen[keylen]) {
       for (idx of preflexByLen[keylen]) {
         if (dontReuse && dontReuse.has(idx)) continue;
+        if (dontUse && dontUse.has(idx)) continue;
         const phrase = this.lexicon[idx];
         if (regexp && !regexp.test(phrase)) {
           continue;
@@ -484,6 +505,7 @@ function exetLexiconInit() {
       for (let idx of indices) {
         if (idx >= indexLimit) break;
         if (dontReuse && dontReuse.has(idx)) continue;
+        if (dontUse && dontUse.has(idx)) continue;
         if (unpreflexSet[idx]) continue;
         const phrase = this.lexicon[idx];
         if (noProperNouns && this.isProperNoun(phrase)) {
@@ -1208,5 +1230,111 @@ function exetLexiconInit() {
 
   exetLexicon.getHomophones = function(phrase) {
     return this.getHomophonesInner(phrase, this.getPhones(phrase));
+  }
+
+  exetLexicon.region = '';
+  if (exetLexicon.hasOwnProperty('regions')) {
+    /** Create dontUse sets for each region */
+    for (const region in exetLexicon.regions) {
+      exetLexicon.regions[region].dontUse = new Set;
+      exetLexicon.regions[region].redirects = new Map;
+      const dontBanish = new Set(exetLexicon.regions[region].dontBanish);
+      delete exetLexicon.regions[region].dontBanish;
+      for (const swap of exetLexicon.regions[region].swaps) {
+        const x1 = swap[0];
+        const x2 = swap[1];
+        if (!dontBanish.has(x2)) {
+          /**
+           * When dontUse actually gets used, it contains the post-swap higher
+           * value.
+           */
+          const xMax = Math.max(x1, x2);
+          exetLexicon.regions[region].dontUse.add(xMax);
+        }
+        if (x1 < x2) {
+          continue;
+        }
+        exetLexicon.regions[region].redirects.set(x1, x2);
+        exetLexicon.regions[region].redirects.set(x2, x1);
+      }
+    }
+  }
+  exetLexicon.applySwapsList = function(swaps, redirects) {
+    let s = 0;
+    for (const swap of swaps) {
+      const x1 = swap[0];
+      const x2 = swap[1];
+      if (x1 < x2) {
+        /** Preferred is already at a lower index */
+        continue;
+      }
+      /** swap lexicon */
+      let temp = exetLexicon.lexicon[x1];
+      exetLexicon.lexicon[x1] = exetLexicon.lexicon[x2];
+      exetLexicon.lexicon[x2] = temp;
+      /** swap phones */
+      temp = exetLexicon.phones[x1];
+      exetLexicon.phones[x1] = exetLexicon.phones[x2];
+      exetLexicon.phones[x2] = temp;
+    }
+    /** Redirect entries in index */
+    const indexKeys = Object.keys(exetLexicon.index);
+    for (const key of indexKeys) {
+      const index = exetLexicon.index[key];
+      for (let i = 0; i < index.length; i++) {
+        const redirected = redirects.get(index[i]);
+        if (redirected) {
+          index[i] = redirected;
+        }
+      }
+      index.sort((a, b) => a - b);
+    }
+    /** Redirect entries in anagrams */
+    for (let i = 0; i < exetLexicon.anagrams.length; i++) {
+      const anagrams = exetLexicon.anagrams[i];
+      for (let j = 0; j < anagrams.length; j++) {
+        const redirected = redirects.get(anagrams[i]);
+        if (redirected) {
+          anagrams[i] = redirected;
+        }
+      }
+      anagrams.sort((a, b) => a - b);
+    }
+    /** Redirect entries in phindex */
+    for (let i = 0; i < exetLexicon.phindex.length; i++) {
+      const phindex = exetLexicon.phindex[i];
+      for (let j = 0; j < phindex.length; j++) {
+        const redirected = redirects.get(phindex[i]);
+        if (redirected) {
+          phindex[i] = redirected;
+        }
+      }
+      phindex.sort((a, b) => a - b);
+    }
+  }
+  exetLexicon.preferRegion = function(region) {
+    if (!exetLexicon.hasOwnProperty('regions') ||
+        (region && !exetLexicon.regions.hasOwnProperty(region))) {
+      return '';
+    }
+    if (exetLexicon.region == region) {
+      return region;
+    }
+    console.log('Switching spelling region preference to ' + (region || '"No preference"'));
+    if (exetLexicon.region) {
+      console.log('Removing current spelling region preference: ' + exetLexicon.region);
+      const r = exetLexicon.regions[exetLexicon.region];
+      exetLexicon.applySwapsList(r.swaps, r.redirects);
+      exetLexicon.region = '';
+    }
+    if (!region) {
+      console.log('Reverted spelling region preference to "No preference"');
+      return '';
+    }
+    const r = exetLexicon.regions[region];
+    exetLexicon.applySwapsList(r.swaps, r.redirects);
+    exetLexicon.region = region;
+    console.log('Switched spelling region preference to: ' + region);
+    return region;
   }
 }

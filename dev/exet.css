@@ -229,8 +229,9 @@ body {
 }
 .xet-blur *,
 .xet-blur {
-  color: #f0f0f0 !important;
+  color: #c0c0c0 !important;
   outline-color: lightgray !important;
+  transition: all 3s ease-in-out 0.1s;
 }
 .xet-format {
   position: absolute;
@@ -850,4 +851,15 @@ body {
   color: red;
   cursor: pointer;
   font-weight: bold;
+}
+/*
+ * Nutrimatic sizes each result with a large score-based font-size. We mark
+ * those iframes and enlarge their CSS box, then zoom them down so the panel
+ * footprint stays the same while the content is denser. (Cross-origin iframe
+ * HTML can't be rewritten into a bullet list without a proxy.)
+ */
+.xet-web-fills-iframe.xet-nutrimatic-iframe {
+  width: calc(840px / 0.75);
+  height: calc(440px / 0.75);
+  zoom: 0.75;
 }
