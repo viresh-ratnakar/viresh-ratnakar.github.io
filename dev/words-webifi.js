@@ -28,11 +28,12 @@ function WordsWebifi(webifi) {
   this.description = 'Word patterns, anagrams, word sounds, definitions, synonyms';
 
   this.lex = null;
-  if (!this.initLex()) {
-    this.loadLex();
-  }
-  this.WORD_GROUP_SIZE = 4;
-  this.WORD_CHOICES = this.WORD_GROUP_SIZE * webifi.MAX_LIST_LEN;
+  this.lexParts = 3;
+  this.lexPartsLoaded = 0;
+  this.loadLex('lufz-en-lexicon.js');
+  this.loadLex('lufz-en-lexicon-stems.js');
+  this.loadLex('exet-lexicon.js');
+  this.MAX_WORD_CHOICES = webifi.GROUP_SIZE * webifi.MAX_LIST_LEN;
 
   this.webifi.registerAvatar(this.name, this.description, {
     'define': {
@@ -40,9 +41,14 @@ function WordsWebifi(webifi) {
       prefixes: ['define|definition|definitions', 'look up', 'definition|definitions|meaning of',],
       helpkeys: ['word', 'words', 'phrase',],
     },
+    'region': {
+      description: 'Change spellings region.',
+      prefixes: ['region|locale|spelling|spell|spellings',],
+      helpkeys: ['region', 'spell', 'spellings', 'spelling', 'locale'],
+    },
     'synonyms': {
       description: 'Use dictionary dev dot api to look up synonyms of a word or phrase.',
-      prefixes: ['synonyms|syns', 'synonyms|syns of',],
+      prefixes: ['synonym|synonyms|syns', 'synonym|synonyms|syns of',],
       helpkeys: ['word', 'words', 'phrase',],
     },
     'pattern': {
@@ -69,31 +75,31 @@ function WordsWebifi(webifi) {
 }
 
 WordsWebifi.prototype.initLex = function() {
-  if ((typeof exetLexicon == 'undefined') || (typeof exetLexiconInit== 'undefined') ) {
-    console.log('Lexicon not yet available');
-    return false;
-  }
-  if (this.lex) {
+  if (this.lexPartsLoaded >= this.lexParts) {
+    console.assert(this.lex);
     console.log('Lexicon already initialized');
     return true;
   }
+  this.lexPartsLoaded++;
+  console.log('Lexicon parts loaded: ' + this.lexPartsLoaded + ' of ' +
+              this.lexParts);
+  if (this.lexPartsLoaded < this.lexParts) {
+    return false;
+  }
+  console.assert(!this.lex);
   console.log('Initializing lexicon');
   exetLexiconInit();
   this.lex = exetLexicon;
   return true;
 }
 
-WordsWebifi.prototype.loadLex = function() {
+WordsWebifi.prototype.loadLex = function(scriptFile) {
   const handler = this.initLex.bind(this);
-  const scriptLufz = document.createElement('script');
-  scriptLufz.src = this.webifi.scriptUrlBase + 'lufz-en-lexicon.js';
-  scriptLufz.onload = handler;
-  scriptLufz.onerror = (ev) => {console.log(ev); console.log('error loading script');}
-  const scriptLex = document.createElement('script');
-  scriptLex.src = this.webifi.scriptUrlBase + 'exet-lexicon.js';
-  scriptLex.onload = handler;
-  document.head.append(scriptLufz);
-  document.head.append(scriptLex);
+  const scriptForLufz = document.createElement('script');
+  scriptForLufz.src = this.webifi.scriptUrlBase + scriptFile;
+  scriptForLufz.onload = handler;
+  scriptForLufz.onerror = (ev) => {console.log(ev); console.log('error loading script: ' + scriptForLufz.src);}
+  document.head.append(scriptForLufz);
 }
 
 WordsWebifi.prototype.syndefHandler = function(input, words, commandName,
@@ -157,7 +163,7 @@ WordsWebifi.prototype.numEnumPunctMatches = function(p, e) {
   let minl = Math.min(p.length, e.length);
   for (let i = 0; i < minl; i++) {
     if (p[i] != '?' && p[i] == e[i]) num++;
-    if (p[i] == '?' && !this.lex.allLetters[e[i].toUpperCase()]) num--;
+    if (p[i] == '?' && !this.lex.letterSet[e[i].toUpperCase()]) num--;
   }
   return num;
 }
@@ -167,20 +173,6 @@ WordsWebifi.prototype.enumMatchSorter = function(p, k1, k2) {
   const entry2 = this.lex.getLex(k2);
   return this.numEnumPunctMatches(p, entry2) -
          this.numEnumPunctMatches(p, entry1);
-}
-
-WordsWebifi.prototype.makeGroups = function(list, groupSize) {
-  const grouped = [];
-  let x = -1;
-  for (let i = 0; i < list.length; i++) {
-    if (i % groupSize == 0) {
-      grouped.push('');
-      x = grouped.length - 1;
-    }
-    if (grouped[x]) grouped[x] = grouped[x] + ',<pause>' + list[i];
-    else grouped[x] = list[i];
-  }
-  return grouped;
 }
 
 WordsWebifi.prototype.handlePattern = function(pattern) {
@@ -197,14 +189,33 @@ WordsWebifi.prototype.handlePattern = function(pattern) {
     return;
   }
   matchingIndices.sort(this.enumMatchSorter.bind(this, pattern));
-  if (matchingIndices.length > this.WORD_CHOICES) {
-    matchingIndices.length = this.WORD_CHOICES;
+  if (matchingIndices.length > this.MAX_WORD_CHOICES) {
+    matchingIndices.length = this.MAX_WORD_CHOICES;
   }
   const matchingWords = [];
   for (let idx of matchingIndices) {
     matchingWords.push(this.lex.getLex(idx));
   }
-  this.webifi.output(this.name, 'Here are some matches.', this.makeGroups(matchingWords, this.WORD_GROUP_SIZE), false);
+  this.webifi.output(this.name, 'Here are some matches.', this.webifi.makeGroupedList(matchingWords), false);
+}
+
+WordsWebifi.prototype.handleRegion = function(region) {
+  if (!this.lex) {
+    this.webifi.output(this.name, 'This command is not available as the lexicon file has not been loaded');
+    return;
+  }
+  region = region.charAt(0).toUpperCase() + region.slice(1).toLowerCase();
+  if (region == 'Us' || region == 'Usa') {
+    region = 'US';
+  }
+  const regionName = region || 'None';
+  const newRegion = this.lex.preferRegion(region);
+  const newRegionName = newRegion || 'None';
+  if (newRegion != region) {
+    this.webifi.output(this.name, 'Could not change spelling region preference from "' + newRegionName + '" to "' + regionName + '".');
+  } else {
+    this.webifi.output(this.name, 'Spelling region preference set to: ' + newRegionName + '.');
+  }
 }
 
 WordsWebifi.prototype.handleAnagrams = function(fodder) {
@@ -215,12 +226,12 @@ WordsWebifi.prototype.handleAnagrams = function(fodder) {
     this.webifi.output(this.name, 'This command is not available as the lexicon file has not been loaded');
     return;
   }
-  const matchingWords = this.lex.getAnagrams(fodder, this.WORD_CHOICES);
+  const matchingWords = this.lex.getAnagrams(fodder, this.MAX_WORD_CHOICES);
   if (matchingWords.length == 0) {
     this.webifi.output(this.name, 'No anagrams were found.');
     return;
   }
-  this.webifi.output(this.name, 'Here are some anagrams of ' + fodder + '.', this.makeGroups(matchingWords, this.WORD_GROUP_SIZE), false);
+  this.webifi.output(this.name, 'Here are some anagrams of ' + fodder + '.', this.webifi.makeGroupedList(matchingWords), false);
 }
 
 WordsWebifi.prototype.handleHomophones = function(phrase) {
@@ -236,11 +247,10 @@ WordsWebifi.prototype.handleHomophones = function(phrase) {
     this.webifi.output(this.name, 'No homophones were found.');
     return;
   }
-  // Best to spell out homophones.
   for (let i = 0; i < matchingWords.length; i++) {
-    matchingWords[i] = this.webifi.annotateText(matchingWords[i].toUpperCase());
+    matchingWords[i] = '<verbose>' + matchingWords[i] + '</verbose>';
   }
-  this.webifi.output(this.name, 'Here are some homophones of ' + phrase + '.', this.makeGroups(matchingWords, this.WORD_GROUP_SIZE), false);
+  this.webifi.output(this.name, 'Here are some homophones of ' + phrase + '.', this.webifi.makeGroupedList(matchingWords), false);
 }
 
 WordsWebifi.prototype.handleSpoonerisms = function(phrase) {
@@ -256,11 +266,10 @@ WordsWebifi.prototype.handleSpoonerisms = function(phrase) {
     this.webifi.output(this.name, 'No spoonerisms were found.');
     return;
   }
-  // Best to spell out spoonerisms.
   for (let i = 0; i < matchingWords.length; i++) {
-    matchingWords[i] = this.webifi.annotateText(matchingWords[i].join(' ').toUpperCase());
+    matchingWords[i] = '<verbose>' + matchingWords[i].join(' ') + '</verbose>';
   }
-  this.webifi.output(this.name, 'Here are some spoonerisms of ' + phrase + '.', this.makeGroups(matchingWords, this.WORD_GROUP_SIZE), false);
+  this.webifi.output(this.name, 'Here are some spoonerisms of ' + phrase + '.', this.webifi.makeGroupedList(matchingWords), false);
 }
 
 
@@ -273,6 +282,8 @@ WordsWebifi.prototype.handler = function(input, words, commandName,
   const remaining = words.slice(numMatchedWords).join(' ');
   if (commandName == 'pattern') {
     this.handlePattern(remaining);
+  } else if (commandName == 'region') {
+    this.handleRegion(remaining);
   } else if (commandName == 'anagrams') {
     this.handleAnagrams(remaining);
   } else if (commandName == 'homophones') {

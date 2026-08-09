@@ -30,15 +30,79 @@ https://github.com/viresh-ratnakar/webifi
  *     This is typically the URL for the dir in which exolve-m.js is located.
  */
 function Webifi(scriptUrlBase='') {
-  this.VERSION = 'Webifi v0.02, May 9, 2022';
+  this.VERSION = 'Webifi v0.07.4, July 13, 2026';
   this.MAX_LEN = 1000;
   this.MAX_LIST_LEN = 20;
   this.MAX_LOG_ENTRIES = 1000;
+  this.GROUP_SIZE = 4;
   this.logEntries = [];
   this.logIndex = 0;
   this.domPeer = null;
   this.scriptUrlBase = scriptUrlBase;
 
+  this.phonetic = {
+    'A': 'Alpha', 
+    'B': 'Bravo',
+    'C': 'Charlie',
+    'D': 'Delta',
+    'E': 'Echo',
+    'F': 'Foxtrot',
+    'G': 'Golf',
+    'H': 'Hotel',
+    'I': 'India',
+    'J': 'Juliett',
+    'K': 'Kilo',
+    'L': 'Lima',
+    'M': 'Mike',
+    'N': 'November',
+    'O': 'Oscar',
+    'P': 'Papa',
+    'Q': 'Quebec',
+    'R': 'Romeo',
+    'S': 'Sierra',
+    'T': 'Tango',
+    'U': 'Uniform',
+    'V': 'Victor',
+    'W': 'Whisky',
+    'X': 'X-ray',
+    'Y': 'Yankee',
+    'Z': 'Zulu',
+    ',': 'comma',
+    ':': 'colon',
+    ';': 'semicolon',
+    ' ': 'space',
+    '.': 'period',
+    '(': 'open-parenthesis',
+    ')': 'close-parenthesis',
+    '?': 'question-mark',
+    '$': 'dollar-sign',
+    '&': 'ampersand',
+    '%': 'percent',
+    '#': 'hash-sign',
+    '@': 'at-sign',
+    '!': 'exclamation-mark',
+    '-': 'hyphen',
+    '—': 'dash',
+    "'": 'apostrophe',
+    '’': 'apostrophe',
+    '"': 'quote',
+    '“': 'open-quote',
+    '”': 'close-quote',
+    '*': 'asterisk',
+    '+': 'plus-sign',
+    '=': 'equals-sign',
+    '<': 'less-than-sign',
+    '>': 'greater-than-sign',
+    '/': 'slash',
+    '\\': 'backslash',
+    '^': 'caret-sign',
+    '…': 'ellipsis',
+    '|': 'or',
+    '{': 'open-brace',
+    '}': 'close-brace',
+    '[': 'open-bracket',
+    ']': 'close-bracket',
+  };
   this.stopWords = {
     'the': true,
     'of': true,
@@ -63,18 +127,19 @@ function Webifi(scriptUrlBase='') {
     'could': true,
   };
   this.avatars = {};
+  /** avatar names sorted in order of registration */
   this.sortedAvatarNames = [];
   this.index = {};
   this.helpIndex = {};
   this.name = 'Webifi';
-  this.description = 'An interactive fiction-esque web interface';
+  this.description = 'An interactive fiction-esque chat interface for the web';
 
   this.pendingInputClosure = null;
 
   this.registerAvatar(this.name, this.description, {
-    'hello': {
+    'intro': {
       description: 'Get an introduction to Webifi and a listing of available avatars.',
-      prefixes: ['whats your name', 'what\'s your name', 'who are you', 'hi|hello|greeting|greetings'],
+      prefixes: ['whats your name', 'what\'s your name', 'who are you', 'hi|hello|greeting|greetings|intro|introduction'],
     },
     'audio': {
       description: 'Report or set audio mode.',
@@ -154,7 +219,7 @@ function Webifi(scriptUrlBase='') {
     }
     </style>
     <div class="webifi-button"
-         title="Webifi: ${this.description}: Open help in a new tab">
+         title="Webifi: ${this.description}: Click here to open help in a new tab">
       <a href="https://github.com/viresh-ratnakar/webifi#readme"
          target="_blank">
       <img class="webifi-icon" src="${this.scriptUrlBase}webifi-icon.png"
@@ -181,6 +246,29 @@ function Webifi(scriptUrlBase='') {
   this.voice = null;
   this.desiredVoice = '';
   this.rate = 1.0;
+
+  if (this.urlForced) {
+    /** Allow overrides */
+    const overrides = urlParams.get('webifi') || '';
+    const parts = overrides.split('.');
+    for (let part of parts) {
+      const kv = part.split('-', 2);
+      if (kv.length != 2) {
+        console.log('Not a k-v option in the webifi param: ' + part);
+        continue;
+      }
+      const k = kv[0].toLowerCase();
+      const v = kv[1].toLowerCase();
+      if (k == 'display') {
+        this.display = (v == 'on');
+      } else if (k == 'audio') {
+        this.audio = (v == 'on');
+      } else {
+        console.log('Unrecognized key in option in the webifi param: ' + part);
+      }
+    }
+  }
+
   this.synth = window.speechSynthesis;
   if (!this.synth) {
     console.log('Speech synthesis is not supported');
@@ -269,8 +357,9 @@ Webifi.prototype.appendToLog = function(from, text, list=[], numbered=true) {
   }
   this.log.append(logEntry);
 
-  // Scroll to the bottom
-  this.log.scrollTop = Number.MAX_SAFE_INTEGER;
+  // Scroll to the bottom by setting scrollTop to a high value.
+  // Number.MAX_SAFE_INTEGER does not work on Firefox.
+  this.log.scrollTop = 1000000;
 
   if (this.logEntries.length <= this.logIndex) {
     this.logEntries.length = this.logIndex + 1;
@@ -280,7 +369,7 @@ Webifi.prototype.appendToLog = function(from, text, list=[], numbered=true) {
 }
 
 Webifi.prototype.wordsOf = function(s) {
-  const words = s.replace(/\s/g, ' ').replace(/<pause>/g, ' <pause> ').replace(/\s+/g, ' ').trim().split(' ');
+  const words = s.replace(/\s/g, ' ').replace(/<([^>]*)>/g, ' <$1> ').replace(/\s+/g, ' ').trim().split(' ');
   if (words.length == 1 && !words[0]) {
     return [];
   }
@@ -292,77 +381,6 @@ Webifi.prototype.replaceNumbers = function(s, numbers) {
     numbers.push(match);
     return s.substr(0, offset) + '[number]';
   });
-}
-
-/**
- * Will skip annotating parts within 'webifi-escape' occurrences/
- */
-Webifi.prototype.annotateText = function(text) {
-  const words = this.wordsOf(text);
-  const originalLength = words.length;
-  let skip = false;
-  for (let i = 0; i < originalLength; i++) {
-    if (words[i] == 'webifi-escape') {
-      words[i] = '';
-      skip = !skip;
-      continue;
-    }
-    if (skip) {
-      continue;
-    }
-    if (words[i] == '<pause>') {
-      continue;
-    }
-    if (!this.audio) {
-      continue;
-    }
-    const word = words[i].
-      replace(/\//g, ' slash ').
-      replace(/\//g, ' slash ').
-      replace(/&/g, ' ampersand ').trim().replace(/\s+/g, ' ');
-    if (word == '?') {
-      words[i] = 'question-mark';
-    } else if (word == '.') {
-      words[i] = 'period';
-    } else if (word == '!') {
-      words[i] = 'exclamation-mark';
-    } else if (word == '-' || word == '—') {
-      words[i] = 'dash';
-    } else {
-      // Annotate hyphen or dash in the unmodified word first.
-      const dashParts = words[i].split(/[—-]/);
-      if (dashParts.length > 1) {
-        words.push('<pause>');
-        words.push('Note that "' + words[i] + '" is spelled as ' + dashParts.join(' dash ') + '.');
-      }
-      words[i] = word;
-      const wordParts = word.split(' ');
-      for (let wordPart of wordParts) {
-        const letters = wordPart.replace(/[^a-zA-Z\(\)\?\.,!—-]/g, '');
-        const lettersAfter = letters.substr(1);
-        if (lettersAfter.toLowerCase() != lettersAfter ||
-            (letters.length < wordPart.length) ||
-            wordPart.indexOf('\'') >= 0 ||
-            (!wordPart.endsWith('...') && wordPart.endsWith('.'))) {
-          const spellingBits = wordPart.split('');
-          const spelling = spellingBits.join(' ').toUpperCase().
-              replace(/\./g, 'period').replace(/'/g, 'apostrophe');
-          words.push('<pause>');
-          words.push('Note that "' + wordPart + '" is spelled as ' + spelling + '.');
-        }
-      }
-    }
-  }
-  if (words.length > 0 && words[words.length - 1].endsWith('...')) {
-    words.push('<pause>');
-    words.push('Note that the last word ends with dot-dot-dot.');
-  }
-  if (originalLength > 0 &&
-      words.length > originalLength &&
-      !words[originalLength - 1].endsWith('.')) {
-    words[originalLength - 1] += '.';
-  }
-  return words.join(' ');
 }
 
 Webifi.prototype.notIndexable = function(lcWord) {
@@ -394,6 +412,10 @@ Webifi.prototype.handleInputInput = function() {
   if (this.inputWaiter) {
     clearTimeout(this.inputWaiter);
   }
+  if (this.input.value.endsWith(' ')) {
+    /* Do not grab the text */
+    return;
+  }
   this.inputWaiter = setTimeout(this.handleInputChange.bind(this), 2000);
 }
 
@@ -404,7 +426,9 @@ Webifi.prototype.handleInputChange = function() {
     clearTimeout(this.inputWaiter);
   }
   this.inputWaiter = null;
-  if (input.endsWith('?') && !input.startsWith('?')) {
+  if (input.endsWith('.')) {
+    input = input.replace(/[\.]+$/, '');
+  } else if (input.endsWith('?') && !input.startsWith('?')) {
     input = input.replace(/[?]+$/, '');
   }
   if (!input) {
@@ -418,6 +442,7 @@ Webifi.prototype.handleInputChange = function() {
     const func = this.pendingInputClosure;
     this.pendingInputClosure = null;
     func(input);
+    this.input.focus();
     return;
   }
   this.appendToLog('', '> ' + input);
@@ -485,7 +510,10 @@ Webifi.prototype.handleAudio = function(words, numMatched) {
     } else {
       this.output(this.name, `Audio is on; language is ${this.voice.lang}, with the name, ${this.voice.name}`);
     }
-    this.output(this.name, 'Please prefer to use headphones for privacy and also to avoid interference if using voice-typing.');
+    this.output(this.name,
+        'Please prefer to use headphones for privacy and also to avoid ' +
+        'interference if using voice-typing. You can cut short anything I ' +
+        'am saying by entering any command or word, such as "Shh".');
   }
 }
 
@@ -509,6 +537,100 @@ Webifi.prototype.handleDisplay = function(words, numMatched) {
   this.output(this.name, 'Display is ' + (this.display ? 'on' : 'off'));
 }
 
+Webifi.prototype.spokenVerbosely = function(text, veryVerbose=false) {
+  let blanksStart = -1;
+  let outText = '';
+  for (let i = 0; i < text.length; i++) {
+    const chr = text.charAt(i);
+    if (chr != '_') {
+      if (blanksStart >= 0) {
+        const blanks = i - blanksStart;
+        outText += (blanks == 1 ? ' ; blank' : ' ; ' + blanks + ' blanks')
+      }
+      blanksStart = -1;
+    } else if (blanksStart < 0) {
+      blanksStart = i;
+    }
+    const uChr = chr.toUpperCase();
+    const shouldCopy = /[A-Z0-9 ]/.test(uChr);
+    if (this.phonetic[uChr] && (veryVerbose || !shouldCopy)) {
+      outText += '; ';
+      if (shouldCopy && chr != ' ') {
+        outText += chr + ', as in ';
+      }
+      outText += this.phonetic[uChr];
+    } else if (shouldCopy) {
+      outText += chr;
+    }
+  }
+  if (blanksStart >= 0) {
+    const blanks = text.length - blanksStart;
+    outText += (blanks == 1 ? ' ; blank' : ' ; ' + blanks + ' blanks')
+  }
+  return outText;
+}
+
+Webifi.prototype.spokenText = function(markedUpText) {
+  let spokenText = markedUpText;
+  let ppos;
+  /* process the two verbosity tags: <verbose> and <punctuate> */
+  const tags = [{'opener': '<verbose>', 'closer': '</verbose>'},
+                {'opener': '<punctuate>', 'closer': '</punctuate>'},];
+  for (let tag of tags) {
+    const veryVerbose = (tag.opener == '<verbose>');
+    while ((ppos = spokenText.indexOf(tag.opener)) >= 0) {
+      const endPos = spokenText.indexOf(tag.closer);
+      if (endPos < 0) {
+        /* missing closing tag */
+        spokenText = spokenText.substr(0, ppos) + spokenText.substr(ppos + tag.opener.length);
+        break;
+      }
+      const prefix = spokenText.substr(0, ppos);
+      const suffix = spokenText.substr(endPos + tag.closer.length);
+      const toVerbose = spokenText.substring(ppos + tag.opener.length, endPos);
+      const verbose = this.spokenVerbosely(toVerbose, veryVerbose);
+      spokenText = prefix + verbose + suffix;
+    }
+  }
+  spokenText = spokenText.replace(/<spoken:([^>]*)>/g, ' $1 ');
+  spokenText = spokenText.replace(/<pause>/g, ' ; ');
+  return spokenText.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ');
+}
+
+Webifi.prototype.writtenText = function(markedUpText) {
+  let writtenText = markedUpText.replace(/<written:([^>]*)>/g, '$1');
+  return writtenText.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ');
+}
+
+/**
+ * Convenience function to make a list shorter by grouping
+ * groupSize elements together.
+ */
+Webifi.prototype.makeGroupedList = function(list, groupSize=0) {
+  if (groupSize <= 0) groupSize = this.GROUP_SIZE;
+  const grouped = [];
+  let x = -1;
+  for (let i = 0; i < list.length; i++) {
+    if (i % groupSize == 0) {
+      grouped.push('');
+      x = grouped.length - 1;
+    }
+    if (grouped[x]) grouped[x] = grouped[x] + '; <pause>' + list[i];
+    else grouped[x] = list[i];
+  }
+  return grouped;
+}
+
+/**
+ * Convenience function to copy a list with <punctuate>..</punctuate> wrappers.
+ */
+Webifi.prototype.punctuateList = function(list) {
+  const punctuated = [];
+  for (let x of list) {
+    punctuated.push('<punctuate>' + x + '</punctuate>');
+  }
+  return punctuated;
+}
 
 Webifi.prototype.output = function(avatarName, text, list=[], numbered=true) {
   if (this.pendingInputClosure) {
@@ -521,8 +643,8 @@ Webifi.prototype.output = function(avatarName, text, list=[], numbered=true) {
   }
   const avatar = this.avatars[avatarName];
 
-  let spokenText = text.replace(/<pause>/g, ' ; ');
-  let writtenText = text.replace(/<pause>/g, ' ').replace(/\s+/g, ' ');
+  let spokenText = this.spokenText(text);
+  let writtenText = this.writtenText(text);
   if (list.length > this.MAX_LIST_LEN) {
     list.length = this.MAX_LIST_LEN;
   }
@@ -536,11 +658,11 @@ Webifi.prototype.output = function(avatarName, text, list=[], numbered=true) {
     writtenText = writtenText.substr(0, this.MAX_LEN);
   }
   for (let index = 0; index < list.length; index++) {
-    spokenList[index] = spokenList[index].replace(/<pause>/g, ' ; ');
+    spokenList[index] = this.spokenText(spokenList[index]);
     if (spokenList[index].length > this.MAX_LEN) {
       spokenList[index] = spokenList[index].substr(0, this.MAX_LEN);
     }
-    writtenList[index] = writtenList[index].replace(/<pause>/g, ' ').replace(/\s+/g, ' ');
+    writtenList[index] = this.writtenText(writtenList[index]);
     if (writtenList[index].length > this.MAX_LEN) {
       writtenList[index] = writtenList[index].substr(0, this.MAX_LEN);
     }
@@ -605,9 +727,9 @@ Webifi.prototype.registerAvatar = function(name, description, commands, handler)
     'commands': commands,
     'handler': handler,
     'description': description,
-    'pitch': 1.2 - ((avatarIndex % 4) * 0.2),
+    'pitch': 0.8 + ((avatarIndex % 4) * 0.1),
   };
-  this.sortedAvatarNames = [name].concat(this.sortedAvatarNames);
+  this.sortedAvatarNames.push(name);
   for (let commandName in commands) {
     const command = commands[commandName];
     command.matchers = [];
@@ -673,6 +795,12 @@ Webifi.prototype.start = function(domPeer=null) {
     this.root.style.display = 'none';
   }
   this.started = true;
+
+  /**
+   * The special command 'intro' is proactively issued at the start. Any avatar
+   * that supports it will respond.
+   */
+  this.processInput('intro');
 }
 
 Webifi.prototype.toggle = function(ev) {
@@ -691,14 +819,15 @@ Webifi.prototype.toggle = function(ev) {
 }
 
 Webifi.prototype.introduce = function() {
-  this.output(this.name, 'Hi! I am Webifi, an interactive fiction-esque text and audio interface to the web.');
+  this.output(this.name, 'Hi! I am Webifi, an interactive fiction-esque chat interface for the web.');
+  this.output(this.name, 'My current version is ' + this.VERSION + '.');
   if (this.audio) {
     this.output(this.name, 'You can use the command "audio off" to use just the text interface.');
     this.output(this.name, 'You can always cut short whatever I am saying by entering any word, such as OK or Shh.');
   } else {
     this.output(this.name, 'You can use the command "audio on" to turn on the audio interface.');
   }
-  this.output(this.name, 'You can say, "help," to get a full list of commands, or you can say, "help," followed by a topic.');
+  this.output(this.name, 'You can say "help" to get a full list of commands, or you can say "help" followed by a topic.');
 }
 
 Webifi.prototype.helpOnTopic = function(topic) {
@@ -732,7 +861,7 @@ Webifi.prototype.helpOnTopic = function(topic) {
           opening + ' can handle the command "' +
           commandName + '". ' + command.description +
           ' Trigger this command with any of these prefixes:',
-          command.prefixes);
+          this.makeGroupedList(this.punctuateList(command.prefixes)));
     }
   }
 }
@@ -751,7 +880,7 @@ Webifi.prototype.help = function(detailed=false) {
     if (!detailed) {
       const list = Object.keys(avatar.commands);
       const opening = avatarName + '. ' + avatar.description + '. Available commands:';
-      this.output(avatarName, opening, list);
+      this.output(avatarName, opening, this.makeGroupedList(list));
       continue;
     }
     this.output(avatarName, avatarName + '. ' + avatar.description +
@@ -761,7 +890,7 @@ Webifi.prototype.help = function(detailed=false) {
       this.output(avatarName,
           commandName + '. ' + command.description +
           ' Triggering prefixes:',
-          command.prefixes);
+          this.makeGroupedList(this.punctuateList(command.prefixes)));
     }
   }
 }
@@ -773,14 +902,14 @@ Webifi.prototype.basicHandler = function(input, words, commandName,
   if (numMatchedWords < words.length) {
     remaining = words.slice(numMatchedWords).join(' ');
   }
-  if (commandName == 'hello') {
+  if (commandName == 'intro') {
     this.introduce();
   } else if (commandName == 'audio') {
     this.handleAudio(words, numMatchedWords);
   } else if (commandName == 'display') {
     this.handleDisplay(words, numMatchedWords);
   } else if (commandName == 'echo') {
-    this.output(this.name, this.annotateText(remaining));
+    this.output(this.name, remaining);
   } else if (commandName == 'talking-speed' && numbers.length > 0) {
     this.rate = parseFloat(numbers[0]);
     if (isNaN(this.rate) || this.rate < 0.1 || this.rate > 2.0) this.rate = 1.0;
