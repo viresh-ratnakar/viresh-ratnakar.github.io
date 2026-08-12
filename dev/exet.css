@@ -124,6 +124,7 @@ body {
   padding: 4px;
 }
 .xet-half-section,
+.xet-quarter-section,
 .xet-section {
   border: 0;
   overflow: auto;

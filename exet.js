@@ -3282,6 +3282,16 @@ Exet.prototype.populateCompanag = function() {
   this.caExtra = document.getElementById('xet-ca-extra');
 }
 
+Exet.prototype.urlSectionHtml = function(id, section, i, sectionClass) {
+  const titleHover = section.hover ? `title="${section.hover} "` : '';
+  return `
+    <div ${titleHover}class="xet-bold">${section.title || ''}</div>
+    <a href="" target="_blank" id="xet-${id}-url-${i}"
+        class="xet-blue xet-small"></a><br>
+    <iframe class="xet-iframe ${sectionClass}" id="xet-${id}-content-${i}">
+    </iframe>`;
+}
+
 Exet.prototype.populateFrame = function() {
   let frameHTML = '';
   frameHTML = frameHTML + '<div class="xet-tab">';
@@ -3296,21 +3306,31 @@ Exet.prototype.populateFrame = function() {
     const tab = this.tabs[id];
     frameHTML += `<div class="xet-tab-content" id="xet-${id}-frame">`;
     if (tab.sections.length > 0) {
-      console.assert(tab.sections.length <= 2);
-      const sectionClass = tab.sections.length > 1 ? 'xet-half-section' : 'xet-section';
-      frameHTML += `<div id="xet-${id}-sections"><table class="xet-sections"><tr>`;
-      for (let i = 0; i < tab.sections.length; i++) {
-        const section = tab.sections[i];
+      const layout = tab.layout || (tab.sections.length > 1 ? '2col' : '1col');
+      if (layout == '1+2') {
+        console.assert(tab.sections.length == 3);
+        frameHTML += `<div id="xet-${id}-sections"><table class="xet-sections"><tr>`;
         frameHTML += '<td class="xet-td">';
-        const titleHover = section.hover ? `title="${section.hover} "` : '';
-        if (section.url) {
-          frameHTML += `
-            <div ${titleHover}class="xet-bold">${section.title || ''}</div>
-            <a href="" target="_blank" id="xet-${id}-url-${i}"
-                class="xet-blue xet-small"></a><br>
-            <iframe class="xet-iframe ${sectionClass}" id="xet-${id}-content-${i}">
-            </iframe>`;
-        } else {
+        frameHTML += this.urlSectionHtml(id, tab.sections[0], 0, 'xet-half-section');
+        frameHTML += '</td><td class="xet-td">';
+        frameHTML += this.urlSectionHtml(id, tab.sections[1], 1, 'xet-quarter-section');
+        frameHTML += this.urlSectionHtml(id, tab.sections[2], 2, 'xet-quarter-section');
+        frameHTML += '</td>';
+        frameHTML += `
+        </tr>
+        </table>
+        </div>`;
+      } else {
+        console.assert(tab.sections.length <= 2);
+        const sectionClass = tab.sections.length > 1 ? 'xet-half-section' : 'xet-section';
+        frameHTML += `<div id="xet-${id}-sections"><table class="xet-sections"><tr>`;
+        for (let i = 0; i < tab.sections.length; i++) {
+          const section = tab.sections[i];
+          frameHTML += '<td class="xet-td">';
+          const titleHover = section.hover ? `title="${section.hover} "` : '';
+          if (section.url) {
+            frameHTML += this.urlSectionHtml(id, section, i, sectionClass);
+          } else {
           const paramHtml = `
             <br>
             <input id="${section.id}-param" class="xlv-answer"
@@ -3329,13 +3349,14 @@ Exet.prototype.populateFrame = function() {
                 class="xet-in-tab-scrollable ${sectionClass}">
               </div>
             </div>`;
+          }
+          frameHTML += '</td>';
         }
-        frameHTML += '</td>';
-      }
-      frameHTML += `
+        frameHTML += `
         </tr>
         </table>
         </div>`;
+      }
     } else {
       frameHTML += `
         <div id="xet-${id}-content"></div>`;
@@ -3667,6 +3688,39 @@ Exet.prototype.nutrRevHiddenParam = function(s) {
          '"' + sL[last] + 'A"A*';
 }
 
+/** Nutrimatic-specific maker: first letters of successive words */
+Exet.prototype.nutrAcrosticParam = function(s) {
+  const sL = exetLexicon.lcLettersOf(s);
+  if (sL.length < 1) return s;
+  return '"' + sL.map(c => c + 'A*').join('%20') + '"';
+}
+
+/** Nutrimatic-specific maker: last letters of successive words (telestichs) */
+Exet.prototype.nutrTelestichParam = function(s) {
+  const sL = exetLexicon.lcLettersOf(s);
+  if (sL.length < 1) return s;
+  return '"' + sL.map(c => 'A*' + c).join('%20') + '"';
+}
+
+/** 
+ * Nutrimatic-specific maker: first+last letters of successive words.
+ * Odd-length answers end with a one-letter word for the leftover letter.
+ */
+Exet.prototype.nutrBothEndsParam = function(s) {
+  const sL = exetLexicon.lcLettersOf(s);
+  if (sL.length < 2) return s;
+  const parts = [];
+  let i = 0;
+  while (i + 1 < sL.length) {
+    parts.push(sL[i] + 'A*' + sL[i + 1]);
+    i += 2;
+  }
+  if (i < sL.length) {
+    parts.push(sL[i]);
+  }
+  return '"' + parts.join('%20') + '"';
+}
+
 /** Nutrimatic-specific maker for finding grid-fills */
 Exet.prototype.nutrFillParam = function(s) {
   return s.toLowerCase().replace(/\?/g, 'A');
@@ -3693,6 +3747,12 @@ Exet.prototype.getNamedMaker = function(name) {
     return this.nutrAlternationParam;
   } else if (name == 'Nutrimatic-RevAlternation') {
     return this.nutrRevAlternationParam;
+  } else if (name == 'Nutrimatic-Acrostic') {
+    return this.nutrAcrosticParam;
+  } else if (name == 'Nutrimatic-Telestich') {
+    return this.nutrTelestichParam;
+  } else if (name == 'Nutrimatic-BothEnds' || name == 'Nutrimatic-Terminals') {
+    return this.nutrBothEndsParam;
   } else if (name == 'Nutrimatic-Fill') {
     return this.nutrFillParam;
   } else if (name == 'Qat-Fill') {
@@ -4134,11 +4194,16 @@ Exet.prototype.resizeRHS = function() {
   const sectionW = frameW - 16;
   const halfSectionW = Math.floor(sectionW / 2) - 16;
   const sectionH = 410 + extraH;
+  /* Per-section title + url link; budget into 1+2 right-column stack height. */
+  const nutriSectionChrome = 40;
+  const quarterSectionH =
+      Math.floor((sectionH - nutriSectionChrome) / 2);
   /* Compensate zoom so Nutrimatic iframes keep the same on-page footprint. */
   const nutriZoom = 0.75;
   const nutriSectionW = Math.floor(sectionW / nutriZoom);
   const nutriHalfSectionW = Math.floor(halfSectionW / nutriZoom);
   const nutriSectionH = Math.floor(sectionH / nutriZoom);
+  const nutriQuarterSectionH = Math.floor(quarterSectionH / nutriZoom);
   const cluesW = frameW - 320;
   this.fillSettings.style.width = '' + cluesW + 'px';
   let style = `
@@ -4153,8 +4218,12 @@ Exet.prototype.resizeRHS = function() {
       height: ${450 + extraH}px;
     }
     .xet-half-section,
+    .xet-quarter-section,
     .xet-section {
       height: ${sectionH}px;
+    }
+    .xet-quarter-section {
+      height: ${quarterSectionH}px;
     }
     #xet-light-choices-box,
     .xet-clues-panel,
@@ -4167,6 +4236,9 @@ Exet.prototype.resizeRHS = function() {
     .xet-half-section {
       width: ${halfSectionW}px;
     }
+    .xet-quarter-section {
+      width: ${halfSectionW}px;
+    }
     .xet-nutrimatic-iframe.xet-section {
       width: ${nutriSectionW}px;
       height: ${nutriSectionH}px;
@@ -4175,6 +4247,11 @@ Exet.prototype.resizeRHS = function() {
     .xet-nutrimatic-iframe.xet-half-section {
       width: ${nutriHalfSectionW}px;
       height: ${nutriSectionH}px;
+      zoom: ${nutriZoom};
+    }
+    .xet-nutrimatic-iframe.xet-quarter-section {
+      width: ${nutriHalfSectionW}px;
+      height: ${nutriQuarterSectionH}px;
       zoom: ${nutriZoom};
     }
     .xet-frame {
