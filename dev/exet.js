@@ -4320,8 +4320,9 @@ Exet.prototype.reposition = function() {
   }
   this.resizeRHS();
 
-  if (this.puz.squareDim < 31 &&
-      (this.puz.getViewportDim() - this.puz.viewportDim > 25)) {
+  const vpd = this.puz.getViewportDim();
+  if (this.puz.squareDim < 31 && this.lastViewportDim &&
+      (vpd - this.lastViewportDim > 25)) {
     /**
      * The window is substantially bigger than when we created the grid. Let's
      * just force a redraw (we don't use Exolve's resizing because that would
@@ -4330,6 +4331,7 @@ Exet.prototype.reposition = function() {
      */
     this.updatePuzzle();  /** revType = default 0 won't actually save */
   }
+  this.lastViewportDim = vpd;
 }
 
 Exet.prototype.lastTagOpener = function(s) {
