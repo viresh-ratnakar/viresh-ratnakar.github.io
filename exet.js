@@ -4282,17 +4282,6 @@ Exet.prototype.resizeRHS = function() {
 }
 
 Exet.prototype.reposition = function() {
-  if (this.puz.squareDim < 31 &&
-      (this.puz.getViewportDim() - this.puz.viewportDim > 25)) {
-    /**
-     * The window is substantially bigger than when we created the grid. Let's
-     * just force a redraw (we don't use Exolve's resizing because that would
-     * create a new puz.grid and we would have to take care of re-adding
-     * viablots and forcedLetters * to the reborn gridCell.cellGroup fields.
-     */
-    this.updatePuzzle();  /** revType = default 0 won't actually save */
-    return;
-  }
   const elts = [this.xetTitle, this.xetTitleCTA,
                 this.xetSetter, this.xetSetterCTA, this.preamble];
   for (const elt of elts) {
@@ -4330,6 +4319,19 @@ Exet.prototype.reposition = function() {
     }
   }
   this.resizeRHS();
+
+  const vpd = this.puz.getViewportDim();
+  if (this.puz.squareDim < 31 && this.lastViewportDim &&
+      (vpd - this.lastViewportDim > 25)) {
+    /**
+     * The window is substantially bigger than when we created the grid. Let's
+     * just force a redraw (we don't use Exolve's resizing because that would
+     * create a new puz.grid and we would have to take care of re-adding
+     * viablots and forcedLetters to the reborn gridCell.cellGroup fields.
+     */
+    this.updatePuzzle();  /** revType = default 0 won't actually save */
+  }
+  this.lastViewportDim = vpd;
 }
 
 Exet.prototype.lastTagOpener = function(s) {
