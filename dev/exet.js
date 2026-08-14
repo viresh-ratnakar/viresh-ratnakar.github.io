@@ -4284,6 +4284,8 @@ Exet.prototype.resizeRHS = function() {
 Exet.prototype.reposition = function() {
   if (this.puz.squareDim < 31 &&
       (this.puz.getViewportDim() - this.puz.viewportDim > 25)) {
+    console.log('getvpd = ' + this.puz.getViewportDim());
+    console.log('vpd = ' + this.puz.viewportDim);
     /**
      * The window is substantially bigger than when we created the grid. Let's
      * just force a redraw (we don't use Exolve's resizing because that would
