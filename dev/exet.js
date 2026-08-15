@@ -24,7 +24,7 @@ SOFTWARE.
 The latest code and documentation for Exet can be found at:
 https://github.com/viresh-ratnakar/exet
 
-Current version: v1.05.1, May 22, 2026
+Current version: v1.08, August 15, 2026
 */
 
 function ExetModals() {
@@ -90,7 +90,7 @@ ExetModals.prototype.hide = function() {
 }
 
 function Exet() {
-  this.version = 'v1.04.2, April 11, 2026';
+  this.version = 'v1.08, August 15, 2026';
   this.puz = null;
   this.prefix = '';
   this.suffix = '';

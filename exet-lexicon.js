@@ -703,7 +703,7 @@ function exetLexiconInit() {
       if (op) {
         joined += `<span class="xet-blue">${op}</span>`;
       }
-      display.push(joined);
+      display.push(`<span class="xet-nowrap">${joined}</span>`);
     }
     return display;
   }

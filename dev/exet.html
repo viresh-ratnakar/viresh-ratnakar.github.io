@@ -44,10 +44,10 @@ exetConfig = {
     {name: "separator"},
     // The next link only shows definitions in published cryptic crosswords,
     // not the clues themselves, by choice.
-    {url: "https://cryptics.georgeho.org/data?sql=select+lower%28definition%29+as+def%2C+count%28%2A%29+as+popularity+from+clues+where+%22answer%22+%3D+upper%28%3Ap0%29+and+def+not+in+%28%22nan%22%2C+%22%22%29+group+by+def+order+by+popularity+desc&_hide_sql=1&p0=", name: "Definitions in published cryptic crosswords (cryptics.georgeho.org)"},
+    {url: "https://cryptics.georgeho.org/data?sql=select+lower%28definition%29+as+def%2C+count%28%2A%29+as+popularity+from+clues+where+%22answer%22+%3D+upper%28%3Ap0%29+and+def+not+in+%28%22nan%22%2C+%22%22%29+group+by+def+order+by+popularity+desc&_hide_sql=1&p0=", name: "Definitions in published cryptic crosswords (Cryptics.GeorgeHo.Org)"},
     {url: "https://cryptics.georgeho.org/data/indicators?indicator__in=",
      needsClueWords: true,
-     name: "Clue phrases as indicators in published cryptic crosswords (cryptics.georgeho.org)"},
+     name: "Clue phrases as indicators in published cryptic crosswords (Cryptics.GeorgeHo.Org)"},
     {url: "https://fodder.ing/?w=",
      noPunct: true,
      name: "Definition and wordplay ideas from fodder.ing"},
@@ -74,6 +74,7 @@ exetConfig = {
       id: "hiddens",
       display: "Hiddens",
       hover: "Nutrimatic: hidden answers and reversed hidden answers",
+      group: "Hiddens & Variants",
       sections: [
         {url: "https://nutrimatic.org/?q=", maker: 'Nutrimatic-Hidden',
          title: "Hidden answers"},
@@ -85,6 +86,7 @@ exetConfig = {
       id: "alternations",
       display: "Alternations",
       hover: "Nutrimatic: alternations and reversed alternations",
+      group: "Hiddens & Variants",
       sections: [
         {url: "https://nutrimatic.org/?q=", maker: 'Nutrimatic-Alternation',
          title: "Alternations"},
@@ -96,6 +98,7 @@ exetConfig = {
       id: "acrostics",
       display: "Acrostics",
       hover: "Nutrimatic: acrostics, tail acrostics (telestichs), and both ends",
+      group: "Hiddens & Variants",
       layout: "1+2",
       sections: [
         {url: "https://nutrimatic.org/?q=", maker: 'Nutrimatic-Acrostic',
@@ -128,69 +131,89 @@ exetConfig = {
     },
   ],
   listsLinks: [
-    {name: "Crossword Unclued's anagram indicators",
-     url: "https://www.crosswordunclued.com/2008/09/anagram-indicators.html"},
-    {name: "Crossword Unclued's hidden words indicators",
-     url: "https://www.crosswordunclued.com/2009/03/" +
-          "hidden-word-indicators.html"},
-    {name: "Crossword Unclued's reversal indicators",
-     url: "https://www.crosswordunclued.com/2009/07/reversal-indicators.html"},
-    {name: "Crossword Unclued's homophone indicators",
-     url: "https://www.crosswordunclued.com/2009/02/homophone-indicators.html"},
-    {name: "separator"},
-    {name: "Crossword Unclued's deletion indicators",
-     url: "https://www.crosswordunclued.com/2009/04/deletion-indicators.html"},
-    {name: "Crossword Unclued's letter-picking indicators",
-     url: "https://www.crosswordunclued.com/2009/04/" +
-          "letter-sequence-indicators.html"},
-    {name: "Crossword Unclued's containment indicators",
-     url: "https://www.crosswordunclued.com/2009/02/" +
-          "container-and-content-indicators.html"},
-    {name: "separator"},
-    {name: "Crossword Unclued's list of abbreviations",
+    {name: "All indicators from Cryptics.GeorgeHo.Org",
+     url: "https://cryptics.georgeho.org/data?sql=select+%2A+from+indicators_consolidated&_hide_sql=1"},
+    {name: "Anagram indicators from ClueClinic",
+     url: "https://clueclinic.com/index.php/anagram-indicators/"},
+    {name: "Container and contents indicators from ClueClinic",
+     url: "https://clueclinic.com/index.php/container-contents-indicators/"},
+    {name: "Deletion indicators from ClueClinic",
+     url: "https://clueclinic.com/index.php/deletion-indicators/"},
+    {name: "Hidden indicators from ClueClinic",
+     url: "https://clueclinic.com/index.php/hidden-indicators/"},
+    {name: "Homophone indicators from ClueClinic",
+     url: "https://clueclinic.com/index.php/homophone-indicators/"},
+    {name: "Intermittent selection indicators from ClueClinic",
+     url: "https://clueclinic.com/index.php/intermittent-indicators/"},
+    {name: "Juxtaposition indicators from ClueClinic",
+     url: "https://clueclinic.com/index.php/juxtaposition-indicators/"},
+    {name: "Letter-selection indicators from ClueClinic",
+     url: "https://clueclinic.com/index.php/letter-selection-indicators/"},
+    {name: "Replacement indicators from ClueClinic",
+     url: "https://clueclinic.com/index.php/replacement-indicators/"},
+    {name: "Reversal indicators from ClueClinic",
+     url: "https://clueclinic.com/index.php/reversal-indicators/"},
+    {name: "Single letter indicators from ClueClinic", group: "Abbreviations & Others",
+     url: "https://clueclinic.com/index.php/single-letter-indicators/"},
+    {name: "Common abbreviations from ClueClinic", group: "Abbreviations & Others",
+     url: "https://clueclinic.com/index.php/common-abbreviations/"},
+    {name: "Cryptic lexicon from ClueClinic", group: "Abbreviations & Others",
+     url: "https://clueclinic.com/index.php/cryptic-lexicon/"},
+    {name: "Abbreviations from Crossword Unclued", group: "Abbreviations & Others",
      url: "https://www.crosswordunclued.com/2008/10/" +
           "cryptic-abbreviations.html"},
-    {name: "Wikipedia's list of abbreviations",
+    {name: "Abbreviations from Wikipedia", group: "Abbreviations & Others",
      url: "https://en.wikipedia.org/wiki/Crossword_abbreviations"},
-    {name: "Mythic beasts list of abbreviations",
+    {name: "Abbreviations from Mythic beasts", group: "Abbreviations & Others",
      url: "https://longair.net/mark/random/indicators/"},
-    {name: "separator"},
-    {name: "All indicators from cryptics.georgeho.org",
-     url: "https://cryptics.georgeho.org/data?sql=select+%2A+from+indicators_consolidated&_hide_sql=1"},
-    {name: "Alternation indicators from cryptics.georgeho.org",
+    {name: "Anagram indicators from Crossword Unclued", group: "Crossword Unclued's indicators",
+     url: "https://www.crosswordunclued.com/2008/09/anagram-indicators.html"},
+    {name: "Hidden words indicators from Crossword Unclued", group: "Crossword Unclued's indicators",
+     url: "https://www.crosswordunclued.com/2009/03/" +
+          "hidden-word-indicators.html"},
+    {name: "Reversal indicators from Crossword Unclued", group: "Crossword Unclued's indicators",
+     url: "https://www.crosswordunclued.com/2009/07/reversal-indicators.html"},
+    {name: "Homophone indicators from Crossword Unclued", group: "Crossword Unclued's indicators",
+     url: "https://www.crosswordunclued.com/2009/02/homophone-indicators.html"},
+    {name: "Deletion indicators from Crossword Unclued", group: "Crossword Unclued's indicators",
+     url: "https://www.crosswordunclued.com/2009/04/deletion-indicators.html"},
+    {name: "Letter-picking indicators from Crossword Unclued", group: "Crossword Unclued's indicators",
+     url: "https://www.crosswordunclued.com/2009/04/" +
+          "letter-sequence-indicators.html"},
+    {name: "Containment indicators from Crossword Unclued", group: "Crossword Unclued's indicators",
+     url: "https://www.crosswordunclued.com/2009/02/" +
+          "container-and-content-indicators.html"},
+    {name: "Alternation indicators from Cryptics.GeorgeHo.Org", group: "Cryptics.GeorgeHo.Org's indicators",
      url: "https://cryptics.georgeho.org/data?sql=select+rowid%2C+wordplay%2C+indicator%2C+clue_rowids+from+indicators+where+%22wordplay%22+%3D+%22alternation%22+order+by+rowid+limit+1000%0D%0A&_hide_sql=1"},
-    {name: "Anagram indicators from cryptics.georgeho.org",
+    {name: "Anagram indicators from Cryptics.GeorgeHo.Org", group: "Cryptics.GeorgeHo.Org's indicators",
      url: "https://cryptics.georgeho.org/data?sql=select+rowid%2C+wordplay%2C+indicator%2C+clue_rowids+from+indicators+where+%22wordplay%22+%3D+%22anagram%22+order+by+rowid+limit+1000%0D%0A&_hide_sql=1"},
-    {name: "Container indicators from cryptics.georgeho.org",
+    {name: "Container indicators from Cryptics.GeorgeHo.Org", group: "Cryptics.GeorgeHo.Org's indicators",
      url: "https://cryptics.georgeho.org/data?sql=select+rowid%2C+wordplay%2C+indicator%2C+clue_rowids+from+indicators+where+%22wordplay%22+%3D+%22container%22+order+by+rowid+limit+1000%0D%0A&_hide_sql=1"},
-    {name: "Deletion indicators from cryptics.georgeho.org",
+    {name: "Deletion indicators from Cryptics.GeorgeHo.Org", group: "Cryptics.GeorgeHo.Org's indicators",
      url: "https://cryptics.georgeho.org/data?sql=select+rowid%2C+wordplay%2C+indicator%2C+clue_rowids+from+indicators+where+%22wordplay%22+%3D+%22deletion%22+order+by+rowid+limit+1000%0D%0A&_hide_sql=1"},
-    {name: "Hidden word indicators from cryptics.georgeho.org",
+    {name: "Hidden word indicators from Cryptics.GeorgeHo.Org", group: "Cryptics.GeorgeHo.Org's indicators",
      url: "https://cryptics.georgeho.org/data?sql=select+rowid%2C+wordplay%2C+indicator%2C+clue_rowids+from+indicators+where+%22wordplay%22+%3D+%22hidden%22+order+by+rowid+limit+1000%0D%0A&_hide_sql=1"},
-    {name: "Homophone indicators from cryptics.georgeho.org",
+    {name: "Homophone indicators from Cryptics.GeorgeHo.Org", group: "Cryptics.GeorgeHo.Org's indicators",
      url: "https://cryptics.georgeho.org/data?sql=select+rowid%2C+wordplay%2C+indicator%2C+clue_rowids+from+indicators+where+%22wordplay%22+%3D+%22homophone%22+order+by+rowid+limit+1000%0D%0A&_hide_sql=1"},
-    {name: "Insertion indicators from cryptics.georgeho.org",
+    {name: "Insertion indicators from Cryptics.GeorgeHo.Org", group: "Cryptics.GeorgeHo.Org's indicators",
      url: "https://cryptics.georgeho.org/data?sql=select+rowid%2C+wordplay%2C+indicator%2C+clue_rowids+from+indicators+where+%22wordplay%22+%3D+%22insertion%22+order+by+rowid+limit+1000%0D%0A&_hide_sql=1"},
-    {name: "Reversal indicators from cryptics.georgeho.org",
+    {name: "Reversal indicators from Cryptics.GeorgeHo.Org", group: "Cryptics.GeorgeHo.Org's indicators",
      url: "https://cryptics.georgeho.org/data?sql=select+rowid%2C+wordplay%2C+indicator%2C+clue_rowids+from+indicators+where+%22wordplay%22+%3D+%22reversal%22+order+by+rowid+limit+1000%0D%0A&_hide_sql=1"},
-    {name: "separator"},
-    {name: "All indicator pages on clueclinic.com",
-     url: "http://www.clueclinic.com/index.php/clinical-data/"},
   ],
 };
 </script>
 
-<script src="exolve-m.js?v1.71"></script>
-<script src="exolve-from-puz.js?v1.71"></script>
-<script src="exolve-from-ipuz.js?v1.71"></script>
-<script src="exolve-to-puz.js?v1.71"></script>
-<script src="exolve-to-ipuz.js?v1.71"></script>
-<script src="exolve-exost.js?v1.71"></script>
-<script src="exet-analysis.js?v1.07"></script>
-<script src="exet-storage.js?v1.07"></script>
-<script src="exet.js?v1.07"></script>
-<script src="exet-autofill.js?v1.07"></script>
-<script src="exet-lexicon.js?v1.07"></script>
+<script src="exolve-m.js?v1.73.2"></script>
+<script src="exolve-from-puz.js?v1.73.2"></script>
+<script src="exolve-from-ipuz.js?v1.73.2"></script>
+<script src="exolve-to-puz.js?v1.73.2"></script>
+<script src="exolve-to-ipuz.js?v1.73.2"></script>
+<script src="exolve-exost.js?v1.73.2"></script>
+<script src="exet-analysis.js?v1.08"></script>
+<script src="exet-storage.js?v1.08"></script>
+<script src="exet.js?v1.08"></script>
+<script src="exet-autofill.js?v1.08"></script>
+<script src="exet-lexicon.js?v1.08"></script>
 
 <title>Exet: Create a crossword</title>
 
