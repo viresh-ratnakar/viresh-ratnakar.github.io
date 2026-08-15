@@ -69,26 +69,34 @@ body {
   border-radius: 10px 10px 0 0;
   overflow: auto;
 }
+:root {
+  --tabtn-width: 105px;
+  --tabtn-width-hvr: 105px;
+  --tabtn-font-size: 14px;
+  --tabtn-font-size-hvr: 14px;
+  --tabtn-pad: 2px 4px;
+}
 .xet-tab button {
-  font-size: 14px;
-  width: 105px;
-  height: 100%;
   background-color: inherit;
-  float: left;
-  outline: none;
-  cursor: pointer;
-  padding: 2px 4px;
-  transition: 0.3s;
-  font-weight: bold;
   border-radius: 10px 10px 0 0;
   border: 1px solid silver;
+  cursor: pointer;
+  float: left;
+  font-size: var(--tabtn-font-size);
+  font-weight: bold;
+  height: 100%;
+  outline: none;
+  overflow: hidden;
+  padding: var(--tabtn-pad);
+  transition: 0.3s;
+  width: var(--tabtn-width);
 }
 .xet-tab button:hover {
   background-color: #f0f0f0;
-  font-size: 14px;
   border-bottom: 0;
   cursor: pointer;
-  width: 105px;
+  font-size: var(--tabtn-font-size-hvr);
+  width: var(--tabtn-width-hvr);
 }
 .xet-tab button.active {
   background-color: white;

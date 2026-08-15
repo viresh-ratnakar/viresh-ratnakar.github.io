@@ -4295,16 +4295,22 @@ Exet.prototype.resizeRHS = function() {
       .xet-analysis {
         right: 0;
       }
-      .xet-tab button {
-        font-size: 11px;
-        width: 70px;
-      }
-      .xet-tab button:hover {
-        font-size: 12px;
-        width: 80px;
-      }
     `;
   }
+  /** Resize tab buttons */
+  const numTabs = 1 +  Object.keys(this.tabs).length;
+  const tabtnWidth = Math.max(40, Math.min(105, Math.floor(frameW / numTabs)));
+  const tabtnWidthHvr = Math.min(105, Math.floor(tabtnWidth * 1.4));
+  const tabtnFontSize = Math.max(10, Math.floor(tabtnWidth / 7.5));
+  const tabtnFontSizeHvr = Math.min(14, Math.floor(tabtnFontSize * 1.2));
+  const tabtnHpad = Math.max(1, Math.floor(tabtnWidth / 25));
+  const root = document.documentElement;
+  root.style.setProperty('--tabtn-width', '' + tabtnWidth + 'px');
+  root.style.setProperty('--tabtn-width-hvr', '' + tabtnWidthHvr + 'px');
+  root.style.setProperty('--tabtn-font-size', '' + tabtnFontSize + 'px');
+  root.style.setProperty('--tabtn-font-size-hvr', '' + tabtnFontSizeHvr + 'px');
+  root.style.setProperty('--tabtn-pad', '2px ' + tabtnHpad + 'px');
+
   this.customStyles.innerHTML = style;
   this.puz.equalizeClueWidths(cluesW);
 }
@@ -4357,6 +4363,25 @@ Exet.prototype.reposition = function() {
     }
   }
   this.resizeRHS();
+
+  const vpd = this.puz.getViewportDim();
+  if (this.puz.squareDim < this.puz.DEFAULT_CELL_DIM &&
+      !this.alreadyResized && this.lastViewportDim &&
+      (vpd - this.lastViewportDim > 25)) {
+    /**
+     * The window is substantially bigger than when we created the grid. Let's
+     * just force a redraw (we don't use Exolve's resizing because that would
+     * create a new puz.grid and we would have to take care of re-adding
+     * viablots and forcedLetters to the reborn gridCell.cellGroup fields.
+     *
+     * We only do this once, mainly for the common scenario of Chrome
+     * restarting with a minimized window.
+     */
+    this.alreadyResized = true;
+    this.updatePuzzle();  /** revType = default 0 won't actually save */
+    return;
+  }
+  this.lastViewportDim = vpd;
 }
 
 Exet.prototype.lastTagOpener = function(s) {
