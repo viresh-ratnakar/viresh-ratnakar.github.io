@@ -317,6 +317,9 @@ body {
   color: blue;
   text-decoration: none;
 }
+.xet-nowrap {
+  white-space: nowrap;
+}
 .xet-small {
   font-family: monospace;
   font-size: 10px;

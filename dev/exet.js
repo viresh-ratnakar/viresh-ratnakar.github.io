@@ -152,6 +152,7 @@ function Exet() {
   this.throttledClueTimer = null;
   this.throttledMetadataTimer = null;
   this.throttledCharadeTimer = null;
+  this.throttledRepositionTimer = null;
   this.viabilityUpdateTimer = null;
   this.throttledLightRegexpTimer = null;
   this.inputLagMS = 400;
@@ -551,27 +552,36 @@ Exet.prototype.setPuzzle = function(puz) {
       sections: [],
     },
     {
-      id: "wordplay1",
-      display: "Anagrams/()",
-      hover: "Anagrams, composite anagrams, containments",
+      id: "anagrams",
+      display: "Anagrams",
+      hover: "Anagrams, composite/extended anagrams, anagrammed deletions",
       sections: [
         {id: "xet-companag", maker: this.makeCAParam,
          title: "Anagrams, composite/extended anagrams",},
-        {id: "xet-containments", maker: this.makeCharadeParam,
-         title: "Containments"},
+        {id: "xet-anagdel", maker: this.makeCharadeParam,
+         title: "Anagrammed deletions"},
       ],
     },
     {
-      id: "wordplay2",
-      display: "Charades/-",
-      hover: "Charades, anagrammed deletions",
+      id: "containers",
+      display: "Containers",
+      hover: "Containments and insertions",
+      sections: [
+        {id: "xet-containments", maker: this.makeCharadeParam,
+         title: "Containments and insertions"},
+      ],
+    },
+    {
+      id: "charades",
+      display: "Charades",
+      hover: "Charades",
       sections: [
         {id: "xet-charades", maker: this.makeCharadeParam,
-         title: "Charades, anagrammed deletions"},
+         title: "Charades"},
       ],
     },
     {
-      id: "wordplay3",
+      id: "edits-and-sounds",
       display: "Edits, Sounds",
       hover: "Edits (small substitutions, insertions, deletions), " +
              "Homophones, Spoonerisms",
@@ -2501,13 +2511,38 @@ Exet.prototype.makeIndsTab = function() {
   <div>
   <select name="xet-inds-select" id="xet-inds-select"
     onchange="exet.indsTabNav()">`
-  for (let ind of inds) {
+  let groupName = "";
+  for (const ind of inds) {
     if (ind.name == "separator") {
       html += this.MENU_SEPARATOR;
       continue;
     }
+    let closeGroup = false;
+    let openGroup = false;
+    if (ind.group) {
+      if (ind.group != groupName) {
+        closeGroup = true;
+        openGroup = true;
+        groupName = ind.group;
+      }
+    } else if (groupName) {
+      closeGroup = true;
+      groupName = "";
+    }
+    if (closeGroup) {
+      html += `
+    </optgroup>`;
+    }
+    if (openGroup) {
+      html += `
+    <optgroup label="${groupName}">`;
+    }
     html += `
     <option value="${ind.url}">${ind.name}</option>`
+  }
+  if (groupName) {
+    html += `
+    </optgroup>`;
   }
   html += '</select>';
   html += `
@@ -2780,6 +2815,8 @@ Exet.prototype.useLongFodder = function(name, section) {
     this.updateCharades(section.param);
   } else if (section.id == 'xet-containments') {
     this.updateContainments(section.param);
+  } else if (section.id == 'xet-anagdel') {
+    this.updateAnagdel(section.param);
   } else if (name == 'xet-companag') {
     this.updateCA();
   }
@@ -2809,52 +2846,52 @@ Exet.prototype.updateCharades = function(fodder) {
   this.charadeParts = 2;  /* 1-part is already seen in Anagrams */
   this.charadeSplits = null;
   this.charadeSplitIndex = 0;
-  this.charadeDeletionsAdded = false;
   this.charadeFodder = exetLexicon.lettersOf(fodder);
   this.maybeTrimLongFodder(this.charadeFodder, 'xet-charades');
   this.charadeMax = Math.min(this.charadeFodder.length, 4);
   this.updateCharadesPartial();
 }
 
-Exet.prototype.addDeletionCharades = function() {
+/**
+ * Populates the "Anagrammed deletions" section (peer to Anagrams on the
+ * Anagrams), showing candidates of the form A* - B*.
+ */
+Exet.prototype.updateAnagdel = function(fodder) {
+  const fodderLetters = exetLexicon.lettersOf(fodder);
+  this.maybeTrimLongFodder(fodderLetters, 'xet-anagdel');
   const wordsMinuses = exetLexicon.getSupersetAnagrams(
-      this.charadeFodder, 1000, 6, 2);
-  const words = [];
-  const minuses = [];
-  const scores = [];
+      fodderLetters, 1000, 6, 2);
+  const candidates = [];
   for (const wm of wordsMinuses) {
     const word = exetLexicon.lexicon[wm[0]];
-    words.push(word);
     const dispDiffAnags = exetLexicon.displayAnagrams(wm[1], wm[2]);
     let diffAnagsStr = dispDiffAnags.join(', ');
     if (dispDiffAnags.length > 1) {
       diffAnagsStr = '<span class="xet-blue">[</span>' + diffAnagsStr +
                      '<span class="xet-blue">]</span>';
     }
-    minuses.push(diffAnagsStr);
-    /**
-     * High score to put all deletions on top of other charades, for
-     * convenience. Shorter deletions are shown first.
-     */
-    scores.push(100 - wm[1].length);
-  }
-  for (let i = 0; i < words.length; i++) {
-    const charadeStruct = {
-      charade: '<span class="xet-blue">*</span>(' + words[i] +
+    candidates.push({
+      charade: '<span class="xet-blue">*</span>(' + word +
                ' <span class="xet-blue">minus</span> ' +
-               minuses[i] + ')',
-      score: scores[i],
-    }
-    this.charadeCandidates.push(charadeStruct);
+               diffAnagsStr + ')',
+      /* Shorter deletions are shown first. */
+      score: 100 - wm[1].length,
+    });
   }
-  this.charadeDeletionsAdded = true;
+  candidates.sort((a, b) => b.score - a.score);
+  let html = '<table class="xet-wordplay-choices xet-gray-bordered-rows">'
+  for (const candidate of candidates) {
+    html = html + `
+      <tr>
+        <td>${candidate.charade}</td>
+      </tr>`;
+  }
+  html = html + '</table>';
+  this.anagdel.innerHTML = html;
 }
 
 Exet.prototype.updateCharadesPartial = function(work=100, sleep=50) {
   const startTS = Date.now()
-  if (!this.charadeDeletionsAdded) {
-    this.addDeletionCharades();
-  }
   while (this.charadeParts <= this.charadeMax) {
     if (!this.charadeSplits) {
       this.charadeSplits = this.getAllSplits(
@@ -3201,22 +3238,10 @@ Exet.prototype.updateContainments = function(fodder) {
       html += '\n<tr><td colspan="3"><hr></td></tr>';
     }
     num++;
-    const min = Math.min(outerAnagrams.length, innerAnagrams.length);
-    const max = Math.max(outerAnagrams.length, innerAnagrams.length);
-    for (let i = 0; i < min; i++) {
-      html += `
-        <tr><td>${outerAnagrams[i]}</td>
-        <td>${(i == 0) ? '<span class="xet-blue">around</span>' : ''}</td>
-        <td>${innerAnagrams[i]}</td></tr>`;
-    }
-    for (let i = min; i < outerAnagrams.length; i++) {
-      html += `
-        <tr><td>${outerAnagrams[i]}</td><td></td><td></td></tr>`;
-    }
-    for (let i = min; i < innerAnagrams.length; i++) {
-      html += `
-        <tr><td></td><td></td><td>${innerAnagrams[i]}</td></tr>`;
-    }
+    html += `
+      <tr><td>${outerAnagrams.join(', ')}</td>
+      <td><span class="xet-blue">around</span></td>
+      <td>${innerAnagrams.join(', ')}</td></tr>`;
   }
   html += '</table>';
   this.containments.innerHTML = html;
@@ -3369,6 +3394,7 @@ Exet.prototype.populateFrame = function() {
   this.edits = document.getElementById('xet-edits-box');
   this.sounds = document.getElementById('xet-sounds-box');
   this.containments = document.getElementById('xet-containments-box');
+  this.anagdel = document.getElementById('xet-anagdel-box');
 
   this.populateCompanag();
 
@@ -3862,6 +3888,8 @@ Exet.prototype.handleTabClick = function(id) {
       this.updateSounds(wordParam);
     } else if (section.id == 'xet-containments') {
       this.updateContainments(wordParam);
+    } else if (section.id == 'xet-anagdel') {
+      this.updateAnagdel(wordParam);
     } else if (section.id == 'xet-companag') {
       if (newLight) {
         this.caAnagram.value = '';
@@ -4281,6 +4309,16 @@ Exet.prototype.resizeRHS = function() {
   this.puz.equalizeClueWidths(cluesW);
 }
 
+Exet.prototype.throttledReposition = function() {
+  if (this.throttledRepositionTimer) {
+    clearTimeout(this.throttledRepositionTimer);
+  }
+  this.throttledRepositionTimer = setTimeout(() => {
+    this.reposition();
+    this.throttledRepositionTimer = null;
+  }, this.inputLagMS);
+}
+
 Exet.prototype.reposition = function() {
   const elts = [this.xetTitle, this.xetTitleCTA,
                 this.xetSetter, this.xetSetterCTA, this.preamble];
@@ -4319,19 +4357,6 @@ Exet.prototype.reposition = function() {
     }
   }
   this.resizeRHS();
-
-  const vpd = this.puz.getViewportDim();
-  if (this.puz.squareDim < 31 && this.lastViewportDim &&
-      (vpd - this.lastViewportDim > 25)) {
-    /**
-     * The window is substantially bigger than when we created the grid. Let's
-     * just force a redraw (we don't use Exolve's resizing because that would
-     * create a new puz.grid and we would have to take care of re-adding
-     * viablots and forcedLetters to the reborn gridCell.cellGroup fields.
-     */
-    this.updatePuzzle();  /** revType = default 0 won't actually save */
-  }
-  this.lastViewportDim = vpd;
 }
 
 Exet.prototype.lastTagOpener = function(s) {
@@ -7560,8 +7585,9 @@ Exet.prototype.finishSetup = function() {
   /** Check every 10 minutes */
   setInterval(this.periodicChecks.bind(this), 10 * 60 * 1000);
 
-  window.addEventListener('scroll', this.reposition.bind(this));
-  window.addEventListener('resize', this.reposition.bind(this));
+  const reposHandler = this.throttledReposition.bind(this);
+  window.addEventListener('scroll', reposHandler);
+  window.addEventListener('resize', reposHandler);
 
   const formatRevealer = this.maybeShowFormat.bind(this);
   document.addEventListener('selectionchange', formatRevealer);
