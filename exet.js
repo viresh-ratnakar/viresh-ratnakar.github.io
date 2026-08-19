@@ -90,7 +90,7 @@ ExetModals.prototype.hide = function() {
 }
 
 function Exet() {
-  this.version = 'v1.08, August 15, 2026';
+  this.version = 'v1.08.1, August 19, 2026';
   this.puz = null;
   this.prefix = '';
   this.suffix = '';
@@ -158,6 +158,12 @@ function Exet() {
   this.inputLagMS = 400;
   this.longInputLagMS = 2000;
   this.sweepMS = 500;
+
+  // State for "jump to most constrained" feature
+  this.jumpConstrainedLastAt = 0;
+  this.jumpConstrainedLastClue = '';
+  this.jumpConstrainedViaFeature = false;
+  this.jumpConstrainedJumping = false;
 
   // Params for light choices shown.
   this.sweepMaxChoices = 5000;
@@ -1051,6 +1057,11 @@ Exet.prototype.makeExetTab = function() {
               class="xet-dropdown-item" onclick="exet.acceptAll()">
             Accept autofilled entries (=)
           </div>
+          <div title="Jump to the most constrained unfilled light. Repeat within ${Math.round(this.longInputLagMS/1000)}s to navigate to successively less constrained lights"
+              class="xet-dropdown-item"
+              onclick="exet.jumpToMostConstrained()">
+            Jump through most constrained unfilled lights (!)
+          </div>
           <hr>
 
           <div class="xet-dropdown-item">
@@ -1063,8 +1074,8 @@ Exet.prototype.makeExetTab = function() {
               </div>
               <div class="xet-dropdown-subitem"
                 title="Toggle marking cell prefilled"
-                onclick="exet.handleKeyDown('!')">
-                Toggle marking prefilled (!)
+                onclick="exet.handleKeyDown('0')">
+                Toggle marking prefilled (0)
               </div>
               <div class="xet-dropdown-subitem" id="xet-toggle-nina"
                   title="Toggle marking cell/light as part of a nina">
@@ -4046,6 +4057,12 @@ Exet.prototype.replaceHandlers = function() {
     return function() {
       exet.finishClueChanges();
       let ret = exet.cnavToInnerSaved.apply(exet.puz, arguments);
+      if (!exet.jumpConstrainedJumping) {
+        const newCi = exet.puz.clueOrParentIndex(arguments[0]);
+        if (newCi !== exet.jumpConstrainedLastClue) {
+          exet.jumpConstrainedViaFeature = false;
+        }
+      }
       exet.scrollCluesIfNeeded();
       exet.makeClueEditable();
       exet.reposition();
@@ -4887,6 +4904,10 @@ Exet.prototype.makeClueEditable = function() {
         class="xlv-small-button xlv-nextprev"
         title="${this.puz.textLabels['curr-clue-next.hover']}"
           >${this.puz.textLabels['curr-clue-next']}</button>
+      <button id="xet-jump-constrained"
+        class="xlv-small-button xet-nextprev"
+        title="Jump to the most constrained unfilled light (!). Press again within ${Math.round(this.longInputLagMS/1000)}s to cycle to the next most constrained light."
+          >!</button>
       `;
   this.clueMenuButton = document.getElementById('xet-clue-menu-button');
   this.clueMenu = document.getElementById('xet-clue-menu');
@@ -4901,6 +4922,11 @@ Exet.prototype.makeClueEditable = function() {
   this.nextButton = document.getElementById('xet-next');
   this.nextButton.addEventListener('click', e => {
     exet.puz.cnavNext();
+  });
+  this.jumpConstrainedButton = document.getElementById('xet-jump-constrained');
+  this.jumpConstrainedButton.addEventListener('click', e => {
+    this.jumpToMostConstrained();
+    e.stopPropagation();
   });
   const clueMenuLinking = document.getElementById('xet-clue-menu-linking');
   const clueMenuRegexp = document.getElementById('xet-clue-menu-regexp');
@@ -5289,6 +5315,10 @@ Exet.prototype.handleKeyDown = function(e) {
     this.acceptAll();
     return;
   }
+  if (key == '!') {
+    this.jumpToMostConstrained();
+    return;
+  }
   let gridCell = this.puz.currCell();
   if (!gridCell) {
     return;
@@ -5307,7 +5337,7 @@ Exet.prototype.handleKeyDown = function(e) {
 
   let revType = exetRevManager.REV_GRID_CHANGE;
 
-  if (key == '!' && gridCell.solution != '?') {
+  if (key == '0' && gridCell.solution != '?') {
     revType = exetRevManager.REV_METADATA_CHANGE;
     gridCell.prefill = !gridCell.prefill;
   } else if (key == '@') {
@@ -6941,6 +6971,70 @@ Exet.prototype.getClueToCheckDeadends = function(ci=null) {
     }
   }
   return res;
+}
+
+/**
+ * Return unsolved lights sorted from most to least constrained.
+ * Primary sort: fewest viable fill suggestions (lChoices). Ties break on
+ * clue index.
+ * @return {{ci: string, numChoices: number}[]}
+ */
+Exet.prototype.findConstrainedCluesSorted = function() {
+  if (!this.puz || !this.fillState) {
+    return [];
+  }
+  const clues = [];
+  for (let ci in this.fillState.clues) {
+    const theClue = this.fillState.clues[ci];
+    if (theClue.parentClueIndex) {
+      continue;
+    }
+    if (!theClue.solution || theClue.solution.indexOf('?') < 0) {
+      continue;
+    }
+    clues.push({
+      ci: ci,
+      numChoices: theClue.lChoices ? theClue.lChoices.length : 0,
+    });
+  }
+  clues.sort((a, b) => {
+    if (a.numChoices !== b.numChoices) {
+      return a.numChoices - b.numChoices;
+    }
+    return a.ci.localeCompare(b.ci);
+  });
+  return clues;
+}
+
+/**
+ * Jump focus to the most constrained unfilled light. If pressed again within
+ * longInputLagMS while still on a light reached this way, jump to the next
+ * light in the sorted list (wrapping around).
+ * @return {boolean}
+ */
+Exet.prototype.jumpToMostConstrained = function() {
+  const clues = this.findConstrainedCluesSorted();
+  if (!clues.length) {
+    return false;
+  }
+  const now = Date.now();
+  let index = 0;
+  if (this.jumpConstrainedViaFeature &&
+      (now - this.jumpConstrainedLastAt) < this.longInputLagMS) {
+    const currCi = this.currClueIndex();
+    const currIndex = clues.findIndex(c => c.ci === currCi);
+    if (currIndex >= 0) {
+      index = (currIndex + 1) % clues.length;
+    }
+  }
+  const clue = clues[index];
+  this.jumpConstrainedJumping = true;
+  this.puz.cnavTo(clue.ci);
+  this.jumpConstrainedJumping = false;
+  this.jumpConstrainedViaFeature = true;
+  this.jumpConstrainedLastAt = now;
+  this.jumpConstrainedLastClue = clue.ci;
+  return true;
 }
 
 Exet.prototype.updateSweepInd = function() {
