@@ -90,12 +90,13 @@ ExetModals.prototype.hide = function() {
 }
 
 function Exet() {
-  this.version = 'v1.08.1, August 19, 2026';
+  this.version = 'v1.09, September 25, 2026';
   this.puz = null;
   this.prefix = '';
   this.suffix = '';
   this.exolveOtherSec = '';
   this.preflex = [];
+  this.preflexGroups = new Map;  // from lex index to array
   this.preflexSet = {};
   this.preflexHash = null;
   this.preflexUsed = new Set;
@@ -131,6 +132,11 @@ function Exet() {
     caps: {inClue: [false]},
     alt: {inClue: [false]},
   }
+  // TODO
+  this.regexpMacros = {
+    IN: '[letr]',
+    OUT: '[^letr]'
+  };  // TODO recover from state
 
   /**
    * Max lengths of preferred/disallowed word lists.
@@ -144,6 +150,9 @@ function Exet() {
   // Start in the Exet tab
   this.currTab = "exet"
   this.savedIndsSelect = ""
+
+  // State for Research tab
+  this.researchTabChoice = 0;
 
   // State for throttled handlers
   this.throttledGridTimer = null;
@@ -1114,6 +1123,11 @@ Exet.prototype.makeExetTab = function() {
 
           <hr>
 
+          <div class="xet-dropdown-item" id="xet-edit-regexps"
+               title="Edit regexp constraints for all lights in a single view.">
+             Edit regexp constraints
+          </div>
+
           <div class="xet-dropdown-item">
             Add/edit special sections:
             <div class="xet-dropdown-submenu">
@@ -1476,6 +1490,9 @@ Exet.prototype.makeExetTab = function() {
 <div id="xet-tweak-colour-nina" class="xet-text-editor"
   style="display:none">
 </div>
+<div id="xet-regexps" class="xet-text-editor"
+  style="display:none">
+</div>
 <div id="xet-other-sections" class="xet-text-editor" style="display:none">
   <div style="padding:6px">
     <b>Edit these additional Exolve sections here, if desired:</b><br>
@@ -1717,6 +1734,13 @@ Exet.prototype.makeExetTab = function() {
   document.getElementById("xet-edit-questions").addEventListener('click', e => {
     this.populateQuestions(questions);
     exetModals.showModal(questions)
+    e.stopPropagation();
+  });
+
+  const regexps = document.getElementById("xet-regexps");
+  document.getElementById("xet-edit-regexps").addEventListener('click', e => {
+    this.populateRegexps(regexps);
+    exetModals.showModal(regexps)
     e.stopPropagation();
   });
 
@@ -2592,7 +2616,7 @@ Exet.prototype.makeIndsTab = function() {
 
 Exet.prototype.researchNeedsClueWords = function() {
   const researchTab = this.tabs['research'];
-  const rc = researchTab.currChoice;
+  const rc = this.researchTabChoice;
   if (rc < 0 || rc >= researchTab.choices.length) {
     return false;
   }
@@ -2612,17 +2636,17 @@ Exet.prototype.researchTabNav = function() {
   if (choice.noPunct) {
     words = exetLexicon.lcLetterString(words);
   }
-  if (choiceIndex == researchTab.currChoice &&
+  if (choiceIndex == this.researchTabChoice &&
       researchTab.savedWords == words) {
     return;
   }
   const url = choice.url + words + (choice.suffix || '');
   if (choice.newTab) {
-    this.researchSelect.value = researchTab.currChoice;
+    this.researchSelect.value = this.researchTabChoice;
     window.open(url, '_blank');
     return;
   }
-  researchTab.currChoice = choiceIndex;
+  this.researchTabChoice = choiceIndex;
   researchTab.savedWords = words;
   this.loadIframe(this.researchIframe, url, this.researchUrl);
 }
@@ -2630,7 +2654,6 @@ Exet.prototype.researchTabNav = function() {
 Exet.prototype.makeResearchTab = function() {
   const researchTab = this.tabs["research"];
   researchTab.choices = exetConfig.researchTools;
-  researchTab.currChoice = -1;  /** set by researchTabNav() */
   researchTab.savedWords = null;
   let html = `
   <div>
@@ -2655,6 +2678,10 @@ Exet.prototype.makeResearchTab = function() {
   researchTab.content.innerHTML = html;
   this.researchIframe = document.getElementById('xet-research-iframe')
   this.researchSelect = document.getElementById('xet-research-select')
+  if (this.researchTabChoice && this.researchTabChoice > 0 &&
+      this.researchTabChoice < researchTab.choices.length) {
+    this.researchSelect.value = this.researchTabChoice;
+  }
   this.researchUrl = document.getElementById('xet-research-choice-url')
 }
 
@@ -4580,11 +4607,28 @@ Exet.prototype.compileLightRegexps = function() {
 }
 
 /**
+ * TODO
+ */
+Exet.prototype.expandRegexpMacros = function(reStr) {
+  for (const macro in this.regexpMacros) {
+    const lookFor = '${' + macro + '}';
+    const exp = this.regexpMacros[macro];
+    let x = -1;
+    while ((x = reStr.indexOf(lookFor, x+1)) >= 0) {
+      reStr = reStr.slice(0, x) + exp + reStr.slice(x + lookFor.length);
+    }
+  }
+  return reStr;
+}
+
+/**
  * Returns triple in array: [isValid, changed, reStrUsed]
  */
 Exet.prototype.setLightRegexp = function(ci, reStr) {
   const oldStr = this.lightRegexps.hasOwnProperty(ci) ?
     this.lightRegexps[ci] : '';
+  const reStrUnexp = reStr;
+  reStr = this.expandRegexpMacros(reStr);
   let rePart = reStr;
   let flagsPart = '';
   let re = null;
@@ -4606,7 +4650,7 @@ Exet.prototype.setLightRegexp = function(ci, reStr) {
     }
   } else {
     this.lightRegexpsC[ci] = re;
-    this.lightRegexps[ci] = reStr;
+    this.lightRegexps[ci] = reStrUnexp;
   }
   const newStr = this.lightRegexps.hasOwnProperty(ci) ?
     this.lightRegexps[ci] : '';
@@ -4670,6 +4714,7 @@ Exet.prototype.makeLightRegexpPanel = function(theClue) {
       <div>
         Regexp constraints are descibed in this <a target="_blank"
         href="https://github.com/viresh-ratnakar/exet/blob/master/README.md#light-specific-menu">Exet README section</a>.
+        You can edit all regexps constraints in a unified view, from the Edit menu.
       </div>
     </div>
   `;
@@ -4697,6 +4742,100 @@ Exet.prototype.showLightRegexpPanel = function(evt) {
   exetModals.showModal(this.lightRegexpPanel);
   evt.stopPropagation();
   this.lightRegexpEntry.focus();
+}
+
+/**
+ * Builds/refreshes a table showing every clue/entry (one row per linked
+ * group) alongside its regexp constraint, editable in place. Reuses the
+ * same setLightRegexp() logic as the single-clue "Regexp constraint" panel.
+ */
+Exet.prototype.populateRegexps = function(elt) {
+  let html = `
+    <p>
+      &#128279;
+      One row per crossword entry (linked clues are folded into a single
+      row). Edit a regexp directly; leave it blank to remove the
+      constraint. Changes apply automatically after a short pause, just
+      like the per-clue "Regexp constraint" panel.
+      <textarea rows="4" cols="32" id="xet-regexp-macros">`
+  for (const macro in this.regexpMacros) {
+    html += `
+${macro} = ${this.regexpMacros[macro]}`;
+  }
+  html += ` 
+      </textarea>
+    </p>
+    <table class="xet-choices" id="xet-regexps-table">
+      <tr><th>Clue</th><th>Regexp constraint</th></tr>
+  `;
+  let rows = 0;
+  for (const ci of this.puz.allClueIndices) {
+    const clue = this.puz.clues[ci];
+    if (!clue || clue.parentClueIndex) {
+      continue;  // Only one row per entry; skip linked children here.
+    }
+    let label = clue.fullDisplayLabel || this.puz.clueLabelDisp(clue);
+    if (clue.childrenClueIndices) {
+      for (const cci of clue.childrenClueIndices) {
+        const cClue = this.puz.clues[cci];
+        if (cClue) {
+          label += ', ' + (cClue.fullDisplayLabel ||
+                            this.puz.clueLabelDisp(cClue));
+        }
+      }
+    }
+    const reStr = this.getLightRegexp(ci);
+    const escaped = reStr.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+    html += `
+      <tr>
+        <td>${label}</td>
+        <td>
+          <input class="xlv-answer xet-regexps-input" data-ci="${ci}"
+            size="80" type="text" spellcheck="false"
+            value="${escaped}"></input>
+        </td>
+      </tr>`;
+    rows++;
+  }
+  if (rows == 0) {
+    html += '<tr><td colspan="2"><i>No entries in the grid yet.</i></td></tr>';
+  }
+  html += '</table>';
+  elt.innerHTML = html;
+
+  const inputs = elt.getElementsByClassName('xet-regexps-input');
+  for (let i = 0; i < inputs.length; i++) {
+    inputs[i].addEventListener(
+        'input', this.throttledRegexpsTableInput.bind(this, inputs[i]));
+  }
+}
+
+Exet.prototype.throttledRegexpsTableInput = function(inputElt) {
+  if (inputElt._xetRegexpTimer) {
+    clearTimeout(inputElt._xetRegexpTimer);
+  }
+  inputElt._xetRegexpTimer = setTimeout(() => {
+    inputElt._xetRegexpTimer = null;
+    this.handleRegexpsTableInput(inputElt);
+  }, this.longInputLagMS);
+}
+
+Exet.prototype.handleRegexpsTableInput = function(inputElt) {
+  const ci = inputElt.dataset.ci;
+  const res = this.setLightRegexp(ci, inputElt.value.trim());
+  const valid = res[0];
+  const changed = res[1];
+  const reStr = res[2];
+  if (changed) {
+    this.resetViability();
+    exetRevManager.throttledSaveRev(exetRevManager.REV_FILL_OPTIONS_CHANGE);
+    // Keep the single-clue "Regexp constraint" panel/icon in sync if the
+    // row just edited is for the currently active light.
+    if (this.lightRegexpEntry && this.currClueIndex() == ci) {
+      this.lightRegexpEntry.value = reStr;
+      this.lightRegexpIcon.style.display = reStr ? '' : 'none';
+    }
+  }
 }
 
 Exet.prototype.makeLinkingPanel = function() {
@@ -6545,6 +6684,12 @@ Exet.prototype.addToDontReuse = function(p, dontReuse) {
   } else {
     dontReuse.add(p);
   }
+  const grp = this.preflexGroups.get(p);
+  if (grp && grp.length > 1) {
+    for (const p2 of grp) {
+      dontReuse.add(p2);
+    }
+  }
 }
 
 /**
@@ -7295,6 +7440,7 @@ Exet.prototype.renderPreflex = function() {
  */
 Exet.prototype.setPreflex = function(preflex) {
   this.preflex = preflex;
+  this.preflexGroups.clear();
   this.preflexHash = exetRevManager.hashPrefUnpref(preflex);
   this.preflexSet = {};
 
@@ -7303,22 +7449,34 @@ Exet.prototype.setPreflex = function(preflex) {
     exetLexicon.lexicon.length = exetLexicon.startLen;
   }
   this.preflexByLen = {};
-  for (let ptext of this.preflex) {
-    let len = exetLexicon.lexkey(ptext).length;
-    let inLexicon = exetLexicon.getLexChoices(ptext, 1, null,
-        false, // no proper nouns
-        0,  // no index limit
-        false, this.preflexByLen, this.unpreflexSet);
-    let p = 0;
-    if (inLexicon.length > 0) {
-      p = inLexicon[0];
-    } else  {
-      exetLexicon.lexicon.push(ptext);
-      p = exetLexicon.lexicon.length - 1;
+  for (const ptext of this.preflex) {
+    const parts = ptext.split('|');
+    const group = [];
+    for (const rawPart of parts) {
+      const part = rawPart.trim();
+      if (!part) continue;
+      let len = exetLexicon.lexkey(part).length;
+      let inLexicon = exetLexicon.getLexChoices(part, 1, null,
+          false, // no proper nouns
+          0,  // no index limit
+          false, this.preflexByLen, this.unpreflexSet);
+      let p = 0;
+      if (inLexicon.length > 0) {
+        p = inLexicon[0];
+      } else  {
+        exetLexicon.lexicon.push(part);
+        p = exetLexicon.lexicon.length - 1;
+      }
+      if (!this.preflexByLen[len]) this.preflexByLen[len] = [];
+      this.preflexByLen[len].push(p);
+      this.preflexSet[p] = part;
+      group.push(p);
     }
-    if (!this.preflexByLen[len]) this.preflexByLen[len] = [];
-    this.preflexByLen[len].push(p);
-    this.preflexSet[p] = ptext;
+    if (group.length > 1) {
+      for (const p of group) {
+        this.preflexGroups.set(p, group);
+      }
+    }
   }
 }
 

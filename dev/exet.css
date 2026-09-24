@@ -710,6 +710,7 @@ body {
 }
 #xet-preamble,
 #xet-explanations,
+#xet-regexps,
 #xet-other-sections {
   width: 500px;
 }

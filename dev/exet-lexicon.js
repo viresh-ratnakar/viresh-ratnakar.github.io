@@ -458,7 +458,7 @@ function exetLexiconInit() {
       noProperNouns=false,
       indexLimit=0,
       tryRev=false,
-      preflexByLen=[],
+      preflexByLen={},
       unpreflexSet={},
       regexp=null) {
     if (indexLimit <= 0) {
