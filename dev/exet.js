@@ -1123,11 +1123,6 @@ Exet.prototype.makeExetTab = function() {
 
           <hr>
 
-          <div class="xet-dropdown-item" id="xet-edit-regexps"
-               title="Edit regexp constraints for all lights in a single view.">
-             Edit regexp constraints
-          </div>
-
           <div class="xet-dropdown-item">
             Add/edit special sections:
             <div class="xet-dropdown-submenu">
@@ -1148,6 +1143,11 @@ Exet.prototype.makeExetTab = function() {
                Other Exolve sections
               </div>
             </div>
+          </div>
+
+          <div class="xet-dropdown-item" id="xet-edit-regexps"
+               title="Edit regexp constraints for all lights in a single view.">
+             Edit regexp constraints
           </div>
 
           <div class="xet-dropdown-item">
@@ -6675,7 +6675,7 @@ Exet.prototype.Set2Trims = function(set1, set2) {
   return false;
 }
 
-Exet.prototype.addToDontReuse = function(p, dontReuse) {
+Exet.prototype.atdrInner = function(p, dontReuse) {
   if (this.noStemDupes) {
     const stemGroup = exetLexicon.stemGroup(p);
     for (const sp of stemGroup) {
@@ -6684,10 +6684,14 @@ Exet.prototype.addToDontReuse = function(p, dontReuse) {
   } else {
     dontReuse.add(p);
   }
+}
+
+Exet.prototype.addToDontReuse = function(p, dontReuse) {
+  this.atdrInner(p, dontReuse);
   const grp = this.preflexGroups.get(p);
   if (grp && grp.length > 1) {
     for (const p2 of grp) {
-      dontReuse.add(p2);
+      this.atdrInner(p2, dontReuse);
     }
   }
 }
