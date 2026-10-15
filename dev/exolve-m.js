@@ -84,7 +84,7 @@ function Exolve(puzzleSpec,
                 visTop=0,
                 maxDim=0,
                 notTemp=true) {
-  this.VERSION = 'Exolve v1.74.1, October 12, 2026';
+  this.VERSION = 'Exolve v1.74.2, October 15, 2026';
   this.id = '';
 
   /**
@@ -1578,6 +1578,7 @@ Exolve.prototype.checkPhoniness = function() {
     return;
   }
   this.onPhone = true;
+  this.phoneHeight = window.innerHeight;
   /**
    * If we're sufficiently near the top of the viewport, then we
    * do some rearranging to reduce the space used above the grid.
@@ -6450,6 +6451,17 @@ Exolve.prototype.setColumnLayout = function() {
 }
 
 Exolve.prototype.handleResizeInner = function() {
+  if (this.onPhone) {
+    const h = window.innerHeight;
+    if (h == this.phoneHeight) {
+      /**
+       * Noisy resize event from browser nav-bar that we do not want to respond
+       * to.
+       */
+      return;
+    }
+    this.phoneHeight = h;
+  }
   this.maybeResizeGrid();
   this.resizeCurrClueAndControls();
   this.setColumnLayout();
