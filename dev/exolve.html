@@ -1626,7 +1626,7 @@ Exolve.prototype.checkPhoniness = function() {
     return;
   }
   this.onPhone = true;
-  this.phoneHeight = window.innerHeight;
+  this.phoneHeight = window.outerHeight;
   /**
    * If we're sufficiently near the top of the viewport, then we
    * do some rearranging to reduce the space used above the grid.
@@ -6500,7 +6500,7 @@ Exolve.prototype.setColumnLayout = function() {
 
 Exolve.prototype.handleResizeInner = function() {
   if (this.onPhone) {
-    const h = window.innerHeight;
+    const h = window.outerHeight;
     if (h == this.phoneHeight) {
       /**
        * Noisy resize event from browser nav-bar that we do not want to respond
