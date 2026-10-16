@@ -9562,7 +9562,9 @@ Exolve.prototype.revealCurr = function() {
     clearTimeout(this.cellLightToggleTimer);
     this.cellLightToggleTimer = null;
   }
-  this.revealButton.innerHTML = this.textLabels['reveal'];
+  this.revealButton.innerHTML = `
+    <span class="xlv-width-large-text">${this.textLabels['reveal']}</span>
+    <span class="xlv-width-small-text">${this.textLabels['reveal-sml']}</span>`;
   // If active cells are present and usingGnav, we reveal only those (the
   // current clue might be pointing to a random orphan).
   let clueIndexForAnnoReveal = null;
