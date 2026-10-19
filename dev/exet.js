@@ -90,7 +90,7 @@ ExetModals.prototype.hide = function() {
 }
 
 function Exet() {
-  this.version = 'v1.09, September 25, 2026';
+  this.version = 'v1.09, October 18, 2026';
   this.puz = null;
   this.prefix = '';
   this.suffix = '';
@@ -109,7 +109,16 @@ function Exet() {
   this.region = '';
   this.asymOK = false;
   this.tryReversals = false;
+  /**
+   * lightRegexps has clue-index-like keys (which are only retained if
+   * they are valid clue indices), and other keys (that do not look like
+   * 'A5', 'D17', etc.) that are simply macros.
+   */
   this.lightRegexps = {};
+  /**
+   * Only the clue-index-like keys from lightRegexps are present in
+   * lightRegexpsC, which has compiled REs.
+   */
   this.lightRegexpsC = {};
   this.minpop = 0;
   this.minscore = 0;
@@ -132,11 +141,6 @@ function Exet() {
     caps: {inClue: [false]},
     alt: {inClue: [false]},
   }
-  // TODO
-  this.regexpMacros = {
-    IN: '[letr]',
-    OUT: '[^letr]'
-  };  // TODO recover from state
 
   /**
    * Max lengths of preferred/disallowed word lists.
@@ -163,7 +167,7 @@ function Exet() {
   this.throttledCharadeTimer = null;
   this.throttledRepositionTimer = null;
   this.viabilityUpdateTimer = null;
-  this.throttledLightRegexpTimer = null;
+  this.throttledRegexpTimer = null;
   this.inputLagMS = 400;
   this.longInputLagMS = 2000;
   this.sweepMS = 500;
@@ -223,10 +227,9 @@ function Exet() {
     `You can use autofill to create pangrams, and even <i>constrained</i>
      pangrams, where all the letters in the alphabet get used over some
      specified cells, such as circled cells and unchecked cells.`,
-    `You can specify a regular expression that constrains fill-choices
-     shown for a light (for example, forcing a palindrome, or a specific
-     substring) using the "Regexp constraint" option in the hamburger menu above
-     the current clue.`,
+    `You can specify regular expressions that constrains fill-choices
+     shown for lights (for example, forcing a palindrome, or a specific
+     substring) using the "Edit regexp constraints" Edit menu option.`,
     `You can create a <i>3-D</i> crossword using
      <i>Open &gt; New 3-D grid:</i>. You can also reverse some lights with
      <i>Edit &gt; Reverse current light</i>. You can let autofill suggest
@@ -1146,7 +1149,7 @@ Exet.prototype.makeExetTab = function() {
           </div>
 
           <div class="xet-dropdown-item" id="xet-edit-regexps"
-               title="Edit regexp constraints for all lights in a single view.">
+               title="Edit regexp constraints (and macros for using within them) for lights.">
              Edit regexp constraints
           </div>
 
@@ -1606,7 +1609,10 @@ Exet.prototype.makeExetTab = function() {
 
   this.lightRegexpIcon = document.getElementById("xet-light-regexp-icon");
   this.lightRegexpIcon.style.display = 'none';
-  this.lightRegexpIcon.addEventListener('click', this.showLightRegexpPanel.bind(this));
+  const boundLREShower = this.showLightRegexps.bind(this);
+  this.lightRegexpIcon.addEventListener('click', boundLREShower);
+  document.getElementById("xet-edit-regexps").addEventListener(
+      'click', boundLREShower); 
 
   this.preflexUsedDisp = document.getElementById("xet-preflex-used");
   this.preflexSize = document.getElementById("xet-preflex-size");
@@ -1734,13 +1740,6 @@ Exet.prototype.makeExetTab = function() {
   document.getElementById("xet-edit-questions").addEventListener('click', e => {
     this.populateQuestions(questions);
     exetModals.showModal(questions)
-    e.stopPropagation();
-  });
-
-  const regexps = document.getElementById("xet-regexps");
-  document.getElementById("xet-edit-regexps").addEventListener('click', e => {
-    this.populateRegexps(regexps);
-    exetModals.showModal(regexps)
     e.stopPropagation();
   });
 
@@ -4380,9 +4379,7 @@ Exet.prototype.reposition = function() {
     const top = clueBox.top;
     const right = clueBox.right;
     for (const elt of elts) {
-      const box = elt.firstElementChild ?
-        elt.firstElementChild.getBoundingClientRect() :
-        elt.getBoundingClientRect();
+      const box = elt.getBoundingClientRect();
       if (box.bottom >= top + 8 && box.left + 8 <= right) {
         /** Substantial overlap, blur this elt. */
         elt.classList.add('xet-blur');
@@ -4584,54 +4581,78 @@ Exet.prototype.maybeShowFormat = function() {
   }
 }
 
-Exet.prototype.getLightRegexp = function(ci) {
-  if (!this.lightRegexps.hasOwnProperty(ci)) {
-    return '';
-  }
-  return this.lightRegexps[ci];
-}
-
-Exet.prototype.getLightRegexpC = function(ci) {
-  if (!this.lightRegexpsC.hasOwnProperty(ci)) {
-    return null;
-  }
-  return this.lightRegexpsC[ci];
-}
-
-Exet.prototype.compileLightRegexps = function() {
+/**
+ * Only compiles all regexps, does not revise fills.
+ */
+Exet.prototype.processRegexps = function(errs=[], badkeys=new Set) {
   this.lightRegexpsC = {};
   const keys = Object.keys(this.lightRegexps);
-  for (const ci of keys) {
-    this.setLightRegexp(ci, this.lightRegexps[ci]);
+  for (const k of keys) {
+    const err = this.processRegexp(k, this.lightRegexps[k]);
+    if (err) {
+      badkeys.add(k);
+      errs.push(err);
+    }
   }
+}
+
+Exet.prototype.regexpIsMacro = function(k) {
+  if (!k.startsWith('A') && !k.startsWith('D')) {
+    return true;
+  }
+  const numStr = k.substr(1);
+  const num = parseInt(numStr);
+  if (isNaN(num) || num <= 0) {
+    return true;
+  }
+  return false;
 }
 
 /**
- * TODO
+ * Expand any "${macro}" parts in reStr. Return null if there is an error.
  */
 Exet.prototype.expandRegexpMacros = function(reStr) {
-  for (const macro in this.regexpMacros) {
-    const lookFor = '${' + macro + '}';
-    const exp = this.regexpMacros[macro];
-    let x = -1;
-    while ((x = reStr.indexOf(lookFor, x+1)) >= 0) {
-      reStr = reStr.slice(0, x) + exp + reStr.slice(x + lookFor.length);
+  let x = 0;
+  let numExp = 0;
+  while ((x = reStr.indexOf('${', x)) >= 0) {
+    x += 2;
+    const end = reStr.indexOf('}', x);
+    if (end < 0) {
+      continue;
+    }
+    const macro = reStr.slice(x, end);
+    if (!this.lightRegexps.hasOwnProperty(macro)) {
+      console.log('No regexp macro named ' + macro);
+      return null;
+    }
+    x -= 2;
+    reStr = reStr.slice(0, x) + this.lightRegexps[macro] + reStr.slice(end + 1);
+    if (++numExp > 100) {
+      console.log('Too many macro expansions in regexp [' +  reStr + '], likely a bad recursion');
+      return null;
     }
   }
   return reStr;
 }
 
 /**
- * Returns triple in array: [isValid, changed, reStrUsed]
+ * Returns errmsg if there was an error.
  */
-Exet.prototype.setLightRegexp = function(ci, reStr) {
-  const oldStr = this.lightRegexps.hasOwnProperty(ci) ?
-    this.lightRegexps[ci] : '';
-  const reStrUnexp = reStr;
-  reStr = this.expandRegexpMacros(reStr);
+Exet.prototype.processRegexp = function(k, reStr) {
+  let re = null;
+  k = k.trim();
+  const dispK = !this.regexpIsMacro(k) ?
+    k.substr(1) + k.substr(0,1).toLowerCase() : k;
+  const reStrUnexp = reStr.trim();
+  if (!k || !reStrUnexp) {
+    return `${dispK}:${reStrUnexp}: empty key/regexp`;
+  }
+  reStr = this.expandRegexpMacros(reStrUnexp);
+  if (!reStr) {
+    return `${dispK}:${reStrUnexp}: error expanding macros`;
+  }
   let rePart = reStr;
   let flagsPart = '';
-  let re = null;
   try {
     const reForSlashFormat = /^\/([^/]*)\/([^/]*)/;
     const slashMatch = reForSlashFormat.exec(reStr);
@@ -4641,134 +4662,51 @@ Exet.prototype.setLightRegexp = function(ci, reStr) {
     }
     re = rePart ? new RegExp(rePart, flagsPart) : null;
   } catch (err) {
-    return [false, false, oldStr];
+    return `${dispK}:${reStrUnexp}: RE error: ${err.message}`;
   }
   if (!re) {
-    if (this.lightRegexps.hasOwnProperty(ci)) {
-      delete this.lightRegexps[ci];
-      delete this.lightRegexpsC[ci];
-    }
-  } else {
-    this.lightRegexpsC[ci] = re;
-    this.lightRegexps[ci] = reStrUnexp;
+    return `${dispK}:${reStrUnexp}: RE evaluates to null`;
   }
-  const newStr = this.lightRegexps.hasOwnProperty(ci) ?
-    this.lightRegexps[ci] : '';
-  return [true, newStr != oldStr, newStr];
-}
-
-Exet.prototype.handleLightRegexpEntry = function() {
-  const ci = this.currClueIndex();
-  if (!this.lightRegexpEntry || !ci) {
-    return;
+  if (!this.regexpIsMacro(k)) {
+    this.lightRegexpsC[k] = re;
   }
-  const res = this.setLightRegexp(ci, this.lightRegexpEntry.value.trim());
-  const valid = res[0];
-  const changed = res[1];
-  const reStr = res[2];
-  if (changed) {
-    this.lightRegexpIcon.style.display = reStr ? '' : 'none';
-    this.resetViability();
-    exetRevManager.throttledSaveRev(exetRevManager.REV_FILL_OPTIONS_CHANGE);
-  }
-  if (valid) {
-    this.lightRegexpInvalid.style.color = 'transparent';
-    this.lightRegexpRevert.innerHTML = '';
-  } else {
-    this.lightRegexpInvalid.style.color = 'gray';
-    this.lightRegexpRevert.innerHTML = reStr;
-  }
-}
-
-Exet.prototype.throttledLightRegexpEntry = function(evt) {
-  this.lightRegexpInvalid.style.color = 'transparent';
-  if (this.throttledLightRegexpTimer) {
-    clearTimeout(this.throttledLightRegexpTimer);
-  }
-  this.throttledLightRegexpTimer = setTimeout(() => {
-    this.handleLightRegexpEntry();
-    this.throttledLightRegexpTimer = null;
-  }, this.longInputLagMS);
-}
-
-Exet.prototype.makeLightRegexpPanel = function(theClue) {
-  const old = document.getElementById('xet-light-regexp-panel');
-  if (old) {
-    old.remove();
-  }
-  const label = this.puz.clueLabelDisp(theClue);
-  this.lightRegexpPanel = document.createElement('div');
-  this.lightRegexpPanel.id = 'xet-light-regexp-panel';
-  this.lightRegexpPanel.className = 'xet-above-clue-panel';
-  this.lightRegexpPanel.title = 'Specify a regexp constraining the entry in ' + label + '. Press Escape or click anywhere outside to dismiss.';
-  this.lightRegexpPanel.innerHTML = `
-    <div style="padding:6px">
-      &#128279; ${label}:
-      <input id="xet-light-regexp" name="xet-light-regexp"
-        class="xlv-answer" size="40" placeholder="Enter regular expression to match ${label}."
-        type="text"></input>
-      <div id="xet-light-regexp-invalid" style="margin-bottom:4px">
-        Invalid regexp, will revert to:
-        [<span id="xet-light-regexp-revert"></span>]
-      </div>
-      <div>
-        Regexp constraints are descibed in this <a target="_blank"
-        href="https://github.com/viresh-ratnakar/exet/blob/master/README.md#light-specific-menu">Exet README section</a>.
-        You can edit all regexps constraints in a unified view, from the Edit menu.
-      </div>
-    </div>
-  `;
-  this.lightRegexpPanel.style.display = 'none';
-  this.puz.currClue.appendChild(this.lightRegexpPanel);
-  this.lightRegexpEntry = document.getElementById('xet-light-regexp');
-  this.lightRegexpInvalid = document.getElementById('xet-light-regexp-invalid');
-  this.lightRegexpInvalid.style.color = 'transparent';
-  this.lightRegexpRevert = document.getElementById('xet-light-regexp-revert');
-  const re = this.getLightRegexp(theClue.index);
-  this.lightRegexpEntry.value = re;
-  this.lightRegexpIcon.style.display = re ? '' : 'none';
-  this.lightRegexpEntry.addEventListener('input', this.throttledLightRegexpEntry.bind(this));
-}
-
-Exet.prototype.showLightRegexpPanel = function(evt) {
-  const theClue = this.currClue();
-  if (!theClue) {
-    return;
-  }
-  if (!this.lightRegexpPanel) {
-    console.log('showLightRegexpPanel() called prematurely!');
-    return;
-  }
-  exetModals.showModal(this.lightRegexpPanel);
-  evt.stopPropagation();
-  this.lightRegexpEntry.focus();
+  return '';
 }
 
 /**
  * Builds/refreshes a table showing every clue/entry (one row per linked
- * group) alongside its regexp constraint, editable in place. Reuses the
- * same setLightRegexp() logic as the single-clue "Regexp constraint" panel.
+ * group) alongside its regexp constraint, editable in place.
  */
-Exet.prototype.populateRegexps = function(elt) {
+Exet.prototype.showLightRegexps = function(evt) {
+  const regexps = document.getElementById("xet-regexps");
   let html = `
-    <p>
-      &#128279;
-      One row per crossword entry (linked clues are folded into a single
-      row). Edit a regexp directly; leave it blank to remove the
-      constraint. Changes apply automatically after a short pause, just
-      like the per-clue "Regexp constraint" panel.
-      <textarea rows="4" cols="32" id="xet-regexp-macros">`
-  for (const macro in this.regexpMacros) {
-    html += `
-${macro} = ${this.regexpMacros[macro]}`;
+    <div title="Edit light regexp constraints. Changes apply automatically after a short pause.">
+    <div>
+      &#128279; <b>Regexp constraints on lights</b>
+    </div>
+    <br>
+    <div>
+      <b>Macros</b> (lines like "VWL = [aeiou]", usable in REs as "\${VWL}"):
+    </div>
+    <br>
+    <div>
+      <textarea rows="4" cols="52" id="xet-regexp-macros">`
+  for (const macro in this.lightRegexps) {
+    if (!this.regexpIsMacro(macro)) {
+      continue;
+    }
+    html += `${macro} = ${this.lightRegexps[macro]}` + '\n';
   }
   html += ` 
       </textarea>
-    </p>
+    </div>
+    <div class="xet-red xet-fills-heading xet-fill-settings-summary" id="xet-regexp-error"></div>
+    <div class="xet-choices-box xet-mid-tall-box">
     <table class="xet-choices" id="xet-regexps-table">
-      <tr><th>Clue</th><th>Regexp constraint</th></tr>
   `;
   let rows = 0;
+  let rowForCurr = 0;
+  const currCI = this.currClueIndex();
   for (const ci of this.puz.allClueIndices) {
     const clue = this.puz.clues[ci];
     if (!clue || clue.parentClueIndex) {
@@ -4784,58 +4722,128 @@ ${macro} = ${this.regexpMacros[macro]}`;
         }
       }
     }
-    const reStr = this.getLightRegexp(ci);
+    const reStr = this.lightRegexps[ci] ?? '';
     const escaped = reStr.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
     html += `
       <tr>
         <td>${label}</td>
         <td>
-          <input class="xlv-answer xet-regexps-input" data-ci="${ci}"
-            size="80" type="text" spellcheck="false"
+          <input class="xet-regexp-input"
+            id="xet-regexp-row-${rows}" data-ci="${ci}"
+            size="45" type="text" spellcheck="false"
             value="${escaped}"></input>
         </td>
       </tr>`;
+    if (ci == currCI) {
+      rowForCurr = rows;
+    }
     rows++;
   }
   if (rows == 0) {
     html += '<tr><td colspan="2"><i>No entries in the grid yet.</i></td></tr>';
   }
-  html += '</table>';
-  elt.innerHTML = html;
+  html += '</table></div></div>';
+  regexps.innerHTML = html;
 
-  const inputs = elt.getElementsByClassName('xet-regexps-input');
+  const handler = this.throttledRegexpChange.bind(this);
+  const macros = document.getElementById('xet-regexp-macros');
+  macros.addEventListener('input', handler);
+  const inputs = regexps.getElementsByClassName('xet-regexp-input');
   for (let i = 0; i < inputs.length; i++) {
-    inputs[i].addEventListener(
-        'input', this.throttledRegexpsTableInput.bind(this, inputs[i]));
+    inputs[i].addEventListener('input', handler);
   }
+  const currRow = document.getElementById('xet-regexp-row-' + rowForCurr);
+  if (currRow) {
+    setTimeout(() => {
+      currRow.scrollIntoView({ behavior: 'smooth' });
+      currRow.focus();
+    }, 50);
+  }
+  exetModals.showModal(regexps)
+  evt.stopPropagation();
 }
 
-Exet.prototype.throttledRegexpsTableInput = function(inputElt) {
-  if (inputElt._xetRegexpTimer) {
-    clearTimeout(inputElt._xetRegexpTimer);
+Exet.prototype.throttledRegexpChange = function() {
+  if (this.throttledRegexpTimer) {
+    clearTimeout(this.throttledRegexpTimer);
   }
-  inputElt._xetRegexpTimer = setTimeout(() => {
-    inputElt._xetRegexpTimer = null;
-    this.handleRegexpsTableInput(inputElt);
-  }, this.longInputLagMS);
+  this.throttledRegexpTimer = setTimeout(() => {
+    this.throttledRegexpTimer = null;
+    this.handleRegexpChange();
+  }, this.longInputLagMS * 2);
 }
 
-Exet.prototype.handleRegexpsTableInput = function(inputElt) {
-  const ci = inputElt.dataset.ci;
-  const res = this.setLightRegexp(ci, inputElt.value.trim());
-  const valid = res[0];
-  const changed = res[1];
-  const reStr = res[2];
-  if (changed) {
-    this.resetViability();
-    exetRevManager.throttledSaveRev(exetRevManager.REV_FILL_OPTIONS_CHANGE);
-    // Keep the single-clue "Regexp constraint" panel/icon in sync if the
-    // row just edited is for the currently active light.
-    if (this.lightRegexpEntry && this.currClueIndex() == ci) {
-      this.lightRegexpEntry.value = reStr;
-      this.lightRegexpIcon.style.display = reStr ? '' : 'none';
+Exet.prototype.handleRegexpChange = function() {
+  const reErr = document.getElementById('xet-regexp-error');
+  reErr.innerHTML = '';
+  const errs = [];
+  const macrosElt = document.getElementById('xet-regexp-macros');
+
+  /**
+   * We loop until there are no more new errors, to make sure that we
+   * end up with a set of macros and regexp constraints that are
+   * valid.
+   */
+  let firstLoop = true;
+  let errsLen = errs.length;
+  while (firstLoop || errs.length > errsLen) {
+    firstLoop = false;
+    errsLen = errs.length;
+    const oldRegexps = {...this.lightRegexps};
+    this.lightRegexps = {};
+    const macroLines = macrosElt.value.split('\n');
+    for (const macroLine of macroLines) {
+      const l = macroLine.trim();
+      if (!l) continue;
+      const parts = l.split('=');
+      if (parts.length != 2) {
+        errs.push('"' + l + '" is not formatted as "macro = value"');
+        continue;
+      }
+      const k = parts[0].trim();
+      const v = parts[1].trim();
+      if (!k || !v || !this.regexpIsMacro(k)) {
+        errs.push('"' + l + '" does not have valid macro name/value');
+        continue;
+      }
+      this.lightRegexps[k] = v;
+    }
+    const inputs = document.getElementsByClassName('xet-regexp-input');
+    for (let i = 0; i < inputs.length; i++) {
+      const inputElt = inputs[i];
+      const v = inputElt.value.trim();
+      if (!v) continue;
+      const ci = inputElt.dataset.ci;
+      this.lightRegexps[ci] = v;
+    }
+    const badkeys = new Set;
+    this.processRegexps(errs, badkeys);
+    for (const k of badkeys) {
+      const oldV = oldRegexps[k] ?? '';
+      if (oldV && oldV != this.lightRegexps[k]) {
+        this.lightRegexps[k] = oldV;
+      } else {
+        delete this.lightRegexps[k];
+      }
+    }
+    let macrosText = '';
+    for (const k in this.lightRegexps) {
+      if (!this.regexpIsMacro(k)) {
+        continue;
+      }
+      macrosText += `${k} = ${this.lightRegexps[k]}` + '\n';
+    }
+    macrosElt.value = macrosText;
+
+    for (let i = 0; i < inputs.length; i++) {
+      const inputElt = inputs[i];
+      const ci = inputElt.dataset.ci;
+      inputElt.value = this.lightRegexps[ci] ?? '';
     }
   }
+  reErr.innerHTML = errs.join('<br>');
+  this.resetViability();
+  exetRevManager.throttledSaveRev(exetRevManager.REV_FILL_OPTIONS_CHANGE);
 }
 
 Exet.prototype.makeLinkingPanel = function() {
@@ -5020,10 +5028,6 @@ Exet.prototype.makeClueEditable = function() {
           title="Click to create or break a linked group of clues. Also accessible by clicking the clue number to the left of 'Edit clue: ...'.">
         Link/Unlink
         </div>
-        <div class="xet-clue-menu-item" id="xet-clue-menu-regexp"
-          title="Click to add or edit a regexp constraint on the grid-fill in this light.">
-        &#128279; Regexp constraint
-        </div>
         <div class="xet-clue-menu-item" id="xet-clue-menu-clear"
           onclick="exet.puz.clearCurr()"
           title="Click to clear the current light (will not ask for confirmation).">
@@ -5067,10 +5071,6 @@ Exet.prototype.makeClueEditable = function() {
     this.jumpToMostConstrained();
     e.stopPropagation();
   });
-  const clueMenuLinking = document.getElementById('xet-clue-menu-linking');
-  const clueMenuRegexp = document.getElementById('xet-clue-menu-regexp');
-  this.makeLightRegexpPanel(theClue);
-  clueMenuRegexp.addEventListener('click', this.showLightRegexpPanel.bind(this));
 
   const currClueText = document.getElementById(
       `${exet.puz.prefix}-curr-clue-text`);
@@ -5123,6 +5123,7 @@ Exet.prototype.makeClueEditable = function() {
     e.stopPropagation();
   };
   ccLabel.addEventListener('click', linkingShower);
+  const clueMenuLinking = document.getElementById('xet-clue-menu-linking');
   clueMenuLinking.addEventListener('click', linkingShower);
 
   this.makeFormatPanel();
@@ -5647,6 +5648,10 @@ Exet.prototype.killInvalidatedClues = function() {
 
   this.puz.clues = fillState.clues;
   const newLightRegexps = {};
+  for (const macro in this.lightRegexps) {
+    if (!this.regexpIsMacro(macro)) continue;
+    newLightRegexps[macro] = this.lightRegexps[macro];
+  }
   for (const oldCi in getsRelocated) {
     if (!this.lightRegexps.hasOwnProperty(oldCi)) {
       continue;
@@ -5654,7 +5659,7 @@ Exet.prototype.killInvalidatedClues = function() {
     newLightRegexps[getsRelocated[oldCi]] = this.lightRegexps[oldCi];
   }
   this.lightRegexps = newLightRegexps;
-  this.compileLightRegexps();
+  this.processRegexps();
   return Object.keys(cellsToIndex).length;
 }
 
@@ -6717,7 +6722,7 @@ Exet.prototype.refineLightChoices = function(fillState, limit=0) {
         this.noProperNouns,
         this.indexMinPop,
         false, this.preflexByLen, this.unpreflexSet,
-        this.getLightRegexpC(ci));
+        this.lightRegexpC[ci] ?? null);
     if (choices.length > 0) {
       let p = choices[0];
       console.assert(p > 0, p);
@@ -7403,6 +7408,9 @@ Exet.prototype.renderPreflex = function() {
     preflexText += '\n';
     preflexText += p;
   }
+  if (preflexText) {
+    preflexText += '\n';
+  }
 
   /** update various displays */
   if (this.preflexSize) {
@@ -7427,7 +7435,11 @@ Exet.prototype.renderPreflex = function() {
     }
     preflexTextLen += ptext.length + 1;
   }
-  if (preflexHtml != this.preflexInput.innerHTML) {
+  if (preflexHtml) {
+    preflexHtml += '\n';
+  }
+  const currHtml = this.preflexInput.innerHTML;
+  if (preflexHtml != currHtml) {
     delta = preflexTextLen - this.preflexInput.innerText.length;
     this.saveCursor();
     if (delta < 0) {
@@ -7670,6 +7682,9 @@ Exet.prototype.updateFillChoices = function() {
   const gridClue = this.puz.clues[ci];
   const theClue = this.fillState.clues[ci];
   console.assert(theClue && theClue.lChoices, ci);
+
+  this.lightRegexpIcon.style.display = this.lightRegexps.hasOwnProperty(ci) ?
+    '' : 'none';
 
   let html = '';
   if (theClue.lChoices.length == 0) {
@@ -7932,7 +7947,7 @@ function exetFromHistory(exetRev) {
   exet.asymOK = exetRev.asymOK || false;
   exet.tryReversals = exetRev.tryReversals || false;
   exet.lightRegexps = exetRev.lightRegexps || {};
-  exet.compileLightRegexps();
+  exet.processRegexps();
   exet.makeExolve(exetRev.exolve);
   if (!exet.puz) {
     alert('Could not load puzzle from history, reverting to a new blank puzzle');
@@ -8047,7 +8062,7 @@ function exetBlank(w, h, layers3d=1, id='', automagic=false,
   exet.requireEnums = requireEnums;
   exet.tryReversals = layers3d > 1 ? true : false;
   exet.lightRegexps = {};
-  exet.compileLightRegexps();
+  exet.processRegexps();
   exet.makeExolve(specs);
   if (!exet.puz) {
     alert('Failed to create a blank crossword, unfortunately! Perhaps the ' +
@@ -8112,7 +8127,7 @@ function exetLoadFile() {
     exet.asymOK = false;
     exet.tryReversals = false;
     exet.lightRegexps = {};
-    exet.compileLightRegexps();
+    exet.processRegexps();
     exet.makeExolve(specs);
     if (!exet.puz) {
       alert('Could not load Exolve puzzle from file, reverting to a new blank puzzle');
@@ -8140,7 +8155,7 @@ function exetLoadFile() {
         exet.region = lastRev.region || '';
         exet.tryReversals = lastRev.tryReversals || false;
         exet.lightRegexps = lastRev.lightRegexps || {};
-        exet.compileLightRegexps();
+        exet.processRegexps();
         exet.resetViability();
         exet.renderPreflex();
       }
