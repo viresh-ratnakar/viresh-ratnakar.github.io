@@ -1,0 +1,34 @@
+/* hoverpic-slim.css — styles for hoverpic-slim.js.
+   Copyright (c) 2026 Jonathan Sykes. MIT License.
+   Usage: <span class="hoverpic" data-hoverpic="image/11a.jpg">Pic 11a</span>
+   Hover (mouse) or press and hold (touch) on the span to see the picture. */
+
+/* The span */
+.hoverpic[data-hoverpic] {
+    cursor: zoom-in;
+    text-decoration: underline dotted;
+    text-underline-offset: 2px;
+    -webkit-touch-callout: none;   /* no iOS long-press menu */
+    -webkit-user-select: none;
+    user-select: none;             /* no text selection on long-press */
+}
+
+/* The floating picture (created by the script) */
+.hoverpic-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10000;
+    max-height: 200px;             /* picture height limit; change to taste */
+    max-width: min(400px, 80vw);
+    border: 3px solid white;
+    border-radius: 4px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+    background: white;
+    pointer-events: none;          /* never steals the hover from the span */
+    display: none;
+}
+
+.hoverpic-popup.visible {
+    display: block;
+}
